@@ -43,9 +43,9 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 #define  UNUSED(sym)        ((void)(sym))  // Suppress -Wunused warnings
 #define  Assert(exp)        UNUSED(0)      // Check runtime assertion
 
-//       =================
-//       MEMORY MANAGEMENT
-//       =================
+//       ======
+//       MEMORY
+//       ======
 
 #define  Allocate(n)        _Allocate(n)   // Replacement for malloc()
 #define  Free(ptr)          _Free(ptr)     // Replacement for free()
@@ -62,7 +62,7 @@ void     Error(const char * fmt, ...);     // Handle non-recoverable failure
 //       DEBUG MODE
 //       ==========
 
-#ifdef   DEBUG              // DEBUG mode has multiple effects:
+#ifdef   DEBUG              // DEBUG MODE has multiple effects:
 #undef   Allocate           // - Tracks all memory allocations
 #undef   Verbose            // - Outputs verbose log messages
 #undef   Assert             // - Enables runtime assertions
