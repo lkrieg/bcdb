@@ -22,8 +22,8 @@ void *_Allocate(int size)
 
 	ptr = malloc(size);
 
-	// We cannot really handle out
-	// of memory errors gracefully
+	// We cannot really gracefully
+	// handle out of memory errors
 
 	if (ptr == NULL)
 		Error(E_NOMEM);
@@ -73,7 +73,7 @@ void _FreeDebug(void *ptr)
 
 	if (prev == NULL) {
 		mem = next;
-		if (next != NULL) // TODO
+		if (next != NULL)
 			next->prev = NULL;
 		return;
 	}
