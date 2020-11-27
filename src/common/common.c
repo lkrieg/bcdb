@@ -82,3 +82,16 @@ void Error(const char *fmt, ...)
 	// Non-recoverable
 	exit(EXIT_FAILURE);
 }
+
+void CMD_Parse(int argc, char **argv)
+{
+	UNUSED(argc);
+	UNUSED(argv);
+}
+
+int CMD_Get(char **out)
+{
+	UNUSED(out);
+
+	return 0;
+}

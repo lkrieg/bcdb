@@ -9,9 +9,10 @@
 //       CONSTANTS
 #define  DEBUG                     // Enable debug mode
 #define  DEFAULT_PORT       23     // Default server socket port
-#define  MAX_MSG_LEN        2048   // Maximum log message length
-#define  MAX_HASH_SIZE      4096   // Maximum number of hash buckets
 #define  MAX_PATH           4096   // Cannot rely on PATH_MAX from limits.h
+#define  MAX_ARG_LEN        1024   // Maxmimum length per command line argument
+#define  MAX_MSG_LEN        2048   // Maximum message length
+#define  MAX_HASH_SIZE      4096   // Maximum hash size
 
 //       TYPEDEFS
 typedef  uint32_t           u32;   // Guaranteed 32 bit data type
@@ -23,6 +24,7 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 #define  E_NOMEM            "Memory allocation failure"
 #define  E_NOSOCK           "Could not bind to network socket"
 #define  E_FSINIT           "Could not initialize filesystem"
+#define  E_ARGVAL           "Unknown command line argument"
 
 //       UTILITY
 #define  BIT(n)             (1UL << (n))   // Get bitmask for nth bit
@@ -83,6 +85,16 @@ struct ht_tab_s {                                      // Hashtable structure:
 struct ht_ent_s {                                      // Entry node structure:
          ht_ent_t   * next;                            // - Next entry node
          const char * key;                             // - Entry key value
+};
+
+//       COMMANDLINE
+void     CMD_Parse(int argc, char **argv);             // Parse command line arguments
+int      CMD_Get(char **out);                          // Get argument type and value
+
+enum CMD_arg_type {                                    // Argument type enumeration:
+	C_UNKNOWN = 0,                                 // - Unknown command line argument
+	C_SETPORT = 1,                                 // - Overwrite default server port
+	C_VERBOSE = 2                                  // - Enable verbose log messages
 };
 
 // Internal helper functions - do not use these directly!
