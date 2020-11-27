@@ -9,8 +9,8 @@ static mem_block_t *mem;
 struct mem_block_s {
 	int           size;
 	void        * data;
-	int           line;
 	const char  * file;
+	int           line;
 
 	mem_block_t * prev;
 	mem_block_t * next;
@@ -39,10 +39,11 @@ void *_AllocateDebug(int size, const char *file, int line)
 	block->data = _Allocate(size);
 
 	block->size = size;
-	block->line = line;
 	block->file = file;
+	block->line = line;
 	block->prev = NULL;
 	block->next = mem;
+	mem->prev = block;
 	mem = block;
 
 	return block->data;
@@ -69,21 +70,21 @@ void _MemCheck(void)
 	total = 0;
 	block = mem;
 
-	if (block == NULL)
+	if (!block)
 		return;
 
 	do {
-		 total += block->size;
-		 block  = block->next;
-	} while (block != NULL);
+		total += block->size;
+		block  = block->next;
+	} while (block);
 
 
 	Info("Total memory in use: %d bytes", total);
 	Info("Showing all active memory blocks:");
+
 	for (block = mem; block; block = block->next)
-		Info("\t%d bytes in %s:%d",
-		     block->size, block->file,
-		     block->line);
+		Info("\t%d bytes in %s:%d", block->size,
+		     block->file, block->line);
 }
 
 
