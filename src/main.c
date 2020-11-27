@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv)
 {
-	int type;
+	bool running;
 	arg_t arg;
 
 	if (FS_Init() < 0)
@@ -11,17 +11,21 @@ int main(int argc, char **argv)
 	if (NET_Init() < 0)
 		Error(E_NOSOCK);
 
+	running = true;
 	CMD_Parse(argc, argv);
-	while ((type = CMD_Get(&arg))) {
-		switch(type) {
+	while (CMD_Get(&arg)) {
+		switch(arg.type) {
 		case C_SETPORT:
 			break;
 		case C_VERBOSE:
 			break;
-
 		default: // Unknown
 			Error(E_ARGVAL);
 		}
+	}
+
+	while (running) {
+		// TODO
 	}
 
 	NET_Shutdown();

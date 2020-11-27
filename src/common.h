@@ -25,9 +25,9 @@ typedef  uint32_t           u32;   // Guaranteed 32 bit data type
 typedef  uint16_t           u16;   // Guaranteed 16 bit data type
 typedef  unsigned char      byte;  // uint8_t could be a non-character
                                    //   type and therefore break aliasing
-//       ========
-//       MESSAGES
-//       ========
+//       ==============
+//       ERROR MESSAGES
+//       ==============
 
 #define  E_ASSERT           "Assertion failure"
 #define  E_NOMEM            "Memory allocation failure"
