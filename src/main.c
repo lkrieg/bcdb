@@ -1,13 +1,17 @@
 #include "common.h"
-#include "net.h"
 
 int main(int argc, char **argv)
 {
-	if (net_init() < 0)
+	if (FS_Init() < 0)
+		Error(E_FSINIT);
+
+	if (NET_Init() < 0)
 		Error(E_NOSOCK);
 
 	UNUSED(argc);
 	UNUSED(argv);
+
+	FS_Shutdown();
 
 	return 0;
 }

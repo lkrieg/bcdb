@@ -6,55 +6,83 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-//       Constants
-#define  DEBUG                           // Enable debug mode
-#define  DEFAULT_PORT      23            // Default server socket port
-#define  MAX_MSG_LEN       2048          // Maximum log message length
-#define  MAX_HASH_SIZE     4096          // Maximum number of hash buckets
-#define  MAX_PATH          4096          // Cannot rely on system header
+//       CONSTANTS
+#define  DEBUG                     // Enable debug mode
+#define  DEFAULT_PORT       23     // Default server socket port
+#define  MAX_MSG_LEN        2048   // Maximum log message length
+#define  MAX_HASH_SIZE      4096   // Maximum number of hash buckets
+#define  MAX_PATH           4096   // Cannot rely on system header
 
-//       Messages
-#define  E_ASSERT          "Assertion failure"
-#define  E_NOMEM           "Memory allocation failure"
-#define  E_NOSOCK          "Could not bind to socket"
+//       TYPEDEFS
+typedef  uint32_t           u32;   // Guaranteed 32 bit data type
+typedef  uint16_t           u16;   // Guarenteed 16 bit data type
+typedef  unsigned char      byte;  // uint8_t could be a non-character
+                                   //   type and break strict aliasing
+//       MESSAGES
+#define  E_ASSERT           "Assertion failure"
+#define  E_NOMEM            "Memory allocation failure"
+#define  E_NOSOCK           "Could not bind to network socket"
+#define  E_FSINIT           "Could not initialize filesystem"
 
-//       Utility
-#define  BIT(n)            (1UL << (n))  // Get bitmask for nth bit
-#define  UNUSED(sym)       ((void)(sym)) // Suppress -Wunused warnings
-#define  Assert(exp)       UNUSED(0)     // Check runtime assertion
+//       UTILITY
+#define  BIT(n)             (1UL << (n))   // Get bitmask for nth bit
+#define  UNUSED(sym)        ((void)(sym))  // Suppress -Wunused warnings
+#define  Assert(exp)        UNUSED(0)      // Check runtime assertion
 
-//       Memory
-#define  Allocate(n)       _Allocate(n)  // Replacement for malloc()
-#define  Free(ptr)         _Free(ptr)    // Replacement for free()
+//       MEMORY
+#define  Allocate(n)        _Allocate(n)   // Replacement for malloc()
+#define  Free(ptr)          _Free(ptr)     // Replacement for free()
 
-//       Logging
-void     Info (const char  *fmt, ...);   // Output general info message
-void     Error(const char  *fmt, ...);   // Handle non-recoverable failure
-#define  Verbose(...)      UNUSED(0)     // Output debug info message
+//       LOGGING
+void     Info (const char * fmt, ...);     // Output general info message
+void     Error(const char * fmt, ...);     // Handle non-recoverable failure
+#define  Verbose(...)       UNUSED(0)      // Output debug info message
 
-//       Filesystem
-int      FS_Open(const char *path);
-int      FS_Read(int fd, void *dest, int n);
-int      FS_Write(int fd, const void *src, int n);
-void     FS_Close(int handle);
-
-//       Typedefs
-typedef  uint32_t          u32;          // Guaranteed 32 bit data type
-typedef  uint16_t          u16;          // Guarenteed 16 bit data type
-typedef  unsigned char     byte;         // uint8_t could be a non-character
-                                         //   type and break strict aliasing
-//       Debug
-#ifdef   DEBUG                           // DEBUG mode has multiple effects:
-#undef   Allocate                        // - Tracks all memory allocations
-#undef   Verbose                         // - Outputs verbose log messages
-#undef   Assert                          // - Enables runtime assertions
+//       DEBUG
+#ifdef   DEBUG              // DEBUG mode has multiple effects:
+#undef   Allocate           // - Tracks all memory allocations
+#undef   Verbose            // - Outputs verbose log messages
+#undef   Assert             // - Enables runtime assertions
 #undef   Free
-
-#define  Verbose(...)     _Verbose(__VA_ARGS__)
-#define  Assert(exp)      _Assert(exp, #exp, __FILE__, __LINE__)
-#define  Allocate(n)      _AllocateDebug( n, __FILE__, __LINE__)
-#define  Free(ptr)        _FreeDebug(ptr)
+#define  Verbose(...)       _Verbose(__VA_ARGS__)
+#define  Assert(exp)        _Assert(exp, #exp, __FILE__, __LINE__)
+#define  Allocate(n)        _AllocateDebug( n, __FILE__, __LINE__)
+#define  Free(ptr)          _FreeDebug(ptr)
 #endif
+
+//       NETWORKING
+int      NET_Init(void);                               // Bind to network socket
+void     NET_Shutdown(void);                           // Unbind from network socket
+
+//       FILESYSTEM
+int      FS_Init(void);                                // Initialize filesystem
+int      FS_Open(const char *path);                    // Get writable file handle
+int      FS_Read(int fd, void *dest, int n);           // Read n bytes from handle
+int      FS_Write(int fd, const void *src, int n);     // Write n bytes to handle
+void     FS_Close(int handle);                         // Close file handle
+void     FS_Shutdown(void);                            // Shutdown filesystem
+
+//       HASHTABLE                                     // Hashtable typedefs:
+typedef  u32 (*ht_fun_t)(const char *);                //   - Hashing function
+typedef  struct ht_tab_s ht_tab_t;                     //   - Table structure
+typedef  struct ht_ent_s ht_ent_t;                     //   - Entry structure
+
+int      Hash_Init(ht_tab_t *tab);                     // Initialize table
+void     Hash_Free(ht_tab_t *tab);                     // Free all table entries
+int      Hash_Insert(ht_tab_t *tab, const char *key);  // Insert new key into table
+bool     Hash_Exists(ht_tab_t *tab, const char *key);  // Check if key exists in table
+int      Hash_Delete(ht_tab_t *tab, const char *key);  // Delete key from table
+
+struct ht_tab_s {
+         ht_ent_t  ** table;
+	 ht_fun_t     func;
+         int          size;
+};
+
+struct ht_ent_s {
+         ht_ent_t   * next;
+         const char * val;
+};
 
 // Internal helper functions - do not use these directly!
 // Use the macro versions without the prefixed underscore.
