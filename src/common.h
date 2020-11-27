@@ -122,8 +122,8 @@ struct   ht_ent_s {                                    // Entry node structure:
 //       ===========
 
 typedef  struct arg_s arg_t;                           // Argument value typedef
-void     Arg_Parse(int argc, char **argv);             // Parse command line arguments
-int      Arg_Get(arg_t *arg);                          // Get argument type and value
+void     CMD_Parse(int argc, char **argv);             // Parse command line arguments
+int      CMD_Get(arg_t *arg);                          // Get argument type and value
 
 struct   arg_s {
          int type;                                     // Argument type, see arg_type_e

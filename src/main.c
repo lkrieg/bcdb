@@ -11,8 +11,8 @@ int main(int argc, char **argv)
 	if (NET_Init() < 0)
 		Error(E_NOSOCK);
 
-	Arg_Parse(argc, argv);
-	while ((type = Arg_Get(&arg))) {
+	CMD_Parse(argc, argv);
+	while ((type = CMD_Get(&arg))) {
 		switch(type) {
 		case C_SETPORT:
 			break;
