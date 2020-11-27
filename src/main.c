@@ -3,7 +3,7 @@
 int main(int argc, char **argv)
 {
 	int arg;
-	char *val;
+	char val[MAX_ARG_LEN];
 
 	if (FS_Init() < 0)
 		Error(E_FSINIT);
@@ -11,8 +11,8 @@ int main(int argc, char **argv)
 	if (NET_Init() < 0)
 		Error(E_NOSOCK);
 
-	CMD_Parse(argc, argv);
-	while ((arg = CMD_Get(&val)))
+	Arg_Parse(argc, argv);
+	while ((arg = Arg_Get(val)))
 		switch(arg) {
 
 		case C_SETPORT:

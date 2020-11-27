@@ -83,13 +83,13 @@ void Error(const char *fmt, ...)
 	exit(EXIT_FAILURE);
 }
 
-void CMD_Parse(int argc, char **argv)
+void Arg_Parse(int argc, char **argv)
 {
 	UNUSED(argc);
 	UNUSED(argv);
 }
 
-int CMD_Get(char **out)
+int Arg_Get(char *out)
 {
 	UNUSED(out);
 
