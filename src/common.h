@@ -106,13 +106,13 @@ int      Hash_Insert(ht_tab_t *tab, const char *key);  // Insert new key into ta
 int      Hash_Exists(ht_tab_t *tab, const char *key);  // Check if key already exists
 int      Hash_Delete(ht_tab_t *tab, const char *key);  // Delete key from table
 
-struct ht_tab_s {                                      // Hashtable structure:
+struct   ht_tab_s {                                    // Hashtable structure:
          ht_ent_t  ** table;                           // - Table entries
 	 ht_fun_t     func;                            // - Hashing function
          int          size;                            // - Maximum hash size
 };
 
-struct ht_ent_s {                                      // Entry node structure:
+struct   ht_ent_s {                                    // Entry node structure:
          ht_ent_t   * next;                            // - Next entry node
          const char * key;                             // - Entry key value
 };
@@ -121,21 +121,30 @@ struct ht_ent_s {                                      // Entry node structure:
 //       COMMANDLINE
 //       ===========
 
+typedef  struct arg_s arg_t;                           // Argument value typedef
 void     Arg_Parse(int argc, char **argv);             // Parse command line arguments
-int      Arg_Get(char *out);                           // Get argument type and value
+int      Arg_Get(arg_t *arg);                          // Get argument type and value
 
-enum arg_type {                                        // Argument type enumeration:
-         C_UNKNOWN = 0,                                // - Invalid command line argument
+struct   arg_s {
+         int type;                                     // Argument type, see arg_type_e
+         int len;                                      // Length for string values
+         union {                                       // Argument value union:
+         	long     num;                          // - Numeric argument values
+         	char     str[MAX_ARG_LEN];             // - String argument values
+	} val;
+};
+
+enum     arg_type_e {                                  // Argument type enumeration:
          C_SETPORT = 1,                                // - Overwrite default server port
-         C_VERBOSE = 2                                 // - Enable verbose log messages
+         C_VERBOSE                                     // - Enable verbose log messages
 };
 
 //       ========
 //       INTERNAL
 //       ========
 
-// Internal helper functions - do not use these directly!
-// Use the macro versions without the prefixed underscore.
+// Internal helper functions - do not use these directly.
+// Use the macros without prefixed underscore instead.
 
 void *   _Allocate(int size);
 void *   _AllocateDebug(int size, const char *file, int line);

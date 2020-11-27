@@ -89,9 +89,9 @@ void Arg_Parse(int argc, char **argv)
 	UNUSED(argv);
 }
 
-int Arg_Get(char *out)
+int Arg_Get(arg_t *arg)
 {
-	UNUSED(out);
+	UNUSED(arg);
 
-	return 0;
+	return -1;
 }

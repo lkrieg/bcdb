@@ -2,8 +2,8 @@
 
 int main(int argc, char **argv)
 {
-	int arg;
-	char val[MAX_ARG_LEN];
+	int type;
+	arg_t arg;
 
 	if (FS_Init() < 0)
 		Error(E_FSINIT);
@@ -12,23 +12,20 @@ int main(int argc, char **argv)
 		Error(E_NOSOCK);
 
 	Arg_Parse(argc, argv);
-	while ((arg = Arg_Get(val)))
-		switch(arg) {
-
+	while ((type = Arg_Get(&arg))) {
+		switch(type) {
 		case C_SETPORT:
-			break; // TODO
-
+			break;
 		case C_VERBOSE:
-			break; // TODO
+			break;
 
 		default: // Unknown
 			Error(E_ARGVAL);
 		}
+	}
 
 	NET_Shutdown();
 	FS_Shutdown();
-
-	UNUSED(val);
 
 	return 0;
 }
