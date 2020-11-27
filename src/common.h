@@ -13,7 +13,7 @@
 #define  MAX_PATH         4096          // Cannot rely on system header
 
 #define  E_ASSERT         "Assertion failure"
-#define  E_NOMEM          "Memory allocation failure: Out of memory"
+#define  E_NOMEM          "Memory allocation failure"
 #define  E_NOSOCK         "Could not bind to socket"
 
 #define  BIT(n)           (1UL << (n))  // Get bitmask for nth bit
@@ -23,7 +23,7 @@
 #define  Assert(exp)      UNUSED(0)     // Check runtime assertion
 #define  Verbose(...)     UNUSED(0)     // Output debug info message
 
-void     Info (const char *fmt, ...);   // Output general info message
+void     Info(const char *fmt, ...);    // Output general info message
 void     Error(const char *fmt, ...);   // Handle non-recoverable failure
 
 typedef  uint32_t         u32;          // Guaranteed 32 bit data type
