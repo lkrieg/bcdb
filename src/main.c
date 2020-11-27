@@ -24,9 +24,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	while (running) {
+	while (running)
 		// TODO
-	}
 
 	NET_Shutdown();
 	FS_Shutdown();
