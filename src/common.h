@@ -131,7 +131,7 @@ struct   arg_s {
          union {                                       // Argument value union:
          	long     num;                          // - Numeric argument values
          	char     str[MAX_ARG_LEN];             // - String argument values
-	} val;
+         } val;
 };
 
 enum     arg_type_e {                                  // Argument type enumeration:
