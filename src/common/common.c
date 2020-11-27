@@ -71,15 +71,12 @@ void _FreeDebug(void *ptr)
 	_Free(block->data);
 	_Free(block);
 
-	if (prev == NULL) {
+	if (next != NULL)
+		next->prev = prev;
+	if (prev != NULL)
+		prev->next = next;
+	else
 		mem = next;
-		if (next != NULL)
-			next->prev = NULL;
-		return;
-	}
-
-	prev->next = next;
-	next->prev = prev;
 }
 
 void _MemCheck(void)
