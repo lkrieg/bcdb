@@ -5,6 +5,11 @@ int FS_Init(void)
 	return 0;
 }
 
+void FS_AddPath(const char *path)
+{
+	UNUSED(path);
+}
+
 int FS_Open(const char *path)
 {
 	UNUSED(path);

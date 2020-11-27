@@ -1,7 +1,8 @@
 #include "common.h"
 
-int NET_Init(void)
+int NET_Init(int port)
 {
+	UNUSED(port);
 	return 0;
 }
 

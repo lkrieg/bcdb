@@ -16,7 +16,7 @@ LDLIBS   =
 
 DSTDIR   = bin
 TARGET  := $(DSTDIR)/bcdb
-TMPDIR  := $(DSTDIR)/build
+TMPDIR  := $(DSTDIR)/.build
 SOURCES := $(shell find src -name "*.c")
 OBJECTS := $(SOURCES:%.c=$(TMPDIR)/%.o)
 DEPENDS := $(SOURCES:%.c=$(TMPDIR)/%.d)

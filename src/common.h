@@ -13,8 +13,8 @@
 #define  DEBUG                     // Enable debug mode
 #define  DEFAULT_PORT       23     // Default server socket port
 #define  MAX_PATH           4096   // Cannot rely on PATH_MAX from limits.h
-#define  MAX_ARG_LEN        1024   // Maxmimum length per command line argument
-#define  MAX_MSG_LEN        2048   // Maximum message length
+#define  MAX_ARG_LEN        1024   // Maximum command line argument length
+#define  MAX_MSG_LEN        2048   // Maximum log message length
 #define  MAX_HASH_SIZE      4096   // Maximum hash size
 
 //       ========
@@ -25,9 +25,9 @@ typedef  uint32_t           u32;   // Guaranteed 32 bit data type
 typedef  uint16_t           u16;   // Guaranteed 16 bit data type
 typedef  unsigned char      byte;  // uint8_t could be a non-character
                                    //   type and therefore break aliasing
-//       ==============
-//       ERROR MESSAGES
-//       ==============
+//       ======
+//       ERRORS
+//       ======
 
 #define  E_ASSERT           "Assertion failure"
 #define  E_NOMEM            "Memory allocation failure"
@@ -49,7 +49,7 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 
 #define  Allocate(n)        _Allocate(n)   // Replacement for malloc()
 #define  Free(ptr)          _Free(ptr)     // Replacement for free()
-#define  PrintMem()         UNUSED(0)      // Ouput memory details
+#define  MemCheck()         UNUSED(0)      // Report memory leaks
 
 //       =======
 //       LOGGING
@@ -81,7 +81,7 @@ void     Error(const char * fmt, ...);     // Handle non-recoverable failure
 //       NETWORKING
 //       ==========
 
-int      NET_Init(void);                               // Bind to network socket
+int      NET_Init(int port);                           // Bind to network socket
 void     NET_Shutdown(void);                           // Unbind from network socket
 
 //       ==========
@@ -89,6 +89,7 @@ void     NET_Shutdown(void);                           // Unbind from network so
 //       ==========
 
 int      FS_Init(void);                                // Initialize filesystem
+void     FS_AddPath(const char *path);                 // Add path to searchpaths
 int      FS_Open(const char *path);                    // Get writable file handle
 int      FS_Read(int fd, void *dest, int n);           // Read n bytes from handle
 int      FS_Write(int fd, const void *src, int n);     // Write n bytes to handle
@@ -98,10 +99,10 @@ void     FS_Shutdown(void);                            // Shutdown filesystem
 //       =========
 //       HASHTABLE
 //       =========
-                                                       // Hashtable typedefs:
-typedef  u32 (*ht_fun_t)(const char *);                // - Hashing function
-typedef  struct ht_tab_s ht_tab_t;                     // - Table structure
-typedef  struct ht_ent_s ht_ent_t;                     // - Entry structure
+
+typedef  u32 (*ht_fun_t)(const char *);
+typedef  struct ht_tab_s ht_tab_t;
+typedef  struct ht_ent_s ht_ent_t;
 
 int      Hash_Init(ht_tab_t *tab);                     // Initialize hashtable
 void     Hash_Free(ht_tab_t *tab);                     // Free all table entries
@@ -109,37 +110,37 @@ int      Hash_Insert(ht_tab_t *tab, const char *key);  // Insert new key into ta
 int      Hash_Exists(ht_tab_t *tab, const char *key);  // Check if key already exists
 int      Hash_Delete(ht_tab_t *tab, const char *key);  // Delete key from table
 
-struct   ht_tab_s {                                    // Hashtable structure:
-         ht_ent_t  ** table;                           // - Table entries
-	 ht_fun_t     func;                            // - Hashing function
-         int          size;                            // - Maximum hash size
+struct   ht_tab_s {
+         ht_ent_t  ** table;
+         ht_fun_t     func;
+         int          size;
 };
 
-struct   ht_ent_s {                                    // Entry node structure:
-         ht_ent_t   * next;                            // - Next entry node
-         const char * key;                             // - Entry key value
+struct   ht_ent_s {
+         ht_ent_t   * next;
+         const char * key;
 };
 
 //       ===========
 //       COMMANDLINE
 //       ===========
 
-typedef  struct arg_s arg_t;                           // Argument value typedef
+typedef  struct arg_s arg_t;
+
 void     CMD_Parse(int argc, char **argv);             // Parse command line arguments
 int      CMD_Get(arg_t *arg);                          // Get argument type and value
 
 struct   arg_s {
-         int type;                                     // Argument type, see arg_type_e
-         int len;                                      // Length for string values
-         union {                                       // Argument value union:
-         	long     num;                          // - Numeric argument values
-         	char     str[MAX_ARG_LEN];             // - String argument values
-         } val;
+         int type;
+         union {
+         	long     num;
+         	char     str[MAX_ARG_LEN];
+         } as;
 };
 
-enum     arg_type_e {                                  // Argument type enumeration:
-         C_SETPORT = 1,                                // - Overwrite default server port
-         C_VERBOSE                                     // - Enable verbose log messages
+enum     arg_type_e {
+         T_ARG_PORT,
+         T_ARG_PATH
 };
 
 //       ========
