@@ -20,12 +20,12 @@ int Hash_Insert(ht_tab_t *tab, const char *key)
 	return -1;
 }
 
-bool Hash_Exists(ht_tab_t *tab, const char *key)
+int Hash_Exists(ht_tab_t *tab, const char *key)
 {
 	UNUSED(tab);
 	UNUSED(key);
 
-	return false;
+	return -1;
 }
 
 int Hash_Delete(ht_tab_t *tab, const char *key)

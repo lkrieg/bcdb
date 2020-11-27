@@ -11,13 +11,13 @@
 #define  DEFAULT_PORT       23     // Default server socket port
 #define  MAX_MSG_LEN        2048   // Maximum log message length
 #define  MAX_HASH_SIZE      4096   // Maximum number of hash buckets
-#define  MAX_PATH           4096   // Cannot rely on system header
+#define  MAX_PATH           4096   // Cannot rely on PATH_MAX from limits.h
 
 //       TYPEDEFS
 typedef  uint32_t           u32;   // Guaranteed 32 bit data type
-typedef  uint16_t           u16;   // Guarenteed 16 bit data type
+typedef  uint16_t           u16;   // Guaranteed 16 bit data type
 typedef  unsigned char      byte;  // uint8_t could be a non-character
-                                   //   type and break strict aliasing
+                                   //   type and therefore break aliasing
 //       MESSAGES
 #define  E_ASSERT           "Assertion failure"
 #define  E_NOMEM            "Memory allocation failure"
@@ -44,6 +44,7 @@ void     Error(const char * fmt, ...);     // Handle non-recoverable failure
 #undef   Verbose            // - Outputs verbose log messages
 #undef   Assert             // - Enables runtime assertions
 #undef   Free
+
 #define  Verbose(...)       _Verbose(__VA_ARGS__)
 #define  Assert(exp)        _Assert(exp, #exp, __FILE__, __LINE__)
 #define  Allocate(n)        _AllocateDebug( n, __FILE__, __LINE__)
@@ -63,25 +64,25 @@ void     FS_Close(int handle);                         // Close file handle
 void     FS_Shutdown(void);                            // Shutdown filesystem
 
 //       HASHTABLE                                     // Hashtable typedefs:
-typedef  u32 (*ht_fun_t)(const char *);                //   - Hashing function
-typedef  struct ht_tab_s ht_tab_t;                     //   - Table structure
-typedef  struct ht_ent_s ht_ent_t;                     //   - Entry structure
+typedef  u32 (*ht_fun_t)(const char *);                // - Hashing function
+typedef  struct ht_tab_s ht_tab_t;                     // - Table structure
+typedef  struct ht_ent_s ht_ent_t;                     // - Entry structure
 
-int      Hash_Init(ht_tab_t *tab);                     // Initialize table
+int      Hash_Init(ht_tab_t *tab);                     // Initialize hashtable
 void     Hash_Free(ht_tab_t *tab);                     // Free all table entries
 int      Hash_Insert(ht_tab_t *tab, const char *key);  // Insert new key into table
-bool     Hash_Exists(ht_tab_t *tab, const char *key);  // Check if key exists in table
+int      Hash_Exists(ht_tab_t *tab, const char *key);  // Check if key already exists
 int      Hash_Delete(ht_tab_t *tab, const char *key);  // Delete key from table
 
-struct ht_tab_s {
-         ht_ent_t  ** table;
-	 ht_fun_t     func;
-         int          size;
+struct ht_tab_s {                                      // Hashtable structure:
+         ht_ent_t  ** table;                           // - Table entries
+	 ht_fun_t     func;                            // - Hashing function
+         int          size;                            // - Maximum hash size
 };
 
-struct ht_ent_s {
-         ht_ent_t   * next;
-         const char * val;
+struct ht_ent_s {                                      // Entry node structure:
+         ht_ent_t   * next;                            // - Next entry node
+         const char * key;                             // - Entry key value
 };
 
 // Internal helper functions - do not use these directly!
