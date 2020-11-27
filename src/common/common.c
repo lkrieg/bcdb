@@ -58,6 +58,32 @@ void _FreeDebug(void *ptr)
 	_Free(block->data);
 }
 
+void _MemCheck(void)
+{
+	unsigned long total;
+	mem_block_t *block;
+
+	total = 0;
+	block = mem;
+
+	while (block != NULL) {
+		total += block->size;
+		block  = block->next;
+	}
+
+	if (total == 0)
+		return;
+
+	block = mem;
+	Info("Total memory in use: %d bytes", total);
+	Info("Listing active memory blocks:");
+	for (; block; block = block->next)
+		Info("\t%d bytes in (%s:%d)",
+		     block->size, block->file,
+		     block->line);
+}
+
+
 void _Assert(bool exp, const char *text, const char *file, int line)
 {
 	if (exp)
@@ -72,7 +98,7 @@ void _Message(const char *pre, const char *fmt, va_list arg)
 	static char msg[MAX_MSG_LEN];
 
 	vsnprintf(msg, MAX_MSG_LEN, fmt, arg);
-	printf("%s: %s.\n", pre, msg);
+	printf("%s: %s\n", pre, msg);
 	fflush(stdout);
 }
 
@@ -115,7 +141,7 @@ void CMD_Parse(int argc, char **argv)
 int CMD_Get(arg_t *arg)
 {
 	UNUSED(arg);
-	return -1;
+	return 0;
 }
 
 static mem_block_t *FindBlock(void *data)

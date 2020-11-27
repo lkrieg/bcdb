@@ -49,6 +49,7 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 
 #define  Allocate(n)        _Allocate(n)   // Replacement for malloc()
 #define  Free(ptr)          _Free(ptr)     // Replacement for free()
+#define  PrintMem()         UNUSED(0)      // Ouput memory details
 
 //       =======
 //       LOGGING
@@ -66,12 +67,14 @@ void     Error(const char * fmt, ...);     // Handle non-recoverable failure
 #undef   Allocate           // - Tracks all memory allocations
 #undef   Verbose            // - Outputs verbose log messages
 #undef   Assert             // - Enables runtime assertions
+#undef   MemCheck           // - Prints detailed leak info
 #undef   Free
 
 #define  Verbose(...)       _Verbose(__VA_ARGS__)
 #define  Assert(exp)        _Assert(exp, #exp, __FILE__, __LINE__)
 #define  Allocate(n)        _AllocateDebug( n, __FILE__, __LINE__)
 #define  Free(ptr)          _FreeDebug(ptr)
+#define  MemCheck()         _MemCheck()
 #endif
 
 //       ==========
@@ -153,5 +156,6 @@ void     _Message(const char *pre, const char *fmt, va_list arg);
 void     _Verbose(const char *fmt, ...);
 void     _Free(void *ptr);
 void     _FreeDebug(void *ptr);
+void     _MemCheck(void);
 
 #endif // COMMON_H

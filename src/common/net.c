@@ -2,7 +2,7 @@
 
 int NET_Init(void)
 {
-	return -1;
+	return 0;
 }
 
 void NET_Shutdown(void)

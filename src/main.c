@@ -24,10 +24,13 @@ int main(int argc, char **argv)
 		}
 
 	while (running)
-		// TODO
+		break; // TODO
+
+	Allocate(20);
 
 	NET_Shutdown();
 	FS_Shutdown();
+	MemCheck();
 
 	return 0;
 }

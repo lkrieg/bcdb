@@ -2,7 +2,7 @@
 
 int FS_Init(void)
 {
-	return -1;
+	return 0;
 }
 
 int FS_Open(const char *path)
