@@ -43,8 +43,10 @@ void *_AllocateDebug(int size, const char *file, int line)
 	block->line = line;
 	block->prev = NULL;
 	block->next = mem;
-	mem->prev = block;
 	mem = block;
+
+	if (mem->next != NULL)
+		mem->next->prev = mem;
 
 	return block->data;
 }
@@ -57,9 +59,27 @@ void _Free(void *ptr)
 void _FreeDebug(void *ptr)
 {
 	mem_block_t *block;
+	mem_block_t *prev, *next;
 
 	block = FindBlock(ptr);
+	if (block == NULL)
+		return;
+
+	prev = block->prev;
+	next = block->next;
+
 	_Free(block->data);
+	_Free(block);
+
+	if (prev == NULL) {
+		mem = next;
+		if (next != NULL) // TODO
+			next->prev = NULL;
+		return;
+	}
+
+	prev->next = next;
+	next->prev = prev;
 }
 
 void _MemCheck(void)
@@ -87,6 +107,15 @@ void _MemCheck(void)
 		     block->file, block->line);
 }
 
+static mem_block_t *FindBlock(void *data)
+{
+	mem_block_t *block = mem;
+
+	while (block && block->data != data)
+		block = block->next;
+
+	return block;
+}
 
 void _Assert(bool exp, const char *text, const char *file, int line)
 {
@@ -144,10 +173,4 @@ int CMD_Get(arg_t *arg)
 {
 	UNUSED(arg);
 	return 0;
-}
-
-static mem_block_t *FindBlock(void *data)
-{
-	UNUSED(data);
-	return NULL;
 }

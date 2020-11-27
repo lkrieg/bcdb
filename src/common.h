@@ -67,7 +67,7 @@ void     Error(const char * fmt, ...);     // Handle non-recoverable failure
 #undef   Allocate           // - Tracks all memory allocations
 #undef   Verbose            // - Outputs verbose log messages
 #undef   Assert             // - Enables runtime assertions
-#undef   MemCheck           // - Prints detailed leak info
+#undef   MemCheck           // - Prints detailed leak infos
 #undef   Free
 
 #define  Verbose(...)       _Verbose(__VA_ARGS__)
