@@ -11,6 +11,8 @@ struct mem_block_s {
 	void        * data;
 	int           line;
 	const char  * file;
+
+	mem_block_t * prev;
 	mem_block_t * next;
 };
 
@@ -35,9 +37,11 @@ void *_AllocateDebug(int size, const char *file, int line)
 
 	block = _Allocate(sizeof(*block));
 	block->data = _Allocate(size);
+
 	block->size = size;
 	block->line = line;
 	block->file = file;
+	block->prev = NULL;
 	block->next = mem;
 	mem = block;
 
@@ -53,7 +57,6 @@ void _FreeDebug(void *ptr)
 {
 	mem_block_t *block;
 
-	// TODO: Unlink block
 	block = FindBlock(ptr);
 	_Free(block->data);
 }
@@ -66,19 +69,19 @@ void _MemCheck(void)
 	total = 0;
 	block = mem;
 
-	while (block != NULL) {
-		total += block->size;
-		block  = block->next;
-	}
-
-	if (total == 0)
+	if (block == NULL)
 		return;
 
-	block = mem;
+	do {
+		 total += block->size;
+		 block  = block->next;
+	} while (block != NULL);
+
+
 	Info("Total memory in use: %d bytes", total);
-	Info("Listing active memory blocks:");
-	for (; block; block = block->next)
-		Info("\t%d bytes in (%s:%d)",
+	Info("Showing all active memory blocks:");
+	for (block = mem; block; block = block->next)
+		Info("\t%d bytes in %s:%d",
 		     block->size, block->file,
 		     block->line);
 }
@@ -86,11 +89,9 @@ void _MemCheck(void)
 
 void _Assert(bool exp, const char *text, const char *file, int line)
 {
-	if (exp)
-		return;
-
-	Error(E_ASSERT": %s (%s:%d)",
-	      text, file, line);
+	if (exp == false)
+		Error(E_ASSERT": %s (%s:%d)",
+		      text, file, line);
 }
 
 void _Message(const char *pre, const char *fmt, va_list arg)

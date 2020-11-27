@@ -26,8 +26,6 @@ int main(int argc, char **argv)
 	while (running)
 		break; // TODO
 
-	Allocate(20);
-
 	NET_Shutdown();
 	FS_Shutdown();
 	MemCheck();
