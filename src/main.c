@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 
 	running = true;
 	CMD_Parse(argc, argv);
-	while (CMD_Get(&arg)) {
+	while (CMD_Get(&arg))
 		switch(arg.type) {
 		case C_SETPORT:
 			break;
@@ -22,7 +22,6 @@ int main(int argc, char **argv)
 		default: // Unknown
 			Error(E_ARGVAL);
 		}
-	}
 
 	while (running)
 		// TODO
