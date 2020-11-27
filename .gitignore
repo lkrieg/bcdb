@@ -1,0 +1,4 @@
+bin/bcdb
+bin/bcdb.exe
+bin/build/
+*.swp
