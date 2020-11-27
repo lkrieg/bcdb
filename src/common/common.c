@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static void Message(const char *pre, const char *fmt, va_list arg);
-
 void *_Allocate(int size)
 {
 	char *ptr;
@@ -46,12 +44,21 @@ void _Assert(bool exp, const char *text, const char *file, int line)
 	      text, file, line);
 }
 
+void _Message(const char *pre, const char *fmt, va_list arg)
+{
+	static char msg[MAX_MSG_LEN];
+
+	vsnprintf(msg, MAX_MSG_LEN, fmt, arg);
+	printf("%s: %s.\n", pre, msg);
+	fflush(stdout);
+}
+
 void _Verbose(const char *fmt, ...)
 {
 	va_list arg;
 
 	va_start(arg, fmt);
-	Message("Verbose", fmt, arg);
+	_Message("Verbose", fmt, arg);
 	va_end(arg);
 }
 
@@ -60,7 +67,7 @@ void Info(const char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	Message("Info", fmt, arg);
+	_Message("Info", fmt, arg);
 	va_end(arg);
 }
 
@@ -69,18 +76,9 @@ void Error(const char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	Message("Error", fmt, arg);
+	_Message("Error", fmt, arg);
 	va_end(arg);
 
 	// Non-recoverable
 	exit(EXIT_FAILURE);
-}
-
-static void Message(const char *pre, const char *fmt, va_list arg)
-{
-	static char msg[MAX_MSG_LEN];
-
-	vsnprintf(msg, MAX_MSG_LEN, fmt, arg);
-	printf("%s: %s.\n", pre, msg);
-	fflush(stdout);
 }
