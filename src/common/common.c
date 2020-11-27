@@ -2,6 +2,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+typedef struct mem_block_s mem_block_t;
+static mem_block_t *FindBlock(void *data);
+static mem_block_t *mem;
+
+struct mem_block_s {
+	int           size;
+	void        * data;
+	int           line;
+	const char  * file;
+	mem_block_t * next;
+};
+
 void *_Allocate(int size)
 {
 	char *ptr;
@@ -19,10 +31,17 @@ void *_Allocate(int size)
 
 void *_AllocateDebug(int size, const char *file, int line)
 {
-	UNUSED(file);
-	UNUSED(line);
+	mem_block_t *block;
 
-	return _Allocate(size);
+	block = _Allocate(sizeof(*block));
+	block->data = _Allocate(size);
+	block->size = size;
+	block->line = line;
+	block->file = file;
+	block->next = mem;
+	mem = block;
+
+	return block->data;
 }
 
 void _Free(void *ptr)
@@ -32,7 +51,11 @@ void _Free(void *ptr)
 
 void _FreeDebug(void *ptr)
 {
-	_Free(ptr);
+	mem_block_t *block;
+
+	// TODO: Unlink block
+	block = FindBlock(ptr);
+	_Free(block->data);
 }
 
 void _Assert(bool exp, const char *text, const char *file, int line)
@@ -92,6 +115,11 @@ void CMD_Parse(int argc, char **argv)
 int CMD_Get(arg_t *arg)
 {
 	UNUSED(arg);
-
 	return -1;
+}
+
+static mem_block_t *FindBlock(void *data)
+{
+	UNUSED(data);
+	return NULL;
 }
