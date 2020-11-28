@@ -15,6 +15,7 @@
 #define  MAX_PATH           4096   // Cannot rely on PATH_MAX from limits.h
 #define  MAX_ARG_LEN        1024   // Maximum command line argument length
 #define  MAX_MSG_LEN        2048   // Maximum log message length
+#define  MAX_REQ_LEN        2048   // Maximum client request length
 #define  MAX_HASH_SIZE      4096   // Maximum hash size
 
 //       ========
@@ -31,7 +32,7 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 
 #define  E_ASSERT           "Assertion failure"
 #define  E_NOMEM            "Memory allocation failure"
-#define  E_NOSOCK           "Could not bind to network socket"
+#define  E_NOSOCK           "Could not bind to network port"
 #define  E_FSINIT           "Could not initialize filesystem"
 #define  E_ARGVAL           "Unknown command line argument"
 
@@ -81,8 +82,28 @@ void     Error(const char * fmt, ...);     // Handle non-recoverable failure
 //       NETWORKING
 //       ==========
 
+typedef  struct req_s req_t;
+
 int      NET_Init(int port);                           // Bind to network socket
-void     NET_Shutdown(void);                           // Unbind from network socket
+int      NET_Listen(req_t *out);                       // Get next client request
+void     NET_Answer(req_t *req, const char *msg);      // Answer client request
+void     NET_Shutdown(void);                           // Unbind from socket
+
+struct   req_s {
+         int   type;
+         int   handle;
+         char  data[MAX_REQ_LEN];
+         int   size;
+};
+
+enum     req_type {
+         T_REQ_QUERY     = 0x1,
+         T_REQ_INSERT    = 0x2,
+         T_REQ_DELETE    = 0x3,
+         T_REQ_LIST_ALL  = 0x4,
+         T_REQ_LIST_DONE = 0x5,
+         T_REQ_LIST_TODO = 0x6
+};
 
 //       ==========
 //       FILESYSTEM
@@ -128,7 +149,7 @@ struct   ht_ent_s {
 typedef  struct arg_s arg_t;
 
 void     CMD_Parse(int argc, char **argv);             // Parse command line arguments
-int      CMD_Get(arg_t *arg);                          // Get argument type and value
+int      CMD_Next(arg_t *arg);                         // Get argument type and value
 
 struct   arg_s {
          int type;

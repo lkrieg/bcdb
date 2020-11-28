@@ -166,7 +166,7 @@ void CMD_Parse(int argc, char **argv)
 	UNUSED(argv);
 }
 
-int CMD_Get(arg_t *arg)
+int CMD_Next(arg_t *arg)
 {
 	UNUSED(arg);
 	return 0;
