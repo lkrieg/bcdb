@@ -39,10 +39,10 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 #define  E_ACCEPT           "Could not accept client request"
 #define  E_RECEIV           "Could not receive client request"
 #define  E_ANSWER           "Could not answer client request"
+#define  E_REQVAL           "Command not found, try 'help'"
 #define  E_ACCESS           "Authentication required"
 #define  E_NOCRED           "Invalid login credentials"
 #define  E_CMDARG           "Missing command argument"
-#define  E_REQVAL           "Command not found"
 
 //       =======
 //       UTILITY
