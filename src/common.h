@@ -37,7 +37,9 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 #define  E_ARGVAL           "Unknown command line argument"
 #define  E_THREAD           "Could not create request thread"
 #define  E_ACCEPT           "Could not accept client request"
-#define  E_RECV             "Could not read client request"
+#define  E_RECEIV           "Could not receive client request"
+#define  E_ANSWER           "Could not answer client request"
+#define  E_REQVAL           "Unknown request value"
 
 //       =======
 //       UTILITY
@@ -97,25 +99,28 @@ typedef  struct req_s req_t;
 typedef  void (*req_fun_t)(req_t *req);
 
 int      NET_Init(int port, req_fun_t func);
+void     NET_Answer(req_t *req, const char *data);
 void     NET_Accept(void);
 void     NET_Shutdown(void);
 
 struct   req_s {
-         int   type;
-         int   handle;
-         char  data[MAX_REQ_LEN];
-	 bool  privileged;
+         int    type;
+         int    handle;
+	 char * params;
+         char   data[MAX_REQ_LEN];
+	 bool   privileged;
 };
 
 enum     req_type {
-         T_REQ_QUERY     = 0x1,
-         T_REQ_INSERT    = 0x2,
-         T_REQ_DELETE    = 0x3,
-         T_REQ_LIST_ALL  = 0x4,
-         T_REQ_LIST_DONE = 0x5,
-         T_REQ_LIST_TODO = 0x6,
-	 T_REQ_AUTH      = 0x7,
-	 T_REQ_EXIT      = 0x8
+         T_REQ_INVAL      =  -1,
+         T_REQ_QUERY      = 0x1,
+         T_REQ_INSERT     = 0x2,
+         T_REQ_DELETE     = 0x3,
+         T_REQ_LIST_FULL  = 0x4,
+         T_REQ_LIST_DONE  = 0x5,
+         T_REQ_LIST_TODO  = 0x6,
+	 T_REQ_AUTH       = 0x7,
+	 T_REQ_EXIT       = 0x8
 };
 
 //       ==========
@@ -167,8 +172,8 @@ int      CMD_Next(arg_t *arg);
 struct   arg_s {
          int type;
          union {
-         	long     num;
-         	char     str[MAX_ARG_LEN];
+         	long num;
+         	char str[MAX_ARG_LEN];
          } as;
 };
 

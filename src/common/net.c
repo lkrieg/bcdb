@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <ctype.h>
 
 static struct {
 	int        fd;
@@ -15,6 +16,7 @@ static struct {
 } net;
 
 static void *RunThread(void *fd);
+static int ParseRequest(req_t *req);
 
 int NET_Init(int port, req_fun_t func)
 {
@@ -58,34 +60,16 @@ void NET_Accept(void)
 	len   = sizeof(in);
 	fd    = accept(net.fd, addr, &len);
 
-	if (fd < 0) {
+	if (fd < 0) // Create seperate thread for client
 		Warning(E_ACCEPT ": %s", strerror(errno));
-		return;
-	}
-
-	if (pthread_create(&pid, NULL, RunThread, out) < 0)
+	else if (pthread_create(&pid, NULL, RunThread, out) < 0)
 		Warning(E_THREAD ": %s", strerror(errno));
 }
 
-static void *RunThread(void *arg)
+void NET_Answer(req_t *req, const char *data)
 {
-	req_t req;
-	int n;
-
-	req.privileged  = false;
-	req.handle      = *((int *) arg);
-
-	while ((n = recv(req.handle, req.data, MAX_REQ_LEN, 0)) > 0) {
-		req.type = T_REQ_QUERY;
-		req.data[n] = '\0';
-		net.func(&req);
-	}
-
-	if (n < 0)
-		Warning(E_RECV);
-
-	close(req.handle);
-	return 0;
+	if (write(req->handle, data, strlen(data)) < 0)
+		Warning(E_ANSWER);
 }
 
 void NET_Shutdown(void)
@@ -95,46 +79,105 @@ void NET_Shutdown(void)
 	close(net.fd);
 }
 
-/*
-int NET_Listen(req_t *out)
+static void *RunThread(void *arg)
 {
-	int socklen;
-	struct sockaddr_in addr;
+	char *data;
+	req_t req;
+	int n, len;
 
-	listen(handle, 3);
-	socklen = sizeof(addr);
-	out->handle = accept(handle,
-	                     (struct sockaddr *) &addr,
-	                     (socklen_t *) &socklen);
+	req.privileged  = false;
+	req.handle      = *((int *) arg);
 
-	memset(out->data, 0, MAX_REQ_LEN);
-	read(out->handle, out->data, MAX_REQ_LEN);
-	out->type = GetRequestType(out);
+	do {
+		data = req.data;
+		len = MAX_REQ_LEN;
 
-	return out->type;
+		// Receive and handle client request message
+		if ((n = recv(req.handle, data, len, 0)) > 0) {
+			req.data[n] = '\0';
+			if (ParseRequest(&req) < 0) {
+				Warning(E_REQVAL);
+				continue;
+			}
+			net.func(&req);
+		}
+
+	} while (n > 0);
+	close(req.handle);
+
+	return 0;
 }
 
-static int GetRequestType(req_t *req)
+static int ParseRequest(req_t *req)
 {
-	char *head, c;
-	char buf[MAX_REQ_LEN];
-	int i = 0;
+	char *head;
+	char *tail;
 
 	head = req->data;
-	while ((c = *head++))
-		if (isalnum(c))
-			buf[i++] = c;
+	tail = head;
 
-	// TODO
-	buf[i] = '\0';
-	Info("%s\n", buf);
+	// Filter control codes
+	for (; *head; head++) {
+		if (isalnum(*head))
+			*tail++ = *head;
+	}
 
-	return 1;
+	*tail = '\0';
+	head = req->data;
+	req->type = T_REQ_INVAL;
+
+	switch (*head) {
+		case 'A': case 'a': // AUTH
+			if ((head[1] == 'U' || head[1] == 'u')
+			&& ((head[2] == 'T' || head[2] == 't'))
+			&& ((head[3] == 'H' || head[3] == 'h'))) {
+				req->type = T_REQ_AUTH;
+				req->params = head + 4;
+			}
+			break;
+
+		case 'D': case 'd': // DELETE
+			if ((head[1] == 'E' || head[1] == 'e')
+			&& ((head[2] == 'L' || head[2] == 'l'))
+			&& ((head[3] == 'E' || head[3] == 'e'))
+			&& ((head[4] == 'T' || head[4] == 't'))
+			&& ((head[5] == 'E' || head[5] == 'e'))) {
+				req->type = T_REQ_DELETE;
+				req->params = head + 6;
+			}
+			break;
+
+		case 'E': case 'e': // EXIT
+			if ((head[1] == 'X' || head[1] == 'x')
+			&& ((head[2] == 'I' || head[2] == 'i'))
+			&& ((head[3] == 'T' || head[3] == 't'))) {
+				req->type = T_REQ_EXIT;
+				req->params = head + 4;
+			}
+			break;
+		case 'I': case 'i': // INSERT
+			if ((head[1] == 'N' || head[1] == 'n')
+			&& ((head[2] == 'S' || head[2] == 's'))
+			&& ((head[3] == 'E' || head[3] == 'e'))
+			&& ((head[4] == 'R' || head[4] == 'r'))
+			&& ((head[5] == 'T' || head[5] == 't'))) {
+				req->type = T_REQ_INSERT;
+				req->params = head + 6;
+			}
+			break;
+		case 'Q': case 'q': // QUERY
+			if ((head[1] == 'U' || head[1] == 'u')
+			&& ((head[2] == 'E' || head[2] == 'e'))
+			&& ((head[3] == 'R' || head[3] == 'r'))
+			&& ((head[4] == 'Y' || head[4] == 'y'))) {
+				req->type = T_REQ_QUERY;
+				req->params = head + 5;
+			}
+			break;
+		case 'L': case 'l': // LIST X
+			break;
+	}
+
+	return req->type;
 }
 
-void NET_Answer(req_t *req, const char *msg)
-{
-	UNUSED(req);
-	UNUSED(msg);
-}
-*/
