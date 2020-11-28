@@ -23,7 +23,7 @@ DEPENDS := $(SOURCES:%.c=$(TMPDIR)/%.d)
 
 .PHONY: run
 run: all
-	./$(TARGET)
+	sudo ./$(TARGET)
 
 .PHONY: all
 all: $(TARGET)
