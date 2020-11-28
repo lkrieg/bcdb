@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 		default:         Error(E_ARGVAL);
 		}
 
-	// Use seperate threads for each client
+	// Seperate thread for each client
 	if (NET_Init(port, HandleRequest) < 0)
 		Error(E_NOSOCK " %d", port);
 

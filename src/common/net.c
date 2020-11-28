@@ -50,7 +50,7 @@ void NET_Accept(void)
 	addr  = (struct sockaddr *) &in;
 	fd    = accept(net.fd, addr, (socklen_t *) &len);
 
-	if (fd < 0) {
+	if (fd < 0) { // FIXME
 		Warning(E_ACCEPT);
 		return;
 	}
