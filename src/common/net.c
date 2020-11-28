@@ -1,9 +1,12 @@
 #include "common.h"
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
+#include <errno.h>
 
 static struct {
 	int        fd;
@@ -33,14 +36,18 @@ int NET_Init(int port, req_fun_t func)
 	in.sin_port         = htons(net.port);
 
 	addr = (struct sockaddr *) &in;
-	return bind(net.fd, addr, sizeof(in));
+	if (bind(net.fd, addr, sizeof(in)) >= 0)
+		return listen(net.fd, 3);
+
+	return -1;
 }
 
 void NET_Accept(void)
 {
-	int fd, len;
+	int fd;
 	struct sockaddr_in in;
 	struct sockaddr *addr;
+	socklen_t len;
 	pthread_t pid;
 	void *out;
 
@@ -48,28 +55,36 @@ void NET_Accept(void)
 
 	out   = (void*) &fd;
 	addr  = (struct sockaddr *) &in;
-	fd    = accept(net.fd, addr, (socklen_t *) &len);
+	len   = sizeof(in);
+	fd    = accept(net.fd, addr, &len);
 
-	if (fd < 0) { // FIXME
-		Warning(E_ACCEPT);
+	if (fd < 0) {
+		Warning(E_ACCEPT ": %s", strerror(errno));
 		return;
 	}
 
 	if (pthread_create(&pid, NULL, RunThread, out) < 0)
-		Warning(E_THREAD);
+		Warning(E_THREAD ": %s", strerror(errno));
 }
 
 static void *RunThread(void *arg)
 {
 	req_t req;
+	int n;
 
-	req.type = T_REQ_QUERY;
-	req.handle = *((int *) arg);
-	strcpy(req.data, "00354188464");
+	req.privileged  = false;
+	req.handle      = *((int *) arg);
 
-	net.func(&req);
+	while ((n = recv(req.handle, req.data, MAX_REQ_LEN, 0)) > 0) {
+		req.type = T_REQ_QUERY;
+		req.data[n] = '\0';
+		net.func(&req);
+	}
+
+	if (n < 0)
+		Warning(E_RECV);
+
 	close(req.handle);
-
 	return 0;
 }
 

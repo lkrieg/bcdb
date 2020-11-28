@@ -35,44 +35,41 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 #define  E_NOSOCK           "Could not bind to network port"
 #define  E_FSINIT           "Could not initialize filesystem"
 #define  E_ARGVAL           "Unknown command line argument"
-#define  E_ACCEPT           "Could not accept request"
-#define  E_THREAD           "Could not create new thread"
+#define  E_THREAD           "Could not create request thread"
+#define  E_ACCEPT           "Could not accept client request"
+#define  E_RECV             "Could not read client request"
 
 //       =======
 //       UTILITY
 //       =======
 
-#define  BIT(n)             (1UL << (n))   // Bitmask for nth bit
-#define  UNUSED(sym)        ((void)(sym))  // Suppress -Wunused warnings
-#define  Assert(exp)        UNUSED(0)      // DEBUG: Runtime assertion
-#define  AS_(exp)           Assert(exp)      // Assertion shorthands:
-#define  AS_EQL_(l, r)      AS_((l) == (r))  // - Equality
-#define  AS_NEQ_(l, r)      AS_((l) != (r))  // - Inequality
-#define  AS_LEQ_(l, r)      AS_((l) <= (r))  // - Less or equal
-#define  AS_GEQ_(l, r)      AS_((l) >= (r))  // - Greater or equal
-#define  AS_LTH_(l, r)      AS_((l) <  (r))  // - Less
-#define  AS_GTH_(l, r)      AS_((l) >  (r))  // - Greater
-#define  AS_EQL_NULL(p)     AS_EQL_((p), NULL)
-#define  AS_NEQ_NULL(p)     AS_NEQ_((p), NULL)
-#define  AS_GTH_ZERO(n)     AS_GTH_((n), 0)
-#define  AS_GEQ_ZERO(n)     AS_GEQ_((n), 0)
+#define  BIT(n)             (1UL << (n))      // Bitmask for nth bit
+#define  UNUSED(sym)        ((void)(sym))     // Suppress -Wunused warnings
+#define  Assert(exp)        UNUSED(0)         // DEBUG: Runtime assertion
+#define  AS_(exp)           Assert(exp)       // Assertion shorthands:
+#define  AS_NEQ_NULL(p)     AS_NEQ_(p, NULL)  // - Valid pointer
+#define  AS_GEQ_ZERO(n)     AS_GEQ_(n, 0)     // - Non-negative value
+#define  AS_GTH_ZERO(n)     AS_GTH_(n, 0)     // - Value greater zero
+#define  AS_NEQ_(l, r)      AS_((l) != (r))   // - Inequality
+#define  AS_GEQ_(l, r)      AS_((l) >= (r))   // - Greater/equal
+#define  AS_GTH_(l, r)      AS_((l) >  (r))   // - Greater
 
 //       ======
 //       MEMORY
 //       ======
 
-#define  Allocate(n)        _Allocate(n)   // Replacement for malloc()
-#define  Free(ptr)          _Free(ptr)     // Replacement for free()
-#define  MemCheck()         UNUSED(0)      // DEBUG: Leak report
+#define  Allocate(n)        _Allocate(n)      // Replacement for malloc()
+#define  Free(ptr)          _Free(ptr)        // Replacement for free()
+#define  MemCheck()         UNUSED(0)         // DEBUG: Leak report
 
 //       =======
 //       LOGGING
 //       =======
 
-void     Info(const char    * fmt, ...);   // Info message
-void     Warning(const char * fmt, ...);   // Warning message
-void     Error(const char   * fmt, ...);   // Non-recoverable error
-#define  Verbose(...)       UNUSED(0)      // DEBUG: Verbose message
+void     Info(const char    * fmt, ...);      // Info message
+void     Warning(const char * fmt, ...);      // Warning message
+void     Error(const char   * fmt, ...);      // Non-recoverable error
+#define  Verbose(...)       UNUSED(0)         // DEBUG: Verbose message
 
 //       ==========
 //       DEBUG MODE
@@ -107,6 +104,7 @@ struct   req_s {
          int   type;
          int   handle;
          char  data[MAX_REQ_LEN];
+	 bool  privileged;
 };
 
 enum     req_type {
@@ -115,7 +113,9 @@ enum     req_type {
          T_REQ_DELETE    = 0x3,
          T_REQ_LIST_ALL  = 0x4,
          T_REQ_LIST_DONE = 0x5,
-         T_REQ_LIST_TODO = 0x6
+         T_REQ_LIST_TODO = 0x6,
+	 T_REQ_AUTH      = 0x7,
+	 T_REQ_EXIT      = 0x8
 };
 
 //       ==========

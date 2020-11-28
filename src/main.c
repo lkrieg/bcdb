@@ -38,11 +38,29 @@ static void HandleRequest(req_t *req)
 {
 	switch(req->type) {
 	case T_REQ_QUERY:
+		Info("QUERY %s", req->data);
+		break;
 	case T_REQ_INSERT:
+		Info("INSERT %s", req->data);
+		break;
 	case T_REQ_DELETE:
+		Info("DELETE %s", req->data);
+		break;
 	case T_REQ_LIST_ALL:
+		Info("LIST_ALL");
+		break;
 	case T_REQ_LIST_DONE:
+		Info("LIST_DONE");
+		break;
 	case T_REQ_LIST_TODO:
+		Info("LIST_TODO");
+		break;
+	case T_REQ_AUTH:
+		req->privileged = true;
+		Info("AUTH %s", req->data);
+		break;
+	case T_REQ_EXIT:
+		Info("EXIT");
 		break;
 	}
 }
