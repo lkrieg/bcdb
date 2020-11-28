@@ -148,6 +148,15 @@ void Info(const char *fmt, ...)
 	va_end(arg);
 }
 
+void Warning(const char *fmt, ...)
+{
+	va_list arg;
+
+	va_start(arg, fmt);
+	_Message("Warning", fmt, arg);
+	va_end(arg);
+}
+
 void Error(const char *fmt, ...)
 {
 	va_list arg;

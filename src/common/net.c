@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <string.h>
 
 static struct {
 	int        fd;
@@ -10,11 +11,14 @@ static struct {
 	req_fun_t  func;
 } net;
 
+static void *RunThread(void *fd);
+
 int NET_Init(int port, req_fun_t func)
 {
 	struct sockaddr_in in;
 	struct sockaddr *addr;
 
+	AS_GEQ_ZERO(port);
 	AS_NEQ_NULL(func);
 
 	net.port  = port;
@@ -29,7 +33,7 @@ int NET_Init(int port, req_fun_t func)
 	in.sin_port         = htons(net.port);
 
 	addr = (struct sockaddr *) &in;
-	return bind(net.fd, addr, sizeof(addr));
+	return bind(net.fd, addr, sizeof(in));
 }
 
 void NET_Accept(void)
@@ -38,19 +42,35 @@ void NET_Accept(void)
 	struct sockaddr_in in;
 	struct sockaddr *addr;
 	pthread_t pid;
+	void *out;
 
 	AS_GTH_ZERO(net.fd);
 
-	addr = (struct sockaddr *) &in;
-	fd = accept(net.fd, addr, (socklen_t *) &len);
+	out   = (void*) &fd;
+	addr  = (struct sockaddr *) &in;
+	fd    = accept(net.fd, addr, (socklen_t *) &len);
 
-	// Create seperate thread
-	// Call request handler function
-	// ???
-	// Profit
+	if (fd < 0) {
+		Warning(E_ACCEPT);
+		return;
+	}
 
-	UNUSED(fd);
-	UNUSED(pid);
+	if (pthread_create(&pid, NULL, RunThread, out) < 0)
+		Warning(E_THREAD);
+}
+
+static void *RunThread(void *arg)
+{
+	req_t req;
+
+	req.type = T_REQ_QUERY;
+	req.handle = *((int *) arg);
+	strcpy(req.data, "00354188464");
+
+	net.func(&req);
+	close(req.handle);
+
+	return 0;
 }
 
 void NET_Shutdown(void)

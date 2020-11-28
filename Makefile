@@ -10,9 +10,9 @@ MKDIR    = mkdir -p
 CPPFLAGS = -Isrc
 CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Werror
 MDFLAGS  = -MM -MT $(@:.d=.o)
+LDLIBS   = -lpthread
 VERBOSE  = false
 LDFLAGS  =
-LDLIBS   =
 
 DSTDIR   = bin
 TARGET  := $(DSTDIR)/bcdb

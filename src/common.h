@@ -35,6 +35,8 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 #define  E_NOSOCK           "Could not bind to network port"
 #define  E_FSINIT           "Could not initialize filesystem"
 #define  E_ARGVAL           "Unknown command line argument"
+#define  E_ACCEPT           "Could not accept request"
+#define  E_THREAD           "Could not create new thread"
 
 //       =======
 //       UTILITY
@@ -67,8 +69,9 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 //       LOGGING
 //       =======
 
-void     Info (const char * fmt, ...);     // General info message
-void     Error(const char * fmt, ...);     // Non-recoverable failure
+void     Info(const char    * fmt, ...);   // Info message
+void     Warning(const char * fmt, ...);   // Warning message
+void     Error(const char   * fmt, ...);   // Non-recoverable error
 #define  Verbose(...)       UNUSED(0)      // DEBUG: Verbose message
 
 //       ==========
@@ -104,7 +107,6 @@ struct   req_s {
          int   type;
          int   handle;
          char  data[MAX_REQ_LEN];
-         int   size;
 };
 
 enum     req_type {
