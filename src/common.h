@@ -42,7 +42,9 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 
 #define  BIT(n)             (1UL << (n))   // Bitmask for nth bit
 #define  UNUSED(sym)        ((void)(sym))  // Suppress -Wunused warnings
-#define  Assert(exp)        UNUSED(0)      // DEBUG: Runtime assertion
+#define  Assert(exp)        UNUSED(0)      // DEBUG: Runtime assertions:
+#define  AS_NOT_NULL(exp)   Assert((exp) != NULL) // - Valid pointer address
+#define  AS_GRT_ZERO(exp)   Assert((exp) > 0)     // - Number greater than zero
 
 //       ======
 //       MEMORY
@@ -85,8 +87,7 @@ void     Error(const char * fmt, ...);     // Non-recoverable failure
 typedef  struct req_s req_t;
 typedef  void (*req_fun_t)(req_t *req);
 
-int      NET_Init(int port);
-void     NET_SetRequestHandler(req_fun_t func);
+int      NET_Init(int port, req_fun_t func);
 void     NET_Accept(void);
 void     NET_Shutdown(void);
 

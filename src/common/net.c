@@ -6,37 +6,36 @@
 #include <ctype.h>
 
 static struct {
-	int        handle;
+	int        fd;
 	int        port;
 	req_fun_t  func;
 } net;
 
-int NET_Init(int port)
+int NET_Init(int port, req_fun_t func)
 {
-	struct sockaddr_in addr;
+	struct sockaddr_in tmp;
+	struct sockaddr *addr;
 
-	net.port   = port;
-	net.handle = socket(AF_INET, SOCK_STREAM, 0);
+	AS_NOT_NULL(func);
 
-	if (net.handle < 0)
+	net.port  = port;
+	net.func  = func;
+	net.fd    = socket(AF_INET, SOCK_STREAM, 0);
+
+	if (net.fd < 0)
 		return -1;
 
-	addr.sin_family      = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY;
-	addr.sin_port        = htons(net.port);
+	tmp.sin_family       = AF_INET;
+	tmp.sin_addr.s_addr  = INADDR_ANY;
+	tmp.sin_port         = htons(net.port);
 
-	return bind(net.handle, (struct sockaddr *)
-	            &addr,  sizeof(addr));
-}
-
-void NET_SetRequestHandler(req_fun_t func)
-{
-	net.func = func;
+	addr = (struct sockaddr *)&tmp;
+	return bind(net.fd, addr, sizeof(addr));
 }
 
 void NET_Accept(void)
 {
-	Assert(net.func != NULL);
+	AS_GRT_ZERO(net.fd);
 
 	// Create seperate thread
 	// Call request handler function
@@ -46,7 +45,9 @@ void NET_Accept(void)
 
 void NET_Shutdown(void)
 {
-	close(net.handle);
+	AS_GRT_ZERO(net.fd);
+
+	close(net.fd);
 }
 
 /*
