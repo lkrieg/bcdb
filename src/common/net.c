@@ -18,6 +18,7 @@ static struct {
 
 static void *RunThread(void *fd);
 static int ParseRequest(req_t *req);
+static void Prompt(req_t *req);
 
 int NET_Init(int port, req_fun_t func)
 {
@@ -112,16 +113,19 @@ static void *RunThread(void *arg)
 
 	req.privileged  = false;
 	req.handle      = *((int *) arg);
+	Prompt(&req);
 
 	do {
 		data = req.data;
-		len = MAX_REQ_LEN;
+		len  = MAX_REQ_LEN;
 
-		write(req.handle, "> ", 2);
 		if ((n = recv(req.handle, data, len, 0)) > 0) {
 			req.data[n] = '\0';
 			ParseRequest(&req);
 			net.func(&req);
+
+			if (req.type != T_REQ_EMPTY)
+				Prompt(&req);
 		}
 
 	} while (n > 0);
@@ -138,15 +142,17 @@ static int ParseRequest(req_t *req)
 	head = req->data;
 	tail = head;
 
-	// Filter control codes
 	for (; *head; head++) {
-		if (isalnum(*head))
-			*tail++ = *head;
+		if (!isalnum(*head))
+			continue;
+
+		// Filter garbage
+		*tail++ = *head;
 	}
 
-	*tail = '\0';
-	head = req->data;
 	req->type = T_REQ_INVAL;
+	head      = req->data;
+	*tail     = '\0';
 
 	switch (*head) {
 		case 'A': case 'a': // AUTH
@@ -200,15 +206,14 @@ static int ParseRequest(req_t *req)
 			}
 			break;
 
-		case 'Q': case 'q':
-			// QUERY
+		case 'Q': case 'q': // QUERY | QUIT
 			if ((head[1] == 'U' || head[1] == 'u')
 			&& ((head[2] == 'E' || head[2] == 'e'))
 			&& ((head[3] == 'R' || head[3] == 'r'))
 			&& ((head[4] == 'Y' || head[4] == 'y'))) {
 				req->type = T_REQ_QUERY;
 				req->params = head + 5;
-			// QUIT
+
 			} else if ((head[1] == 'U' || head[1] == 'u')
 			&& ((head[2] == 'I' || head[2] == 'i'))
 			&& ((head[3] == 'T' || head[3] == 't'))
@@ -264,7 +269,7 @@ static int ParseRequest(req_t *req)
 			}
 			break;
 
-		case '\0':
+		case '\0': // EMPTY
 			req->type = T_REQ_EMPTY;
 			req->params = head;
 			break;
@@ -273,3 +278,7 @@ static int ParseRequest(req_t *req)
 	return req->type;
 }
 
+static void Prompt(req_t *req)
+{
+	write(req->handle, "$ ", 2);
+}

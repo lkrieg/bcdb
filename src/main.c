@@ -117,7 +117,7 @@ static void HandleRequest(req_t *req)
 		}
 
 		req->privileged = true;
-		NET_Answer(req, "OK.");
+		NET_Answer(req, "OK");
 		break;
 
 	case T_REQ_EXIT:
