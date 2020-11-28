@@ -7,6 +7,8 @@
 
 static int handle;
 
+static int GetRequestType(req_t *req);
+
 int NET_Init(int port)
 {
 	struct sockaddr_in addr;
@@ -25,35 +27,37 @@ int NET_Init(int port)
 
 int NET_Listen(req_t *out)
 {
-	int cln, len, i = 0;
+	int socklen;
 	struct sockaddr_in addr;
-	char data[MAX_REQ_LEN];
-	char *head;
+
+	listen(handle, 3);
+	socklen = sizeof(addr);
+	out->handle = accept(handle,
+	                     (struct sockaddr *) &addr,
+	                     (socklen_t *) &socklen);
+
+	memset(out->data, 0, MAX_REQ_LEN);
+	read(out->handle, out->data, MAX_REQ_LEN);
+	out->type = GetRequestType(out);
+
+	return out->type;
+}
+
+static int GetRequestType(req_t *req)
+{
+	char *head, c;
+	char buf[MAX_REQ_LEN];
+	int i = 0;
+
+	head = req->data;
+	while ((c = *head++))
+		if (isalnum(c))
+			buf[i++] = c;
 
 	// TODO
-	listen(handle, 3);
-	len = sizeof(addr);
-	cln = accept(handle, (struct sockaddr *)
-	             &addr,  (socklen_t *) &len);
+	buf[i] = '\0';
+	Info("%s\n", buf);
 
-	out->handle  = cln;
-	out->data[0] = '\0';
-
-	while (read(cln, data, sizeof(data))) {
-		for (head = data; *head; head++) {
-			if (!isalnum(*head))
-				continue;
-
-			out->data[i++] = *head;
-		}
-
-		out->data[i] = '\0';
-		Info("%s", out->data);
-		out->data[0] = '\0';
-		i = 0;
-	}
-
-	close(cln);
 	return 1;
 }
 
