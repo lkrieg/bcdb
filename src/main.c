@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <unistd.h>
+#include <string.h>
 
 static void HandleRequest(req_t *req);
 
@@ -38,32 +39,60 @@ int main(int argc, char **argv)
 
 static void HandleRequest(req_t *req)
 {
+	if ((!req->privileged)
+	&& ((req->type == T_REQ_INSERT)
+	|| ((req->type == T_REQ_DELETE)))) {
+		NET_Error(req, E_ACCESS);
+		return;
+	}
+
+	if ((!req->params[0])
+	&& ((req->type == T_REQ_QUERY)
+	|| ((req->type == T_REQ_INSERT))
+	|| ((req->type == T_REQ_DELETE))
+	|| ((req->type == T_REQ_AUTH)))) {
+		NET_Error(req, E_CMDARG);
+		return;
+	}
+
 	switch(req->type) {
+	case T_REQ_INVAL:
+		NET_Error(req, E_REQVAL);
+		break;
 	case T_REQ_QUERY:
-		Info("QUERY %s", req->params);
-		// NET_Answer(req, "OK");
+		NET_Answer(req, "QUERY %s", req->params);
 		break;
 	case T_REQ_INSERT:
-		Info("INSERT %s", req->params);
+		NET_Answer(req, "INSERT %s", req->params);
 		break;
 	case T_REQ_DELETE:
-		Info("DELETE %s", req->params);
+		NET_Answer(req, "DELETE %s", req->params);
 		break;
 	case T_REQ_LIST_FULL:
-		Info("LIST_FULL");
+		NET_Answer(req, "LIST_FULL");
 		break;
 	case T_REQ_LIST_DONE:
-		Info("LIST_DONE");
+		NET_Answer(req, "LIST_DONE");
 		break;
 	case T_REQ_LIST_TODO:
-		Info("LIST_TODO");
+		NET_Answer(req, "LIST_TODO");
 		break;
 	case T_REQ_AUTH:
-		Info("AUTH %s", req->params);
+		if (req->privileged)
+			break;
+
+		if (strcmp(req->params, "123")) {
+			NET_Error(req, E_NOCRED);
+			break; // Plaintext!
+		}
+
 		req->privileged = true;
+		NET_Answer(req, "OK");
+		break;
+	case T_REQ_HELP:
+		NET_Answer(req, "HELP");
 		break;
 	case T_REQ_EXIT:
-		Info("EXIT");
 		close(req->handle);
 		break;
 	}

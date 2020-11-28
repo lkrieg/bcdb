@@ -39,7 +39,10 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 #define  E_ACCEPT           "Could not accept client request"
 #define  E_RECEIV           "Could not receive client request"
 #define  E_ANSWER           "Could not answer client request"
-#define  E_REQVAL           "Unknown request value"
+#define  E_ACCESS           "Authentication required"
+#define  E_NOCRED           "Invalid login credentials"
+#define  E_CMDARG           "Missing command argument"
+#define  E_REQVAL           "Command not found"
 
 //       =======
 //       UTILITY
@@ -99,8 +102,9 @@ typedef  struct req_s req_t;
 typedef  void (*req_fun_t)(req_t *req);
 
 int      NET_Init(int port, req_fun_t func);
-void     NET_Answer(req_t *req, const char *data);
 void     NET_Accept(void);
+void     NET_Answer(req_t *req, const char *fmt, ...);
+void     NET_Error(req_t *req, const char *fmt, ...);
 void     NET_Shutdown(void);
 
 struct   req_s {
@@ -113,6 +117,7 @@ struct   req_s {
 
 enum     req_type {
          T_REQ_INVAL      =  -1,
+	 T_REQ_EMPTY      =   0,
          T_REQ_QUERY      = 0x1,
          T_REQ_INSERT     = 0x2,
          T_REQ_DELETE     = 0x3,
@@ -120,7 +125,8 @@ enum     req_type {
          T_REQ_LIST_DONE  = 0x5,
          T_REQ_LIST_TODO  = 0x6,
 	 T_REQ_AUTH       = 0x7,
-	 T_REQ_EXIT       = 0x8
+	 T_REQ_HELP       = 0x8,
+	 T_REQ_EXIT       = 0x9
 };
 
 //       ==========

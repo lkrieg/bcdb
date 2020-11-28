@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <ctype.h>
+#include <stdio.h>
 
 static struct {
 	int        fd;
@@ -66,10 +67,34 @@ void NET_Accept(void)
 		Warning(E_THREAD ": %s", strerror(errno));
 }
 
-void NET_Answer(req_t *req, const char *data)
+static void NET_Message(req_t *req, const char *fmt, va_list arg)
 {
-	if (write(req->handle, data, strlen(data)) < 0)
-		Warning(E_ANSWER);
+	char msg[MAX_MSG_LEN];
+
+	AS_NEQ_NULL(req);
+	AS_NEQ_NULL(fmt);
+
+	vsnprintf(msg, MAX_MSG_LEN, fmt, arg);
+	write(req->handle, msg, strlen(msg));
+	write(req->handle, "\n", 1);
+}
+
+void NET_Answer(req_t *req, const char *fmt, ...)
+{
+	va_list arg;
+
+	va_start(arg, fmt);
+	NET_Message(req, fmt, arg);
+	va_end(arg);
+}
+
+void NET_Error(req_t *req, const char *fmt, ...)
+{
+	va_list arg;
+
+	va_start(arg, fmt);
+	NET_Message(req, fmt, arg);
+	va_end(arg);
 }
 
 void NET_Shutdown(void)
@@ -92,13 +117,10 @@ static void *RunThread(void *arg)
 		data = req.data;
 		len = MAX_REQ_LEN;
 
-		// Receive and handle client request message
+		write(req.handle, "> ", 2);
 		if ((n = recv(req.handle, data, len, 0)) > 0) {
 			req.data[n] = '\0';
-			if (ParseRequest(&req) < 0) {
-				Warning(E_REQVAL);
-				continue;
-			}
+			ParseRequest(&req);
 			net.func(&req);
 		}
 
@@ -150,11 +172,23 @@ static int ParseRequest(req_t *req)
 		case 'E': case 'e': // EXIT
 			if ((head[1] == 'X' || head[1] == 'x')
 			&& ((head[2] == 'I' || head[2] == 'i'))
-			&& ((head[3] == 'T' || head[3] == 't'))) {
+			&& ((head[3] == 'T' || head[3] == 't'))
+			&& ((head[4] == '\0'))) {
 				req->type = T_REQ_EXIT;
 				req->params = head + 4;
 			}
 			break;
+
+		case 'H': case 'h': // HELP
+			if ((head[1] == 'E' || head[1] == 'e')
+			&& ((head[2] == 'L' || head[2] == 'l'))
+			&& ((head[3] == 'P' || head[3] == 'p'))
+			&& ((head[4] == '\0'))) {
+				req->type = T_REQ_HELP;
+				req->params = head + 4;
+			}
+			break;
+
 		case 'I': case 'i': // INSERT
 			if ((head[1] == 'N' || head[1] == 'n')
 			&& ((head[2] == 'S' || head[2] == 's'))
@@ -165,16 +199,74 @@ static int ParseRequest(req_t *req)
 				req->params = head + 6;
 			}
 			break;
-		case 'Q': case 'q': // QUERY
+
+		case 'Q': case 'q':
+			// QUERY
 			if ((head[1] == 'U' || head[1] == 'u')
 			&& ((head[2] == 'E' || head[2] == 'e'))
 			&& ((head[3] == 'R' || head[3] == 'r'))
 			&& ((head[4] == 'Y' || head[4] == 'y'))) {
 				req->type = T_REQ_QUERY;
 				req->params = head + 5;
+			// QUIT
+			} else if ((head[1] == 'U' || head[1] == 'u')
+			&& ((head[2] == 'I' || head[2] == 'i'))
+			&& ((head[3] == 'T' || head[3] == 't'))
+			&& ((head[4] == '\0'))) {
+				req->type = T_REQ_EXIT;
+				req->params = head + 4;
 			}
 			break;
-		case 'L': case 'l': // LIST X
+
+		case 'L': case 'l': // LIST
+			if ((head[1] == 'I' || head[1] == 'i')
+			&& ((head[2] == 'S' || head[2] == 's'))
+			&& ((head[3] == 'T' || head[3] == 't'))) {
+
+				if ((head[4] == '\0')
+				|| ((head[4] == 'T' || head[4] == 't')
+				&& ((head[5] == 'O' || head[5] == 'o'))
+				&& ((head[6] == 'D' || head[6] == 'd'))
+				&& ((head[7] == 'O' || head[7] == 'o'))
+				&& ((head[8] == '\0')))) {
+					req->type = T_REQ_LIST_TODO;
+					req->params = head + 8;
+					break;
+				}
+
+				if ((head[4] == 'D' || head[4] == 'd')
+				&& ((head[5] == 'O' || head[5] == 'o'))
+				&& ((head[6] == 'N' || head[6] == 'n'))
+				&& ((head[7] == 'E' || head[7] == 'e'))
+				&& ((head[8] == '\0'))) {
+					req->type = T_REQ_LIST_DONE;
+					req->params = head + 8;
+				}
+
+				if ((head[4] == 'F' || head[4] == 'f')
+				&& ((head[5] == 'U' || head[5] == 'u'))
+				&& ((head[6] == 'L' || head[6] == 'l'))
+				&& ((head[7] == 'L' || head[7] == 'l'))
+				&& ((head[8] == '\0'))) {
+					req->type = T_REQ_LIST_FULL;
+					req->params = head + 8;
+					break;
+				}
+
+				if ((head[4] == 'A' || head[4] == 'a')
+				&& ((head[5] == 'L' || head[5] == 'l'))
+				&& ((head[6] == 'L' || head[6] == 'l'))
+				&& ((head[7] == '\0'))) {
+					req->type = T_REQ_LIST_FULL;
+					req->params = head + 7;
+					break;
+				}
+			}
+			break;
+
+		case '\0':
+			req->type = T_REQ_EMPTY;
+			req->params = head;
 			break;
 	}
 
