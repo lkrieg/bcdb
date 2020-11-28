@@ -13,10 +13,10 @@
 #define  DEBUG                     // Enable debug mode
 #define  DEFAULT_PORT       23     // Default server socket port
 #define  MAX_PATH           4096   // Cannot rely on PATH_MAX from limits.h
-#define  MAX_ARG_LEN        1024   // Maximum command line argument length
-#define  MAX_MSG_LEN        2048   // Maximum log message length
-#define  MAX_REQ_LEN        2048   // Maximum client request length
-#define  MAX_HASH_SIZE      4096   // Maximum hash size
+#define  MAX_ARG_LEN        1024   // Command line argument length limit
+#define  MAX_MSG_LEN        2048   // Log message length limit
+#define  MAX_REQ_LEN        2048   // Client request length limit
+#define  MAX_HASH_SIZE      4096   // Number of possible hashes
 
 //       ========
 //       TYPEDEFS
@@ -40,9 +40,9 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 //       UTILITY
 //       =======
 
-#define  BIT(n)             (1UL << (n))   // Get bitmask for nth bit
+#define  BIT(n)             (1UL << (n))   // Bitmask for nth bit
 #define  UNUSED(sym)        ((void)(sym))  // Suppress -Wunused warnings
-#define  Assert(exp)        UNUSED(0)      // Check runtime assertion
+#define  Assert(exp)        UNUSED(0)      // DEBUG: Runtime assertion
 
 //       ======
 //       MEMORY
@@ -50,15 +50,15 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 
 #define  Allocate(n)        _Allocate(n)   // Replacement for malloc()
 #define  Free(ptr)          _Free(ptr)     // Replacement for free()
-#define  MemCheck()         UNUSED(0)      // Report memory leaks
+#define  MemCheck()         UNUSED(0)      // DEBUG: Leak report
 
 //       =======
 //       LOGGING
 //       =======
 
-void     Info (const char * fmt, ...);     // Output general info message
-void     Error(const char * fmt, ...);     // Handle non-recoverable failure
-#define  Verbose(...)       UNUSED(0)      // Output debug info message
+void     Info (const char * fmt, ...);     // General info message
+void     Error(const char * fmt, ...);     // Non-recoverable failure
+#define  Verbose(...)       UNUSED(0)      // DEBUG: Verbose message
 
 //       ==========
 //       DEBUG MODE
@@ -68,12 +68,12 @@ void     Error(const char * fmt, ...);     // Handle non-recoverable failure
 #undef   Allocate           // - Tracks all memory allocations
 #undef   Verbose            // - Outputs verbose log messages
 #undef   Assert             // - Enables runtime assertions
-#undef   MemCheck           // - Prints detailed leak infos
+#undef   MemCheck           // - Prints detailed leak reports
 #undef   Free
 
 #define  Verbose(...)       _Verbose(__VA_ARGS__)
-#define  Assert(exp)        _Assert(exp, #exp, __FILE__, __LINE__)
-#define  Allocate(n)        _AllocateDebug( n, __FILE__, __LINE__)
+#define  Assert(exp)        _Assert((exp), #exp, __FILE__, __LINE__)
+#define  Allocate(n)        _AllocateDebug((n),  __FILE__, __LINE__)
 #define  Free(ptr)          _FreeDebug(ptr)
 #define  MemCheck()         _MemCheck()
 #endif
@@ -83,11 +83,12 @@ void     Error(const char * fmt, ...);     // Handle non-recoverable failure
 //       ==========
 
 typedef  struct req_s req_t;
+typedef  void (*req_fun_t)(req_t *req);
 
-int      NET_Init(int port);                           // Bind to network socket
-int      NET_Listen(req_t *out);                       // Get next client request
-void     NET_Answer(req_t *req, const char *msg);      // Answer client request
-void     NET_Shutdown(void);                           // Unbind from socket
+int      NET_Init(int port);
+void     NET_SetRequestHandler(req_fun_t func);
+void     NET_Accept(void);
+void     NET_Shutdown(void);
 
 struct   req_s {
          int   type;
@@ -109,13 +110,13 @@ enum     req_type {
 //       FILESYSTEM
 //       ==========
 
-int      FS_Init(void);                                // Initialize filesystem
-void     FS_AddPath(const char *path);                 // Add path to searchpaths
-int      FS_Open(const char *path);                    // Get writable file handle
-int      FS_Read(int fd, void *dest, int n);           // Read n bytes from handle
-int      FS_Write(int fd, const void *src, int n);     // Write n bytes to handle
-void     FS_Close(int handle);                         // Close file handle
-void     FS_Shutdown(void);                            // Shutdown filesystem
+int      FS_Init(void);
+void     FS_AddPath(const char *path);
+int      FS_Open(const char *path);
+int      FS_Read(int fd, void *dest, int n);
+int      FS_Write(int fd, const void *src, int n);
+void     FS_Close(int handle);
+void     FS_Shutdown(void);
 
 //       =========
 //       HASHTABLE
@@ -125,11 +126,11 @@ typedef  u32 (*ht_fun_t)(const char *);
 typedef  struct ht_tab_s ht_tab_t;
 typedef  struct ht_ent_s ht_ent_t;
 
-int      Hash_Init(ht_tab_t *tab);                     // Initialize hashtable
-void     Hash_Free(ht_tab_t *tab);                     // Free all table entries
-int      Hash_Insert(ht_tab_t *tab, const char *key);  // Insert new key into table
-int      Hash_Exists(ht_tab_t *tab, const char *key);  // Check if key already exists
-int      Hash_Delete(ht_tab_t *tab, const char *key);  // Delete key from table
+int      Hash_Init(ht_tab_t *tab);
+void     Hash_Free(ht_tab_t *tab);
+int      Hash_Insert(ht_tab_t *tab, const char *key);
+int      Hash_Exists(ht_tab_t *tab, const char *key);
+int      Hash_Delete(ht_tab_t *tab, const char *key);
 
 struct   ht_tab_s {
          ht_ent_t  ** table;
@@ -148,8 +149,8 @@ struct   ht_ent_s {
 
 typedef  struct arg_s arg_t;
 
-void     CMD_Parse(int argc, char **argv);             // Parse command line arguments
-int      CMD_Next(arg_t *arg);                         // Get argument type and value
+void     CMD_Parse(int argc, char **argv);
+int      CMD_Next(arg_t *arg);
 
 struct   arg_s {
          int type;
