@@ -42,9 +42,18 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 
 #define  BIT(n)             (1UL << (n))   // Bitmask for nth bit
 #define  UNUSED(sym)        ((void)(sym))  // Suppress -Wunused warnings
-#define  Assert(exp)        UNUSED(0)      // DEBUG: Runtime assertions:
-#define  AS_NOT_NULL(exp)   Assert((exp) != NULL) // - Valid pointer address
-#define  AS_GRT_ZERO(exp)   Assert((exp) > 0)     // - Number greater than zero
+#define  Assert(exp)        UNUSED(0)      // DEBUG: Runtime assertion
+#define  AS_(exp)           Assert(exp)      // Assertion shorthands:
+#define  AS_EQL_(l, r)      AS_((l) == (r))  // - Equality
+#define  AS_NEQ_(l, r)      AS_((l) != (r))  // - Inequality
+#define  AS_LEQ_(l, r)      AS_((l) <= (r))  // - Less or equal
+#define  AS_GEQ_(l, r)      AS_((l) >= (r))  // - Greater or equal
+#define  AS_LTH_(l, r)      AS_((l) <  (r))  // - Less
+#define  AS_GTH_(l, r)      AS_((l) >  (r))  // - Greater
+#define  AS_EQL_NULL(p)     AS_EQL_((p), NULL)
+#define  AS_NEQ_NULL(p)     AS_NEQ_((p), NULL)
+#define  AS_GTH_ZERO(n)     AS_GTH_((n), 0)
+#define  AS_GEQ_ZERO(n)     AS_GEQ_((n), 0)
 
 //       ======
 //       MEMORY

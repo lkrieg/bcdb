@@ -1,9 +1,8 @@
 #include "common.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 #include <unistd.h>
-#include <string.h>
-#include <ctype.h>
 
 static struct {
 	int        fd;
@@ -13,10 +12,10 @@ static struct {
 
 int NET_Init(int port, req_fun_t func)
 {
-	struct sockaddr_in tmp;
+	struct sockaddr_in in;
 	struct sockaddr *addr;
 
-	AS_NOT_NULL(func);
+	AS_NEQ_NULL(func);
 
 	net.port  = port;
 	net.func  = func;
@@ -25,27 +24,38 @@ int NET_Init(int port, req_fun_t func)
 	if (net.fd < 0)
 		return -1;
 
-	tmp.sin_family       = AF_INET;
-	tmp.sin_addr.s_addr  = INADDR_ANY;
-	tmp.sin_port         = htons(net.port);
+	in.sin_family       = AF_INET;
+	in.sin_addr.s_addr  = INADDR_ANY;
+	in.sin_port         = htons(net.port);
 
-	addr = (struct sockaddr *)&tmp;
+	addr = (struct sockaddr *) &in;
 	return bind(net.fd, addr, sizeof(addr));
 }
 
 void NET_Accept(void)
 {
-	AS_GRT_ZERO(net.fd);
+	int fd, len;
+	struct sockaddr_in in;
+	struct sockaddr *addr;
+	pthread_t pid;
+
+	AS_GTH_ZERO(net.fd);
+
+	addr = (struct sockaddr *) &in;
+	fd = accept(net.fd, addr, (socklen_t *) &len);
 
 	// Create seperate thread
 	// Call request handler function
 	// ???
 	// Profit
+
+	UNUSED(fd);
+	UNUSED(pid);
 }
 
 void NET_Shutdown(void)
 {
-	AS_GRT_ZERO(net.fd);
+	AS_GTH_ZERO(net.fd);
 
 	close(net.fd);
 }
