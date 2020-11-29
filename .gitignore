@@ -1,4 +1,3 @@
-bin/bcdb
-bin/bcdb.exe
+bin/barkeeper
 bin/.build/
 *.swp

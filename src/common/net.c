@@ -17,7 +17,7 @@ static struct {
 } net;
 
 static void *RunThread(void *fd);
-static int ParseRequest(req_t *req);
+static int ParseRequest(req_t *req, int len);
 static void Prompt(req_t *req);
 
 int NET_Init(int port, req_fun_t func)
@@ -77,7 +77,7 @@ static void NET_Message(req_t *req, const char *fmt, va_list arg)
 
 	vsnprintf(msg, MAX_MSG_LEN, fmt, arg);
 	write(req->handle, msg, strlen(msg));
-	write(req->handle, "\n", 1);
+	write(req->handle, "\r\n", 2);
 }
 
 void NET_Answer(req_t *req, const char *fmt, ...)
@@ -121,8 +121,7 @@ static void *RunThread(void *arg)
 		len  = MAX_REQ_LEN;
 
 		if ((n = recv(req.handle, data, len, 0)) > 0) {
-			req.data[n] = '\0';
-			ParseRequest(&req);
+			ParseRequest(&req, n);
 			net.func(&req);
 
 			// Quick and dirty prompt fix...
@@ -140,25 +139,27 @@ static void *RunThread(void *arg)
 	return 0;
 }
 
-static int ParseRequest(req_t *req)
+static int ParseRequest(req_t *req, int len)
 {
+	int i;
 	char *head;
 	char *tail;
 
 	head = req->data;
 	tail = head;
 
-	for (; *head; head++) {
-		if (!isalnum(*head))
+	for (i = 0; i < len; i++) {
+		if (!isalnum(head[i]))
 			continue;
 
 		// Filter garbage
-		*tail++ = *head;
+		*tail++ = head[i];
 	}
 
-	req->type = T_REQ_INVAL;
-	head      = req->data;
-	*tail     = '\0';
+	req->type   = T_REQ_INVAL;
+	head        = req->data;
+	req->params = head;
+	*tail       = '\0';
 
 	switch (*head) {
 		case 'A': case 'a': // AUTH
@@ -297,5 +298,5 @@ static int ParseRequest(req_t *req)
 
 static void Prompt(req_t *req)
 {
-	write(req->handle, "\n$ ", 3);
+	write(req->handle, "\r\n$ ", 4);
 }

@@ -1,3 +1,16 @@
+INTERFACE
+=========
+
+[1] list
+[2] query
+[3] insert
+[4] delete
+[5] auth
+[6] help
+[7] exit
+
+[1] 0001234141924124
+
 TODO
 ====
 
