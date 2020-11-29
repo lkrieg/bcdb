@@ -17,7 +17,7 @@
 #define  MAX_MSG_LEN        2048   // Log message length limit
 #define  MAX_REQ_LEN        2048   // Client request length limit
 #define  MAX_HASH_SIZE      4096   // Number of possible hashes
-#define  MAX_KEY_LEN        20     // Hashtable key limit
+#define  MAX_KEY_LEN        64     // Hashtable key limit
 
 //       ========
 //       TYPEDEFS
