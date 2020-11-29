@@ -31,24 +31,25 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 //       ERRORS
 //       ======
 
-#define  E_NOIMPL           "Not implemented"
-#define  E_ASSERT           "Assertion failure"
-#define  E_NOMEM            "Memory allocation failure"
-#define  E_NOSOCK           "Could not bind to network port"
-#define  E_FSINIT           "Could not initialize filesystem"
-#define  E_ARGVAL           "Unknown command line argument"
-#define  E_THREAD           "Could not create request thread"
-#define  E_ACCEPT           "Could not accept client request"
-#define  E_RECEIV           "Could not receive client request"
-#define  E_ANSWER           "Could not answer client request"
-#define  E_REQVAL           "Command not found, try 'help'"
-#define  E_ACCESS           "Authentication required"
-#define  E_NOCRED           "Invalid login credentials"
-#define  E_CMDARG           "Missing command argument"
-#define  E_KEYLEN           "Barcode exceeds character limit"
-#define  E_NOKEY            "Barcode does not exist in database"
-#define  E_EXISTS           "Barcode already exists in database"
-#define  E_DELETE           "Could not remove barcode from database"
+#define  E_NOIMPL           "Not implemented."
+#define  E_ASSERT           "Assertion failure."
+#define  E_NOMEM            "Memory allocation failure."
+#define  E_NOSOCK           "Could not bind to network port."
+#define  E_FSINIT           "Could not initialize filesystem."
+#define  E_ARGVAL           "Unknown command line argument."
+#define  E_THREAD           "Could not create request thread."
+#define  E_ACCEPT           "Could not accept client request."
+#define  E_RECEIV           "Could not receive client request."
+#define  E_ANSWER           "Could not answer client request."
+#define  E_REQVAL           "Command not found. Try 'help'."
+#define  E_ACCESS           "Authentication required."
+#define  E_NOCRED           "Invalid login credentials."
+#define  E_CMDARG           "Missing command argument."
+#define  E_KEYLEN           "Barcode exceeds length limit."
+#define  E_NOKEY            "Barcode does not exist."
+#define  E_EXISTS           "Barcode already exists."
+#define  E_NONE             "NONE"
+#define  E_OK               "OK"
 
 //       =======
 //       UTILITY
@@ -132,7 +133,8 @@ enum     req_type {
          T_REQ_LIST_TODO  = 0x6,
 	 T_REQ_AUTH       = 0x7,
 	 T_REQ_HELP       = 0x8,
-	 T_REQ_EXIT       = 0x9
+         T_REQ_CLEAR      = 0x9,
+	 T_REQ_EXIT       = 0xA
 };
 
 //       ==========

@@ -75,7 +75,7 @@ static void HandleRequest(req_t *req)
 		"  insert    BARCODE    Add BARCODE to database and mark as todo.\n"\
 		"  delete    BARCODE    Remove BARCODE from database.            \n"\
 		"  auth      PASSWD     Request elevated privileges.             \n"\
-		"  list                 Alias for 'list todo'.                   \n"\
+		"  list                 Alias for 'list --todo'.                 \n"\
 		"            --full     Print full barcode list. Alias for 'all'.\n"\
 		"            --done     Print list of already scanned barcodes.  \n"\
 		"            --todo     Print list of still missing barcodes.    \n"\
@@ -90,7 +90,7 @@ static void HandleRequest(req_t *req)
 		}
 
 		req->privileged = true;
-		NET_Answer(req, "OK");
+		NET_Answer(req, E_OK);
 		break;
 
 	case T_REQ_EXIT:
@@ -104,26 +104,23 @@ static void HandleRequest(req_t *req)
 		}
 
 		ent->status = T_ENT_DONE;
-		NET_Answer(req, "Key '%s' found in database,"
-		           " setting status to DONE", req->params);
+		NET_Answer(req, E_OK);
 		break;
 
 	case T_REQ_INSERT:
 		status = Hash_Insert(&table, req->params);
 		if (status == -1) { NET_Error(req, E_KEYLEN); break; }
 		if (status == -2) { NET_Error(req, E_EXISTS); break; }
-		NET_Answer(req, "Sucessfully inserted key '%s'"
-		           " into database", req->params);
+		NET_Answer(req, E_OK);
 		break;
 
 	case T_REQ_DELETE:
-		if (!Hash_Delete(&table, req->params)) {
-			NET_Error(req, E_NOIMPL);
+		if (Hash_Delete(&table, req->params) < 0) {
+			NET_Error(req, E_NOKEY);
 			break;
 		}
 
-		NET_Answer(req, "Successfully deleted key '%s'"
-		           " from database", req->params);
+		NET_Answer(req, E_OK);
 		break;
 
 	case T_REQ_LIST_FULL:
@@ -136,7 +133,7 @@ static void HandleRequest(req_t *req)
 		}
 
 		if (n == 0)
-			NET_Answer(req, "NONE");
+			NET_Answer(req, E_NONE);
 		break;
 
 	case T_REQ_LIST_DONE:
@@ -150,7 +147,7 @@ static void HandleRequest(req_t *req)
 		}
 
 		if (n == 0)
-			NET_Answer(req, "NONE");
+			NET_Answer(req, E_NONE);
 		break;
 
 	case T_REQ_LIST_TODO:
@@ -164,7 +161,10 @@ static void HandleRequest(req_t *req)
 		}
 
 		if (n == 0)
-			NET_Answer(req, "NONE");
+			NET_Answer(req, E_NONE);
 		break;
+
+	case T_REQ_CLEAR:
+		break; // TODO
 	}
 }

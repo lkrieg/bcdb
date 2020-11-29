@@ -1,3 +1,11 @@
+TODO
+====
+
+- No data persistence yet. Must serialize hashtable to disk.
+- Hashtable is currently not protected against race conditions.
+- Telnet control sequences should be handled instead of ignored.
+- Dynamic allocations after initialization should be eliminated.
+
 Example
 =======
 
@@ -10,7 +18,7 @@ $ help
   insert    BARCODE    Add BARCODE to database and mark as todo.
   delete    BARCODE    Remove BARCODE from database.
   auth      PASSWD     Request elevated privileges.
-  list                 Alias for 'list todo'.
+  list                 Alias for 'list --todo'.
             --full     Print full barcode list. Alias for 'all'.
             --done     Print list of already scanned barcodes.
             --todo     Print list of still missing barcodes.
@@ -18,7 +26,7 @@ $ help
   help                 Print list of all valid commands.
 
 $ query 0034572455
-Barcode does not exist in database
+Barcode does not exist
 
 $ insert 0034572455
 Authentication required
@@ -27,7 +35,7 @@ $ auth 123
 OK
 
 $ insert 0034572455
-Sucessfully inserted key '0034572455' into database
+OK
 
 $ list
 0034572455
@@ -36,7 +44,7 @@ $ list --done
 NONE
 
 $ query 0034572455
-Key '0034572455' found in database, setting status to DONE
+OK
 
 $ list
 NONE
