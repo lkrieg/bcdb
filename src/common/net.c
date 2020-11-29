@@ -280,5 +280,5 @@ static int ParseRequest(req_t *req)
 
 static void Prompt(req_t *req)
 {
-	write(req->handle, "$ ", 2);
+	write(req->handle, "\n$ ", 3);
 }

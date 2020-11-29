@@ -1,6 +1,11 @@
-Commands
-========
+Example
+=======
 
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+
+$ help
   query     BARCODE    Check if BARCODE exists and mark as done.
   insert    BARCODE    Add BARCODE to database and mark as todo.
   delete    BARCODE    Remove BARCODE from database.
@@ -11,3 +16,30 @@ Commands
             --todo     Print list of still missing barcodes.
   quit                 Close connection. Alias for 'exit'.
   help                 Print list of all valid commands.
+
+$ query 0034572455
+Barcode does not exist in database
+
+$ insert 0034572455
+Authentication required
+
+$ auth 123
+OK
+
+$ insert 0034572455
+Sucessfully inserted key '0034572455' into database
+
+$ list
+0034572455
+
+$ list --done
+NONE
+
+$ query 0034572455
+Key '0034572455' found in database, setting status to DONE
+
+$ list
+NONE
+
+$ list --done
+0034572455

@@ -80,7 +80,7 @@ static void HandleRequest(req_t *req)
 		"            --done     Print list of already scanned barcodes.  \n"\
 		"            --todo     Print list of still missing barcodes.    \n"\
 		"  quit                 Close connection. Alias for 'exit'.      \n"\
-		"  help                 Print list of all valid commands.        \n");
+		"  help                 Print list of all valid commands.          ");
 		break;
 
 	case T_REQ_AUTH:
