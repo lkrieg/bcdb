@@ -48,7 +48,6 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 #define  E_KEYLEN           "Barcode exceeds character limit"
 #define  E_NOKEY            "Barcode does not exist in database"
 #define  E_EXISTS           "Barcode already exists in database"
-#define  E_DELETE           "Could not remove barcode from database"
 
 //       =======
 //       UTILITY

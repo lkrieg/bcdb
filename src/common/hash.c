@@ -74,8 +74,29 @@ ht_ent_t *Hash_Get(ht_tab_t *tab, const char *key)
 // TODO: Thread-safety
 int Hash_Delete(ht_tab_t *tab, const char *key)
 {
-	UNUSED(tab);
-	UNUSED(key);
+	u32 hash;
+	ht_ent_t *head;
+	ht_ent_t *prev;
+
+	AS_NEQ_NULL(tab);
+	AS_NEQ_NULL(key);
+
+	hash = tab->func(key) % tab->size;
+	head = tab->table[hash];
+	prev = NULL;
+
+	for (; head; prev = head, head = head->next) {
+		if (!strcmp(key, head->key)) {
+			if (prev != NULL) {
+				prev->next = head->next;
+			} else {
+				tab->table[hash] = head->next;
+			}
+
+			Free(head);
+			return 0;
+		}
+	}
 
 	return -1;
 }

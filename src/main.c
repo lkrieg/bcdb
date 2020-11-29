@@ -75,7 +75,7 @@ static void HandleRequest(req_t *req)
 		"  insert    BARCODE    Add BARCODE to database and mark as todo.\n"\
 		"  delete    BARCODE    Remove BARCODE from database.            \n"\
 		"  auth      PASSWD     Request elevated privileges.             \n"\
-		"  list                 Alias for 'list todo'.                   \n"\
+		"  list                 Alias for 'list --todo'.                 \n"\
 		"            --full     Print full barcode list. Alias for 'all'.\n"\
 		"            --done     Print list of already scanned barcodes.  \n"\
 		"            --todo     Print list of still missing barcodes.    \n"\
@@ -117,8 +117,8 @@ static void HandleRequest(req_t *req)
 		break;
 
 	case T_REQ_DELETE:
-		if (!Hash_Delete(&table, req->params)) {
-			NET_Error(req, E_NOIMPL);
+		if (Hash_Delete(&table, req->params) < 0) {
+			NET_Error(req, E_NOKEY);
 			break;
 		}
 
