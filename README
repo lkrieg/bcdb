@@ -1,0 +1,12 @@
+COMMANDS  ARGUMENTS  DESCRIPTION
+--------  ---------  -------------------------------------------
+ query     BARCODE    Check if BARCODE exists and mark as done.
+ insert    BARCODE    Add BARCODE to database and mark as todo.
+ delete    BARCODE    Remove BARCODE from database.
+ auth      PASSWD     Request elevated privileges.
+ list                 Alias for 'list todo'.
+           --full     Print full barcode list. Alias for 'all'.
+           --done     Print list of already scanned barcodes.
+           --todo     Print list of still missing barcodes.
+ quit                 Close connection. Alias for 'exit'.
+ help                 Print list of all valid commands.

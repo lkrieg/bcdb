@@ -81,7 +81,8 @@ static void HandleRequest(req_t *req)
 		"           --full     Print full barcode list. Alias for 'all'. \n"\
 		"           --done     Print list of already scanned barcodes.   \n"\
 		"           --todo     Print list of still missing barcodes.     \n"\
-		" quit                 Close connection. Alias for 'exit'.       \n");
+		" quit                 Close connection. Alias for 'exit'.       \n"\
+		" help                 Print list of all valid commands.         \n");
 		break;
 
 	case T_REQ_AUTH:
