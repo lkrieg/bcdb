@@ -71,18 +71,17 @@ static void HandleRequest(req_t *req)
 
 	case T_REQ_HELP:
 		NET_Answer(req,
-		"\tCOMMAND  |  PARAMS  |  DESCRIPTION                       \n"\
-		"\t---------+----------+----------------------------------- \n"\
-		"\tquery    |  KEY     |  Check if KEY exists and mark done \n"\
-		"\tinsert   |  KEY     |  Add KEY to database and mark todo \n"\
-		"\tdelete   |  KEY     |  Remove KEY entry from database    \n"\
-		"\tauth     |  PWD     |  Request elevated privileges       \n"\
-		"\tlist     |          |  Alias for 'list --todo'           \n"\
-		"\tlist     |  --full  |  Print list of all barcodes        \n"\
-		"\tlist     |  --done  |  Print list of scanned barcodes    \n"\
-		"\tlist     |  --todo  |  Print list of missing barcodes    \n"\
-		"\texit     |          |  Close connection                  \n"\
-		"\tquit     |          |  Alias for 'exit'                  ");
+		"COMMANDS  ARGUMENTS  DESCRIPTION                                \n"\
+		"--------  ---------  -------------------------------------------\n"\
+		" query     BARCODE    Check if BARCODE exists and mark as done. \n"\
+		" insert    BARCODE    Add BARCODE to database and mark as todo. \n"\
+		" delete    BARCODE    Remove BARCODE from database.             \n"\
+		" auth      PASSWD     Request elevated privileges.              \n"\
+		" list                 Alias for 'list todo'.                    \n"\
+		"           --full     Print full barcode list. Alias for 'all'. \n"\
+		"           --done     Print list of already scanned barcodes.   \n"\
+		"           --todo     Print list of still missing barcodes.     \n"\
+		" quit                 Close connection. Alias for 'exit'.       \n");
 		break;
 
 	case T_REQ_AUTH:
@@ -133,12 +132,12 @@ static void HandleRequest(req_t *req)
 		for (i = 0; i < MAX_HASH_SIZE; i++) {
 			if (table.table[i] != NULL) {
 				ent = table.table[i]; n++;
-				NET_Answer(req, "\t%s", ent->key);
+				NET_Answer(req, "%s", ent->key);
 			}
 		}
 
 		if (n == 0)
-			NET_Answer(req, "\tNONE");
+			NET_Answer(req, "NONE");
 		break;
 
 	case T_REQ_LIST_DONE:
@@ -147,12 +146,12 @@ static void HandleRequest(req_t *req)
 			if ((table.table[i] != NULL)
 			&& ((table.table[i]->status == T_ENT_DONE))) {
 				ent = table.table[i]; n++;
-				NET_Answer(req, "\t%s", ent->key);
+				NET_Answer(req, "%s", ent->key);
 			}
 		}
 
 		if (n == 0)
-			NET_Answer(req, "\tNONE");
+			NET_Answer(req, "NONE");
 		break;
 
 	case T_REQ_LIST_TODO:
@@ -161,12 +160,12 @@ static void HandleRequest(req_t *req)
 			if ((table.table[i] != NULL)
 			&& ((table.table[i]->status == T_ENT_TODO))) {
 				ent = table.table[i]; n++;
-				NET_Answer(req, "\t%s", ent->key);
+				NET_Answer(req, "%s", ent->key);
 			}
 		}
 
 		if (n == 0)
-			NET_Answer(req, "\tNONE");
+			NET_Answer(req, "NONE");
 		break;
 	}
 }
