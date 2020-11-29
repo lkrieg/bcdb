@@ -41,13 +41,15 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 #define  E_ACCEPT           "Could not accept client request"
 #define  E_RECEIV           "Could not receive client request"
 #define  E_ANSWER           "Could not answer client request"
-#define  E_REQVAL           "Command not found, try 'help'"
+#define  E_REQVAL           "Command not found, see 'help'"
 #define  E_ACCESS           "Authentication required"
 #define  E_NOCRED           "Invalid login credentials"
 #define  E_CMDARG           "Missing command argument"
-#define  E_KEYLEN           "Barcode exceeds character limit"
-#define  E_NOKEY            "Barcode does not exist in database"
-#define  E_EXISTS           "Barcode already exists in database"
+#define  E_KEYLEN           "Barcode exceeds length limit"
+#define  E_NOKEY            "Barcode does not exist"
+#define  E_EXISTS           "Barcode already exists"
+#define  E_NONE             "NONE"
+#define  E_OK               "OK"
 
 //       =======
 //       UTILITY
