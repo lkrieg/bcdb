@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 
-static ht_tab_t *table;
+static ht_tab_t table;
 
 static void HandleRequest(req_t *req);
 
@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 		}
 
 	// Create hashtable
-	Hash_Init(table);
+	Hash_Init(&table);
 
 	// Initialize threaded request handling
 	if (NET_Init(port, HandleRequest) < 0)
@@ -44,7 +44,9 @@ int main(int argc, char **argv)
 
 static void HandleRequest(req_t *req)
 {
-	int status;
+	int n = 0;
+	int status, i;
+	ht_ent_t *ent;
 
 	if ((!req->privileged)
 	&& ((req->type == T_REQ_INSERT)
@@ -83,33 +85,6 @@ static void HandleRequest(req_t *req)
 		"\tquit     |          |  Alias for 'exit'                  ");
 		break;
 
-	case T_REQ_QUERY:
-		status = Hash_Exists(table, req->params);
-		NET_Answer(req, (!status) ? "OK" : "Error");
-		break;
-
-	case T_REQ_INSERT:
-		status = Hash_Insert(table, req->params);
-		NET_Answer(req, (!status) ? "OK" : "Error");
-		break;
-
-	case T_REQ_DELETE:
-		status = Hash_Delete(table, req->params);
-		NET_Answer(req, (!status) ? "OK" : "Error");
-		break;
-
-	case T_REQ_LIST_FULL:
-		NET_Answer(req, "Listing all barcodes...");
-		break;
-
-	case T_REQ_LIST_DONE:
-		NET_Answer(req, "Listing finished barcodes...");
-		break;
-
-	case T_REQ_LIST_TODO:
-		NET_Answer(req, "Listing missing barcodes...");
-		break;
-
 	case T_REQ_AUTH:
 		if (strcmp(req->params, "123")) {
 			NET_Error(req, E_NOCRED);
@@ -122,6 +97,76 @@ static void HandleRequest(req_t *req)
 
 	case T_REQ_EXIT:
 		close(req->handle);
+		break;
+
+	case T_REQ_QUERY:
+		if (!(ent = Hash_Get(&table, req->params))) {
+			NET_Error(req, E_NOKEY);
+			break;
+		}
+
+		ent->status = T_ENT_DONE;
+		NET_Answer(req, "Key '%s' found in database,"
+		           " setting status to DONE", req->params);
+		break;
+
+	case T_REQ_INSERT:
+		status = Hash_Insert(&table, req->params);
+		if (status == -1) { NET_Error(req, E_KEYLEN); break; }
+		if (status == -2) { NET_Error(req, E_EXISTS); break; }
+		NET_Answer(req, "Sucessfully inserted key '%s'"
+		           " into database", req->params);
+		break;
+
+	case T_REQ_DELETE:
+		if (!Hash_Delete(&table, req->params)) {
+			NET_Error(req, E_NOIMPL);
+			break;
+		}
+
+		NET_Answer(req, "Successfully deleted key '%s'"
+		           " from database", req->params);
+		break;
+
+	case T_REQ_LIST_FULL:
+		// FIXME: Shamefully inefficient
+		for (i = 0; i < MAX_HASH_SIZE; i++) {
+			if (table.table[i] != NULL) {
+				ent = table.table[i]; n++;
+				NET_Answer(req, "\t%s", ent->key);
+			}
+		}
+
+		if (n == 0)
+			NET_Answer(req, "\tNONE");
+		break;
+
+	case T_REQ_LIST_DONE:
+		// FIXME: Shamefully inefficient
+		for (i = 0; i < MAX_HASH_SIZE; i++) {
+			if ((table.table[i] != NULL)
+			&& ((table.table[i]->status == T_ENT_DONE))) {
+				ent = table.table[i]; n++;
+				NET_Answer(req, "\t%s", ent->key);
+			}
+		}
+
+		if (n == 0)
+			NET_Answer(req, "\tNONE");
+		break;
+
+	case T_REQ_LIST_TODO:
+		// FIXME: Shamefully inefficient
+		for (i = 0; i < MAX_HASH_SIZE; i++) {
+			if ((table.table[i] != NULL)
+			&& ((table.table[i]->status == T_ENT_TODO))) {
+				ent = table.table[i]; n++;
+				NET_Answer(req, "\t%s", ent->key);
+			}
+		}
+
+		if (n == 0)
+			NET_Answer(req, "\tNONE");
 		break;
 	}
 }

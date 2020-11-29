@@ -17,6 +17,7 @@
 #define  MAX_MSG_LEN        2048   // Log message length limit
 #define  MAX_REQ_LEN        2048   // Client request length limit
 #define  MAX_HASH_SIZE      4096   // Number of possible hashes
+#define  MAX_KEY_LEN        20     // Hashtable key limit
 
 //       ========
 //       TYPEDEFS
@@ -30,6 +31,7 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 //       ERRORS
 //       ======
 
+#define  E_NOIMPL           "Not implemented"
 #define  E_ASSERT           "Assertion failure"
 #define  E_NOMEM            "Memory allocation failure"
 #define  E_NOSOCK           "Could not bind to network port"
@@ -43,6 +45,10 @@ typedef  unsigned char      byte;  // uint8_t could be a non-character
 #define  E_ACCESS           "Authentication required"
 #define  E_NOCRED           "Invalid login credentials"
 #define  E_CMDARG           "Missing command argument"
+#define  E_KEYLEN           "Barcode exceeds character limit"
+#define  E_NOKEY            "Barcode does not exist in database"
+#define  E_EXISTS           "Barcode already exists in database"
+#define  E_DELETE           "Could not remove barcode from database"
 
 //       =======
 //       UTILITY
@@ -152,18 +158,25 @@ typedef  struct ht_ent_s ht_ent_t;
 int      Hash_Init(ht_tab_t *tab);
 void     Hash_Free(ht_tab_t *tab);
 int      Hash_Insert(ht_tab_t *tab, const char *key);
-int      Hash_Exists(ht_tab_t *tab, const char *key);
+ht_ent_t *Hash_Get(ht_tab_t *tab, const char *key);
 int      Hash_Delete(ht_tab_t *tab, const char *key);
 
 struct   ht_tab_s {
          ht_ent_t  ** table;
+	 ht_ent_t   * active;
          ht_fun_t     func;
          int          size;
 };
 
 struct   ht_ent_s {
          ht_ent_t   * next;
-         const char * key;
+         char         key[MAX_KEY_LEN];
+	 int          status;
+};
+
+enum     ht_ent_status {
+         T_ENT_TODO,
+	 T_ENT_DONE
 };
 
 //       ===========
