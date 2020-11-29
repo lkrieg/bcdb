@@ -1,3 +1,11 @@
+TODO
+====
+
+- No data persistence yet. Must serialize hashtable to disk.
+- Hashtable is currently not protected against race conditions.
+- Telnet control sequences should be handled instead of ignored.
+- Dynamic allocations after initialization should be eliminated.
+
 Example
 =======
 
