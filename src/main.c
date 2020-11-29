@@ -71,18 +71,16 @@ static void HandleRequest(req_t *req)
 
 	case T_REQ_HELP:
 		NET_Answer(req,
-		"COMMANDS  ARGUMENTS  DESCRIPTION                                \n"\
-		"--------  ---------  -------------------------------------------\n"\
-		" query     BARCODE    Check if BARCODE exists and mark as done. \n"\
-		" insert    BARCODE    Add BARCODE to database and mark as todo. \n"\
-		" delete    BARCODE    Remove BARCODE from database.             \n"\
-		" auth      PASSWD     Request elevated privileges.              \n"\
-		" list                 Alias for 'list todo'.                    \n"\
-		"           --full     Print full barcode list. Alias for 'all'. \n"\
-		"           --done     Print list of already scanned barcodes.   \n"\
-		"           --todo     Print list of still missing barcodes.     \n"\
-		" quit                 Close connection. Alias for 'exit'.       \n"\
-		" help                 Print list of all valid commands.         \n");
+		"  query     BARCODE    Check if BARCODE exists and mark as done.\n"\
+		"  insert    BARCODE    Add BARCODE to database and mark as todo.\n"\
+		"  delete    BARCODE    Remove BARCODE from database.            \n"\
+		"  auth      PASSWD     Request elevated privileges.             \n"\
+		"  list                 Alias for 'list todo'.                   \n"\
+		"            --full     Print full barcode list. Alias for 'all'.\n"\
+		"            --done     Print list of already scanned barcodes.  \n"\
+		"            --todo     Print list of still missing barcodes.    \n"\
+		"  quit                 Close connection. Alias for 'exit'.      \n"\
+		"  help                 Print list of all valid commands.        \n");
 		break;
 
 	case T_REQ_AUTH:
