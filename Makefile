@@ -15,7 +15,7 @@ VERBOSE  = false
 LDFLAGS  =
 
 DSTDIR   = bin
-TARGET  := $(DSTDIR)/bcdb
+TARGET  := $(DSTDIR)/barkeeper
 TMPDIR  := $(DSTDIR)/.build
 SOURCES := $(shell find src -name "*.c")
 OBJECTS := $(SOURCES:%.c=$(TMPDIR)/%.o)
