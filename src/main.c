@@ -166,5 +166,8 @@ static void HandleRequest(req_t *req)
 		if (n == 0)
 			NET_Answer(req, "NONE");
 		break;
+
+	case T_REQ_CLEAR:
+		break; // TODO
 	}
 }

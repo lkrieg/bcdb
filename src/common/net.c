@@ -110,6 +110,7 @@ static void *RunThread(void *arg)
 	char *data;
 	req_t req;
 	int n, len;
+	bool rdy;
 
 	req.privileged  = false;
 	req.handle      = *((int *) arg);
@@ -124,8 +125,13 @@ static void *RunThread(void *arg)
 			ParseRequest(&req);
 			net.func(&req);
 
-			if (req.type != T_REQ_EMPTY)
+			// Quick and dirty prompt fix...
+			// It's late and I need some sleep.
+
+			if (req.type != T_REQ_EMPTY || rdy) {
 				Prompt(&req);
+				rdy = true;
+			}
 		}
 
 	} while (n > 0);
@@ -161,6 +167,17 @@ static int ParseRequest(req_t *req)
 			&& ((head[3] == 'H' || head[3] == 'h'))) {
 				req->type = T_REQ_AUTH;
 				req->params = head + 4;
+			}
+			break;
+
+		case 'C': case 'c': // CLEAR
+			if ((head[1] == 'L' || head[1] == 'l')
+			&& ((head[2] == 'E' || head[2] == 'e'))
+			&& ((head[3] == 'A' || head[3] == 'a'))
+			&& ((head[4] == 'R' || head[4] == 'r'))
+			&& ((head[5] == '\0'))) {
+				req->type = T_REQ_CLEAR;
+				req->params = head + 5;
 			}
 			break;
 

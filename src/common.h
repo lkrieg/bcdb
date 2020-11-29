@@ -131,7 +131,8 @@ enum     req_type {
          T_REQ_LIST_TODO  = 0x6,
 	 T_REQ_AUTH       = 0x7,
 	 T_REQ_HELP       = 0x8,
-	 T_REQ_EXIT       = 0x9
+         T_REQ_CLEAR      = 0x9,
+	 T_REQ_EXIT       = 0xA
 };
 
 //       ==========
