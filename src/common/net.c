@@ -11,15 +11,18 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-static int sockfd = -1;
+static const char *GetAddrStr(struct sockaddr *addr);
+void SendClient(net_cln_t *cln, const char *buf, int size);
 
+static int sockfd = -1;
 static const telnet_telopt_t telopts[] = {
-	{ TELNET_TELOPT_COMPRESS2, TELNET_WILL, TELNET_DONT },
+	{ TELNET_TELOPT_TTYPE,     TELNET_WONT, TELNET_DO   },
 	{ TELNET_TELOPT_NAWS,      TELNET_WONT, TELNET_DO   },
+	{ TELNET_TELOPT_LINEMODE,  TELNET_WONT, TELNET_DONT },
+	{ TELNET_TELOPT_COMPRESS2, TELNET_WILL, TELNET_DONT },
+	{ TELNET_TELOPT_ECHO,      TELNET_WILL, TELNET_DONT },
 	{ -1, 0, 0 }
 };
-
-static const char *GetAddrStr(struct sockaddr *addr);
 
 int NET_Init(void)
 {
@@ -74,10 +77,13 @@ int NET_Init(void)
 
 static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 {
-	net_cln_t *cln = (net_cln_t *) client; // FIXME
+	net_cln_t *cln;
 	unsigned int i;
+	short rows, cols;
+	const char *buf;
 
 	UNUSED(telnet);
+	cln = (net_cln_t *) client;
 	switch(evt->type) {
 	case TELNET_EV_DATA:
 		Print("Received data from %s:", cln->address);
@@ -86,13 +92,41 @@ static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 		Print("\n");
 		break;
 	case TELNET_EV_SEND:
-		NET_Send(cln, evt->data.buffer, evt->data.size);
+		SendClient(cln, evt->data.buffer, evt->data.size);
 		break;
 	case TELNET_EV_DO:
 		if (evt->neg.telopt == TELNET_TELOPT_COMPRESS2) {
-			Info("Starting compression");
+			Info("DOING COMPRESSION");
 			telnet_begin_compress2(telnet);
 		}
+		break;
+	case TELNET_EV_WILL:
+		if (evt->neg.telopt == TELNET_TELOPT_TTYPE)
+			Info("DOING TTYPE");
+			//telnet_begin_sb(telnet, TELNET_TELOPT_TTYPE);
+			//telnet_send(telnet, DO_SEND_STUFF, size);
+			//telnet_end_sb(telnet);
+		if (evt->neg.telopt == TELNET_TELOPT_NAWS)
+			Info("DOING NAWS");
+		if (evt->neg.telopt == TELNET_TELOPT_LINEMODE)
+			Info("DOING LINEMODE");
+		break;
+	case TELNET_EV_WONT:
+		Info("EV_WONT");
+		break;
+	case TELNET_EV_SUBNEGOTIATION:
+		if ((evt->sub.telopt == TELNET_TELOPT_NAWS)
+		&& ((evt->sub.size == 4))) {
+			buf  = evt->sub.buffer;
+			rows = (((short) buf[3]) << 8) | buf[2];
+			cols = (((short) buf[1]) << 8) | buf[0];
+			rows = ntohs(rows);
+			cols = ntohs(cols);
+			Info("%dx%d", rows, cols);
+		}
+		break;
+	case TELNET_EV_TTYPE:
+		Info("EV_TTYPE");
 		break;
 	case TELNET_EV_ERROR:
 	default:
@@ -124,7 +158,11 @@ int NET_Accept(net_cln_t *out)
 
 	out->handle = fd;
 	out->parent = sockfd;
-	out->telnet = telnet_init(telopts, HandleEvent, 0, &out); // FIXME
+	out->telnet = telnet_init(telopts, HandleEvent, 0, out);
+
+	telnet_negotiate(out->telnet, TELNET_DO,   TELNET_TELOPT_NAWS);
+	telnet_negotiate(out->telnet, TELNET_DO,   TELNET_TELOPT_TTYPE);
+	telnet_negotiate(out->telnet, TELNET_DONT, TELNET_TELOPT_LINEMODE);
 	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_COMPRESS2);
 	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_ECHO);
 
@@ -155,21 +193,7 @@ int NET_NextEvent(net_cln_t *cln, net_evt_t *out)
 
 void NET_Send(net_cln_t *cln, const char *buf, int size)
 {
-	int n;
-
-	if (cln->handle < 0)
-		return;
-
-	while (size > 0) {
-		if ((n = send(cln->handle, buf, size, 0)) <= 0) {
-			if (errno != EINTR && errno != ECONNRESET)
-				Error(E_TXDATA ": %s", strerror(errno));
-			return;
-		}
-
-		buf  += n;
-		size -= n;
-	}
+	telnet_send(cln->telnet, buf, size);
 }
 
 void NET_Shutdown(void)
@@ -194,4 +218,23 @@ static const char *GetAddrStr(struct sockaddr *addr)
 		return "INVALID";
         
 	return buf;
+}
+
+void SendClient(net_cln_t *cln, const char *buf, int size)
+{
+	int n;
+
+	if (cln->handle < 0)
+		return;
+
+	while (size > 0) {
+		if ((n = send(cln->handle, buf, size, 0)) <= 0) {
+			if (errno != EINTR && errno != ECONNRESET)
+				Error(E_TXDATA ": %s", strerror(errno));
+			return;
+		}
+
+		buf  += n;
+		size -= n;
+	}
 }

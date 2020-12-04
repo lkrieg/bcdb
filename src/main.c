@@ -30,6 +30,7 @@ int main(void)
 		switch (fork()) {
 		case 0: // Client process
 			close(cln.parent);
+			NET_Send(&cln, "Hallo", 5);
 			while (NET_NextEvent(&cln, &evt)) {
 				switch (evt.type) {
 				case T_EVT_DATA:
