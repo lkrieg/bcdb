@@ -124,25 +124,33 @@ int NET_Accept(net_cln_t *out)
 
 	out->handle = fd;
 	out->parent = sockfd;
-	out->telnet = telnet_init(telopts, HandleEvent, 0, &out);
+	out->telnet = telnet_init(telopts, HandleEvent, 0, &out); // FIXME
 	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_COMPRESS2);
 	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_ECHO);
 
 	return out->handle;
 }
 
-int NET_Read(net_cln_t *cln)
+void NET_Close(net_cln_t *cln)
+{
+	telnet_free(cln->telnet);
+	close(cln->handle);
+}
+
+int NET_NextEvent(net_cln_t *cln, net_evt_t *out)
 {
 	char buf[MAX_MSG_LEN];
 	int n;
 
+	// TODO: Return enqueued events before receiving more
         if ((n = recv(cln->handle, buf, MAX_MSG_LEN, 0)) > 0)
 		telnet_recv(cln->telnet, buf, n);
 
 	if (n < 0 && errno != EINTR)
 		Error(E_RXDATA " from '%s'", cln->address);
 
-	return n;
+	out->type = T_EVT_NONE;
+	return out->type;
 }
 
 void NET_Send(net_cln_t *cln, const char *buf, int size)

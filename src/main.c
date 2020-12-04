@@ -14,13 +14,13 @@ int main(void)
 {
 	bool active;
 	net_cln_t cln;
-
-        // Register signal handlers
-        if (InitSignalHandlers() < 0)
-                Error(E_SIGNAL);
+	net_evt_t evt;
 
 	if (NET_Init() < 0)
 		Error(E_IPFAIL);
+
+	if (InitSignalHandlers() < 0)
+		Error(E_SIGNAL);
 
 	active = true;
 	while (active) {
@@ -30,10 +30,20 @@ int main(void)
 		switch (fork()) {
 		case 0: // Client process
 			close(cln.parent);
-			while (NET_Read(&cln) > 0);
-			close(cln.handle);
+			while (NET_NextEvent(&cln, &evt)) {
+				switch (evt.type) {
+				case T_EVT_DATA:
+					Info("T_EVT_DATA");
+					break;
+				case T_EVT_RESIZE:
+					Info("T_EVT_RESIZE");
+					break;
+				}
+			}
+
+			// Disconnected
+			NET_Close(&cln);
 			exit(EXIT_SUCCESS);
-			break;
 
 		case -1: // Unable to fork
 			Error(E_NOFORK ": %s", strerror(errno));

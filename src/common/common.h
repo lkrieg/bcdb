@@ -33,11 +33,13 @@
 
 typedef unsigned char byte;
 typedef struct net_cln_s net_cln_t;
+typedef struct net_evt_s net_evt_t;
 
 int   NET_Init(void);
 int   NET_Accept(net_cln_t *out);
-int   NET_Read(net_cln_t *cln);
+int   NET_NextEvent(net_cln_t *cln, net_evt_t *out);
 void  NET_Send(net_cln_t *cln, const char *buf, int size);
+void  NET_Close(net_cln_t *cln);
 void  NET_Shutdown(void);
 
 struct net_cln_s {
@@ -46,6 +48,17 @@ struct net_cln_s {
 	char        address[MAX_ADR_LEN];
 	char        username[MAX_USR_LEN];
 	telnet_t *  telnet;
+};
+
+struct net_evt_s {
+	int         type;
+};
+
+enum net_evt_type {
+	T_EVT_QUIT = 0,
+	T_EVT_NONE,
+	T_EVT_DATA,
+	T_EVT_RESIZE
 };
 
 #define _perror(...)    do { _printl(__VA_ARGS__); _fatal(); } while(0)
