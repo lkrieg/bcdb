@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "external/telnet.h"
+
 #define MAX_BACKLOG     10
 #define MAX_ADR_LEN     46
 #define MAX_USR_LEN     80
@@ -26,22 +28,24 @@
 #define E_ACCEPT        "Unable to accept client"
 #define E_NOFORK        "Unable to fork process"
 #define E_RXDATA        "Unable to receive data"
+#define E_TXDATA        "Unable to send data"
 #define M_ACCEPT        "Accepting new client"
-
 
 typedef unsigned char byte;
 typedef struct net_cln_s net_cln_t;
 
 int   NET_Init(void);
 int   NET_Accept(net_cln_t *out);
-int   NET_Read(net_cln_t *cln, byte *out);
+int   NET_Read(net_cln_t *cln);
+void  NET_Send(net_cln_t *cln, const char *buf, int size);
 void  NET_Shutdown(void);
 
 struct net_cln_s {
-	int     handle;
-	int     parent;
-	char    address[MAX_ADR_LEN];
-	char    username[MAX_USR_LEN];
+	int         handle;
+	int         parent;
+	char        address[MAX_ADR_LEN];
+	char        username[MAX_USR_LEN];
+	telnet_t *  telnet;
 };
 
 #define _perror(...)    do { _printl(__VA_ARGS__); _fatal(); } while(0)

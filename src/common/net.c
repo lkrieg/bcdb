@@ -13,6 +13,12 @@
 
 static int sockfd = -1;
 
+static const telnet_telopt_t telopts[] = {
+	{ TELNET_TELOPT_COMPRESS2, TELNET_WILL, TELNET_DONT },
+	{ TELNET_TELOPT_NAWS,      TELNET_WONT, TELNET_DO   },
+	{ -1, 0, 0 }
+};
+
 static const char *GetAddrStr(struct sockaddr *addr);
 
 int NET_Init(void)
@@ -66,6 +72,35 @@ int NET_Init(void)
 	return 0;
 }
 
+static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
+{
+	net_cln_t *cln = (net_cln_t *) client; // FIXME
+	unsigned int i;
+
+	UNUSED(telnet);
+	switch(evt->type) {
+	case TELNET_EV_DATA:
+		Print("Received data from %s:", cln->address);
+		for (i = 0; i < evt->data.size; i++)
+			Print(" %02X", evt->data.buffer[i]);
+		Print("\n");
+		break;
+	case TELNET_EV_SEND:
+		NET_Send(cln, evt->data.buffer, evt->data.size);
+		break;
+	case TELNET_EV_DO:
+		if (evt->neg.telopt == TELNET_TELOPT_COMPRESS2) {
+			Info("Starting compression");
+			telnet_begin_compress2(telnet);
+		}
+		break;
+	case TELNET_EV_ERROR:
+	default:
+		break;
+
+	}
+}
+
 int NET_Accept(net_cln_t *out)
 {
 	socklen_t solen;
@@ -83,24 +118,50 @@ int NET_Accept(net_cln_t *out)
 		return -1;
 	}
 
+	adstr = GetAddrStr(sa);
+	Info(M_ACCEPT ": %s", adstr);
+	strcpy(out->address, adstr);
+
 	out->handle = fd;
 	out->parent = sockfd;
-	adstr = GetAddrStr(sa);
-	strcpy(out->address, adstr);
-	Info(M_ACCEPT ": %s", adstr);
+	out->telnet = telnet_init(telopts, HandleEvent, 0, &out);
+	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_COMPRESS2);
+	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_ECHO);
 
 	return out->handle;
 }
 
-int NET_Read(net_cln_t *cln, byte *out)
+int NET_Read(net_cln_t *cln)
+{
+	char buf[MAX_MSG_LEN];
+	int n;
+
+        if ((n = recv(cln->handle, buf, MAX_MSG_LEN, 0)) > 0)
+		telnet_recv(cln->telnet, buf, n);
+
+	if (n < 0 && errno != EINTR)
+		Error(E_RXDATA " from '%s'", cln->address);
+
+	return n;
+}
+
+void NET_Send(net_cln_t *cln, const char *buf, int size)
 {
 	int n;
 
-	// TODO: Now test libtelnet with zlib compression here
-        if ((n = recv(cln->handle, out, MAX_MSG_LEN, 0)) < 0)
-                Warning(E_RXDATA " from '%s'", cln->address);
+	if (cln->handle < 0)
+		return;
 
-	return n;
+	while (size > 0) {
+		if ((n = send(cln->handle, buf, size, 0)) <= 0) {
+			if (errno != EINTR && errno != ECONNRESET)
+				Error(E_TXDATA ": %s", strerror(errno));
+			return;
+		}
+
+		buf  += n;
+		size -= n;
+	}
 }
 
 void NET_Shutdown(void)

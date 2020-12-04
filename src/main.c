@@ -14,8 +14,6 @@ int main(void)
 {
 	bool active;
 	net_cln_t cln;
-	byte buf[MAX_MSG_LEN];
-	int n, i;
 
         // Register signal handlers
         if (InitSignalHandlers() < 0)
@@ -32,14 +30,7 @@ int main(void)
 		switch (fork()) {
 		case 0: // Client process
 			close(cln.parent);
-
-			// TODO: Begin client authentication
-			while ((n = NET_Read(&cln, buf)) >= 0) {
-				for (i = 0; i < n; i++)
-					Print(" %02X", buf[i]);
-				Print("%c", (n > 0) ? '\n' : '\0');
-			}
-
+			while (NET_Read(&cln) > 0);
 			close(cln.handle);
 			exit(EXIT_SUCCESS);
 			break;
