@@ -1,172 +1,101 @@
-#include "common.h"
+#include "common/common.h"
 
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
-static ht_tab_t table;
+static int   InitSignalHandlers(void);
+static void  HandleInterrupt(int sig);
+static void  HandleChild(int sig);
 
-static void HandleRequest(req_t *req);
-
-int main(int argc, char **argv)
+int main(void)
 {
-	int port;
-	arg_t arg;
+	bool active;
+	net_cln_t cln;
+	byte buf[MAX_MSG_LEN];
+	int n, i;
 
-	if (FS_Init() < 0)
-		Error(E_FSINIT);
+        // Register signal handlers
+        if (InitSignalHandlers() < 0)
+                Error(E_SIGNAL);
 
-	port = DEFAULT_PORT;
-	CMD_Parse(argc, argv);
+	if (NET_Init() < 0)
+		Error(E_IPFAIL);
 
-	while (CMD_Next(&arg))
-		switch(arg.type) { // Parse command line flags
-		case T_ARG_PORT: port = arg.as.num;      break;
-		case T_ARG_PATH: FS_AddPath(arg.as.str); break;
-		default:         Error(E_ARGVAL);
+	active = true;
+	while (active) {
+		if (NET_Accept(&cln) < 0)
+			continue;
+
+		switch (fork()) {
+		case 0: // Client process
+			close(cln.parent);
+
+			// TODO: Begin client authentication
+			while ((n = NET_Read(&cln, buf)) >= 0) {
+				for (i = 0; i < n; i++)
+					Print(" %02X", buf[i]);
+				Print("%c", (n > 0) ? '\n' : '\0');
+			}
+
+			close(cln.handle);
+			exit(EXIT_SUCCESS);
+			break;
+
+		case -1: // Unable to fork
+			Error(E_NOFORK ": %s", strerror(errno));
+
+		default: // Parent process
+			close(cln.handle);
+
 		}
-
-	// Create hashtable
-	Hash_Init(&table);
-
-	// Initialize threaded request handling
-	if (NET_Init(port, HandleRequest) < 0)
-		Error(E_NOSOCK " %d", port);
-
-	for (;;) // Next client
-		NET_Accept();
+	}
 
 	NET_Shutdown();
-	FS_Shutdown();
-	MemCheck();
-
 	return 0;
 }
 
-static void HandleRequest(req_t *req)
+static int InitSignalHandlers(void)
 {
-	int n = 0;
-	int status, i;
-	ht_ent_t *ent;
+	struct sigaction st, sc;
 
-	if ((!req->privileged)
-	&& ((req->type == T_REQ_INSERT)
-	|| ((req->type == T_REQ_DELETE)))) {
-		NET_Error(req, E_ACCESS);
-		return;
-	}
+	// Reap zombie child processes
+	sc.sa_handler  = HandleChild;
+	sc.sa_flags    = SA_RESTART;
+	sigemptyset(&sc.sa_mask);
 
-	if ((!req->params[0])
-	&& ((req->type == T_REQ_QUERY)
-	|| ((req->type == T_REQ_INSERT))
-	|| ((req->type == T_REQ_DELETE))
-	|| ((req->type == T_REQ_AUTH)))) {
-		NET_Error(req, E_CMDARG);
-		return;
-	}
+	// Handle termination signals
+	st.sa_handler  = HandleInterrupt;
+	st.sa_flags    = 0;
+	sigemptyset(&st.sa_mask);
 
-	switch(req->type) {
-	case T_REQ_INVAL:
-		NET_Error(req, E_REQVAL);
-		break;
+	if ((sigaction(SIGINT,  &st, NULL) < 0)
+	|| ((sigaction(SIGHUP,  &st, NULL) < 0))
+	|| ((sigaction(SIGTERM, &st, NULL) < 0))
+	|| ((sigaction(SIGCHLD, &sc, NULL) < 0)))
+		return -1;
 
-	case T_REQ_HELP:
-		NET_Answer(req,
-		"[1]  query     BARCODE    Check if BARCODE exists and mark as done.\n"\
-		"[2]  insert    BARCODE    Add BARCODE to database and mark as todo.\n"\
-		"[3]  delete    BARCODE    Remove BARCODE from database.            \n"\
-		"[4]  auth      PASSWD     Request elevated privileges.             \n"\
-		"[5]  list                 Alias for 'list --todo'.                 \n"\
-		"[6]            --full     Print full barcode list. Alias for 'all'.\n"\
-		"[7]            --done     Print list of already scanned barcodes.  \n"\
-		"[8]            --todo     Print list of still missing barcodes.    \n"\
-		"[9]  help                 Print list of all valid commands.        \n"\
-		"[0]  quit                 Close connection. Alias for 'exit'.        ");
-
-		break;
-
-	case T_REQ_AUTH:
-		if (strcmp(req->params, "123")) {
-			NET_Error(req, E_NOCRED);
-			break; // Plaintext!
-		}
-
-		req->privileged = true;
-		NET_Answer(req, E_OK);
-		break;
-
-	case T_REQ_EXIT:
-		close(req->handle);
-		break;
-
-	case T_REQ_QUERY:
-		if (!(ent = Hash_Get(&table, req->params))) {
-			NET_Error(req, E_NOKEY);
-			break;
-		}
-
-		ent->status = T_ENT_DONE;
-		NET_Answer(req, E_OK);
-		break;
-
-	case T_REQ_INSERT:
-		status = Hash_Insert(&table, req->params);
-		if (status == -1) { NET_Error(req, E_KEYLEN); break; }
-		if (status == -2) { NET_Error(req, E_EXISTS); break; }
-		NET_Answer(req, E_OK);
-		break;
-
-	case T_REQ_DELETE:
-		if (Hash_Delete(&table, req->params) < 0) {
-			NET_Error(req, E_NOKEY);
-			break;
-		}
-
-		NET_Answer(req, E_OK);
-		break;
-
-	case T_REQ_LIST_FULL:
-		// FIXME: Shamefully inefficient
-		for (i = 0; i < MAX_HASH_SIZE; i++) {
-			if (table.table[i] != NULL) {
-				ent = table.table[i]; n++;
-				NET_Answer(req, "%s", ent->key);
-			}
-		}
-
-		if (n == 0)
-			NET_Answer(req, E_NONE);
-		break;
-
-	case T_REQ_LIST_DONE:
-		// FIXME: Shamefully inefficient
-		for (i = 0; i < MAX_HASH_SIZE; i++) {
-			if ((table.table[i] != NULL)
-			&& ((table.table[i]->status == T_ENT_DONE))) {
-				ent = table.table[i]; n++;
-				NET_Answer(req, "%s", ent->key);
-			}
-		}
-
-		if (n == 0)
-			NET_Answer(req, E_NONE);
-		break;
-
-	case T_REQ_LIST_TODO:
-		// FIXME: Shamefully inefficient
-		for (i = 0; i < MAX_HASH_SIZE; i++) {
-			if ((table.table[i] != NULL)
-			&& ((table.table[i]->status == T_ENT_TODO))) {
-				ent = table.table[i]; n++;
-				NET_Answer(req, "%s", ent->key);
-			}
-		}
-
-		if (n == 0)
-			NET_Answer(req, E_NONE);
-		break;
-
-	case T_REQ_CLEAR:
-	case T_REQ_EMPTY:
-		break; // TODO
-	}
+        return 0;
 }
+
+static void HandleInterrupt(int sig)
+{
+	NET_Shutdown();
+	exit(EXIT_SUCCESS);
+	UNUSED(sig);
+}
+
+static void HandleChild(int sig)
+{
+	int eno = errno;
+
+	// Reap zombie child
+	while (waitpid(-1, NULL, WNOHANG) > 0);
+
+	errno = eno;
+	UNUSED(sig);
+}
+
+
