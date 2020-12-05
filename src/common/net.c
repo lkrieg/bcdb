@@ -4,6 +4,7 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <assert.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -79,68 +80,70 @@ int NET_Init(void)
 static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 {
 	net_cln_t *cln;
-	unsigned int i;
+	net_evt_t out;
 	short rows, cols;
 	const char *buf;
 	char sb[8];
 
-	UNUSED(telnet);
+	UNUSED(GetOptStr);
 	cln = (net_cln_t *) client;
+	assert(cln->func != NULL);
 
 	switch(evt->type) {
 	case TELNET_EV_DATA:
-		Print("Received data from %s:", cln->address);
-		for (i = 0; i < evt->data.size; i++)
-			Print(" %02X", evt->data.buffer[i]);
-		Print("\n");
+		out.type = T_EVT_DATA;
+		out.size = evt->data.size;
+		out.data = evt->data.buffer;
+		cln->func(cln, &out);
+		break;
+	case TELNET_EV_IAC:
+		if (evt->iac.cmd == TELNET_IP) {
+			NET_Close(cln);
+			exit(EXIT_SUCCESS);
+		}
 		break;
 	case TELNET_EV_SEND:
 		SendClient(cln, evt->data.buffer, evt->data.size);
 		break;
 	case TELNET_EV_DO:
-		Info("DO %s", GetOptStr(evt->neg.telopt));
 		if (evt->neg.telopt == TELNET_TELOPT_COMPRESS2) {
 			Info("DOING COMPRESSION");
 			telnet_begin_compress2(telnet);
 		}
 		break;
 	case TELNET_EV_WILL:
-		Info("WILL %s", GetOptStr(evt->neg.telopt));
 		if (evt->neg.telopt == TELNET_TELOPT_TTYPE)
 			telnet_ttype_send(telnet);
 		if (evt->neg.telopt == TELNET_TELOPT_LINEMODE) {
 			sb[0] = TELNET_LINEMODE_MODE;
-			sb[1] = 0; //| TELNET_LINEMODE_TRAPSIG;
-			// IAC SB LINEMODE MODE mask IAC SE
+			sb[1] = TELNET_LINEMODE_TRAPSIG;
 			telnet_begin_sb(telnet, TELNET_TELOPT_LINEMODE);
 			telnet_send(telnet, sb, 2);
 			telnet_finish_sb(telnet);
 		}
 		break;
-	case TELNET_EV_WONT:
-		Info("WONT %s", GetOptStr(evt->neg.telopt));
-		break;
-	case TELNET_EV_DONT:
-		Info("DONT %s", GetOptStr(evt->neg.telopt));
-		break;
 	case TELNET_EV_SUBNEGOTIATION:
 		if ((evt->sub.telopt == TELNET_TELOPT_NAWS)
 		&& ((evt->sub.size == 4))) {
+			out.type = T_EVT_RESIZE;
 			buf  = evt->sub.buffer;
 			rows = (((short) buf[3]) << 8) | buf[2];
 			cols = (((short) buf[1]) << 8) | buf[0];
-			rows = ntohs(rows);
-			cols = ntohs(cols);
-			Info("%dx%d", rows, cols);
+			out.rows = ntohs(rows);
+			out.cols = ntohs(cols);
+			cln->func(cln, &out);
 		}
 		break;
 	case TELNET_EV_TTYPE:
-		Info("TTYPE = %s", evt->ttype.name);
+		out.type = T_EVT_TTYPE;
+		out.data = evt->ttype.name;
+		cln->func(cln, &out);
 		break;
 	case TELNET_EV_ERROR:
+		NET_Close(cln);
+		Error("Telnet protocol error");
 	default:
 		break;
-
 	}
 }
 
@@ -165,9 +168,11 @@ int NET_Accept(net_cln_t *out)
 	Info(M_ACCEPT ": %s", adstr);
 	strcpy(out->address, adstr);
 
-	out->handle = fd;
-	out->parent = sockfd;
-	out->telnet = telnet_init(telopts, HandleEvent, 0, out);
+	out->handle   = fd;
+	out->parent   = sockfd;
+	out->rows     = MIN_ROW_NUM;
+	out->cols     = MIN_COL_NUM;
+	out->telnet   = telnet_init(telopts, HandleEvent, 0, out);
 
 	telnet_negotiate(out->telnet, TELNET_DO,   TELNET_TELOPT_NAWS);
 	telnet_negotiate(out->telnet, TELNET_DO,   TELNET_TELOPT_TTYPE);
@@ -184,20 +189,23 @@ void NET_Close(net_cln_t *cln)
 	close(cln->handle);
 }
 
-int NET_NextEvent(net_cln_t *cln, net_evt_t *out)
+int NET_NextEvent(net_cln_t *cln)
 {
 	char buf[MAX_MSG_LEN];
 	int n;
 
-	// TODO: Return enqueued events before receiving more
         if ((n = recv(cln->handle, buf, MAX_MSG_LEN, 0)) > 0)
 		telnet_recv(cln->telnet, buf, n);
 
 	if (n < 0 && errno != EINTR)
 		Error(E_RXDATA " from '%s'", cln->address);
 
-	out->type = T_EVT_NONE;
-	return out->type;
+	return 1;
+}
+
+void NET_SetHandler(net_cln_t *cln, net_fun_t *func)
+{
+	cln->func = func;
 }
 
 void NET_Send(net_cln_t *cln, const char *buf, int size)

@@ -10,11 +10,30 @@ static int   InitSignalHandlers(void);
 static void  HandleInterrupt(int sig);
 static void  HandleChild(int sig);
 
+static void HandleEvents(net_cln_t *cln, net_evt_t *evt)
+{
+	switch (evt->type) {
+	case T_EVT_DATA:
+		Print("T_EVT_DATA:");
+		for (int i = 0; i < evt->size; i++)
+			Print(" %02X", evt->data[i]);
+		Print("\n");
+		break;
+	case T_EVT_RESIZE:
+		Info("T_EVT_RESIZE: %dx%d", evt->rows, evt->cols);
+		cln->rows = evt->rows;
+		cln->cols = evt->cols;
+		break;
+	case T_EVT_TTYPE:
+		Info("T_EVT_TTYPE: %s", evt->data);
+		break;
+	}
+}
+
 int main(void)
 {
 	bool active;
 	net_cln_t cln;
-	net_evt_t evt;
 
 	if (NET_Init() < 0)
 		Error(E_IPFAIL);
@@ -30,17 +49,8 @@ int main(void)
 		switch (fork()) {
 		case 0: // Client process
 			close(cln.parent);
-			NET_Send(&cln, "Hallo", 5);
-			while (NET_NextEvent(&cln, &evt)) {
-				switch (evt.type) {
-				case T_EVT_DATA:
-					Info("T_EVT_DATA");
-					break;
-				case T_EVT_RESIZE:
-					Info("T_EVT_RESIZE");
-					break;
-				}
-			}
+			NET_SetHandler(&cln, HandleEvents);
+			while (NET_NextEvent(&cln));
 
 			// Disconnected
 			NET_Close(&cln);

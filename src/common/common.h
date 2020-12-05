@@ -8,9 +8,11 @@
 #include "external/telnet.h"
 
 #define MAX_BACKLOG     10
+#define MAX_MSG_LEN     2048
 #define MAX_ADR_LEN     46
 #define MAX_USR_LEN     80
-#define MAX_MSG_LEN     4096
+#define MIN_ROW_NUM     25
+#define MIN_COL_NUM     15
 
 #define UNUSED(sym)     ((void)(sym))
 #define Info(...)       _printl("Info: "    __VA_ARGS__)
@@ -35,30 +37,39 @@ typedef unsigned char byte;
 typedef struct net_cln_s net_cln_t;
 typedef struct net_evt_s net_evt_t;
 
+typedef void (net_fun_t)(net_cln_t*, net_evt_t*);
+
 int   NET_Init(void);
 int   NET_Accept(net_cln_t *out);
-int   NET_NextEvent(net_cln_t *cln, net_evt_t *out);
+int   NET_NextEvent(net_cln_t *cln);
+void  NET_SetHandler(net_cln_t *cln, net_fun_t *func);
 void  NET_Send(net_cln_t *cln, const char *buf, int size);
 void  NET_Close(net_cln_t *cln);
 void  NET_Shutdown(void);
 
 struct net_cln_s {
-	int         handle;
-	int         parent;
-	char        address[MAX_ADR_LEN];
-	char        username[MAX_USR_LEN];
-	telnet_t *  telnet;
+	int          handle;
+	int          parent;
+	char         address[MAX_ADR_LEN];
+	char         username[MAX_USR_LEN];
+	short        rows, cols;
+	telnet_t  *  telnet;
+	net_fun_t *  func;
 };
 
 struct net_evt_s {
-	int         type;
+	int           type;
+	int           size;
+	const char *  data;
+	short         rows, cols;
 };
 
 enum net_evt_type {
 	T_EVT_QUIT = 0,
 	T_EVT_NONE,
 	T_EVT_DATA,
-	T_EVT_RESIZE
+	T_EVT_RESIZE,
+	T_EVT_TTYPE
 };
 
 #define _perror(...)    do { _printl(__VA_ARGS__); _fatal(); } while(0)
