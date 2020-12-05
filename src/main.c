@@ -10,88 +10,81 @@ static int   InitSignalHandlers(void);
 static void  HandleInterrupt(int sig);
 static void  HandleChild(int sig);
 
-static void AddMenuEntry(net_cln_t *cln, const char *name, bool active)
+// Just for prototyping the GUI...
+static void DrawMainMenu(net_cln_t *cln)
 {
-	int len;
-	int pad, n;
-	char buf[MAX_MSG_LEN];
+	int i, ch;
+	WINDOW *w;
+	char item[64];
+	char *menu[3] = {
+		" Verladen ",
+		" Sammeln  ",
+		" Beenden  "
+	};
 
-	pad = 0;
-	len = strlen(name);
+	start_color();
+	init_pair(1, COLOR_BLACK, COLOR_WHITE);
+	init_pair(2, COLOR_BLACK, COLOR_BLUE);
 
-	if (len < cln->cols)
-		pad = (cln->cols - len) / 2;
+	bkgd(COLOR_PAIR(2));
+	refresh();
 
-	for (n = 0; n < pad; n++)
-		buf[n] = ' ';
+	w = newwin(7, 14, 4, 5);
+	wbkgd(w, COLOR_PAIR(1) | A_BOLD);
 
-	NET_Send(cln, buf, n);
-	if (active == true) {
-		NET_Send(cln, "\033[30m", 5);
-		NET_Send(cln, "\033[47m", 5);
+	box(w, 0, 0);
+
+	//wattron(w, A_BOLD);
+	//mvwprintw(w, 0, 5, "MENU");
+	//wattroff(w, A_BOLD);
+	wrefresh(w);
+
+	for (i = 0; i < 3; i++) {
+		if (i == 0)
+			wattron(w, A_STANDOUT | A_BOLD);
+		else
+			wattroff(w, A_STANDOUT | A_BOLD);
+		sprintf(item, "%-7s", menu[i]);
+		mvwprintw(w, i + 2, 2, "%s", item);
 	}
-	NET_Send(cln, " ", 1);
-	NET_Send(cln, name, len);
-	NET_Send(cln, " ", 1);
-	NET_Send(cln, "\033[37m", 5);
-	NET_Send(cln, "\033[40m", 5);
-	NET_Send(cln, "\r\n", 2);
-}
 
-static void DrawMainMenu(net_cln_t *cln, int selected)
-{
-	NET_Send(cln, "\033[2J", 4);
-	NET_Send(cln, "\033[H", 3);
+	i = 0;
+	noecho();
+	keypad(w, TRUE);
+	curs_set(0);
 
-	NET_Send(cln, "\r\n", 2);
-	NET_Send(cln, "\033[37m", 5);
-	NET_Send(cln, "\033[40m", 5);
-	AddMenuEntry(cln, "BARKEEPER", false);
-	AddMenuEntry(cln, "=========", false);
-	NET_Send(cln, "\r\n", 2);
-	AddMenuEntry(cln, "Verladung", (selected == 0));
-	AddMenuEntry(cln, "Sammeln",   (selected == 1));
-	AddMenuEntry(cln, "Beenden",   (selected == 2));
-}
+	while ((ch = wgetch(w)) != 'q') {
+		sprintf(item, "%-7s", menu[i]);
+		mvwprintw(w, i + 2, 2, "%s", item);
 
-static void HandleEvents(net_cln_t *cln, net_evt_t *evt)
-{
-	static int mode = T_MOD_MAINMENU;
-	static int selected = 0;
-
-	switch (evt->type) {
-	case T_EVT_DATA:
-		break;
-	case T_EVT_KEYDOWN:
-		if (mode == T_MOD_MAINMENU) {
-			switch (evt->keycode) {
-			case T_KEY_UP:
-				if (selected <= 0) break;
-				DrawMainMenu(cln, --selected);
-				break;
-			case T_KEY_DOWN:
-				if (selected >= 2) break;
-				DrawMainMenu(cln, ++selected);
-				break;
-			case T_KEY_RETURN:
-				switch (selected) {
-				case 2: // EXIT
-					NET_Close(cln);
-					exit(EXIT_SUCCESS);
-					break;
-				}
+		switch(ch) {
+		case KEY_UP:
+		case 0x32:
+			i--;
+			i = (i < 0) ? 2 : i;
+			break;
+		case KEY_DOWN:
+		case 0x38:
+			i++;
+			i = (i > 2) ? 0 : i;
+			break;
+		case 0x0A:
+			if (i == 2) {
+				endwin();
+				NET_Close(cln);
+				exit(EXIT_SUCCESS);
 			}
+			break;
 		}
-		break;
-	case T_EVT_RESIZE:
-		cln->rows = evt->rows;
-		cln->cols = evt->cols;
-		if (mode == T_MOD_MAINMENU)
-			DrawMainMenu(cln, selected);
-		break;
-	case T_EVT_TTYPE:
-		break;
+
+		wattron(w, A_STANDOUT | A_BOLD);
+		sprintf(item, "%-7s", menu[i]);
+		mvwprintw(w, i + 2, 2, "%s", item);
+		wattroff(w, A_STANDOUT | A_BOLD);
 	}
+
+	delwin(w);
+	endwin();
 }
 
 int main(void)
@@ -113,8 +106,7 @@ int main(void)
 		switch (fork()) {
 		case 0: // Client process
 			close(cln.parent);
-			DrawMainMenu(&cln, 0);
-			NET_SetHandler(&cln, HandleEvents);
+			DrawMainMenu(&cln);
 			while (NET_NextEvent(&cln));
 
 			// Disconnected
@@ -126,7 +118,6 @@ int main(void)
 
 		default: // Parent process
 			close(cln.handle);
-
 		}
 	}
 

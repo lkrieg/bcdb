@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <ncurses.h>
 
 #include "external/telnet.h"
 
@@ -11,7 +12,7 @@
 #define MAX_MSG_LEN     2048
 #define MAX_ADR_LEN     46
 #define MAX_USR_LEN     80
-#define MIN_ROW_NUM     14
+#define MIN_ROW_NUM     15
 #define MIN_COL_NUM     24
 
 #define UNUSED(sym)     ((void)(sym))
@@ -31,6 +32,7 @@
 #define E_NOFORK        "Unable to fork process"
 #define E_RXDATA        "Unable to receive data"
 #define E_TXDATA        "Unable to send data"
+#define E_CMDLEN        "Trying to send too much"
 #define M_ACCEPT        "Accepting new client"
 
 typedef unsigned char byte;
@@ -52,7 +54,10 @@ struct net_cln_s {
 	int          parent;
 	char         address[MAX_ADR_LEN];
 	char         username[MAX_USR_LEN];
+	char         outbuf[MAX_MSG_LEN];
+	int          outlen;
 	short        rows, cols;
+	SCREEN    *  screen;
 	telnet_t  *  telnet;
 	net_fun_t *  func;
 };

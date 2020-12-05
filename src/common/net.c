@@ -80,63 +80,17 @@ int NET_Init(void)
 static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 {
 	net_cln_t *cln;
-	net_evt_t out;
 	short rows, cols;
-	const char *buf;
-	char sb[8];
+	const char *ptr;
+	char buf[64];
 
 	UNUSED(GetOptStr);
 	cln = (net_cln_t *) client;
-	assert(cln->func != NULL);
 
 	switch(evt->type) {
 	case TELNET_EV_DATA:
-		out.type = T_EVT_DATA;
-		out.size = evt->data.size;
-		out.data = evt->data.buffer;
-		cln->func(cln, &out);
-
-		// TODO: Clean this up!
-		// Send additional keydown events
-		for (int i = 0; i < out.size; i++) {
-			switch (out.data[i]) {
-			case 0x0D:
-				out.type = T_EVT_KEYDOWN;
-				out.keycode = T_KEY_RETURN;
-				cln->func(cln, &out);
-				break;
-			case 0x32:
-				out.type = T_EVT_KEYDOWN;
-				out.keycode = T_KEY_UP;
-				cln->func(cln, &out);
-				break;
-			case 0x38:
-				out.type = T_EVT_KEYDOWN;
-				out.keycode = T_KEY_DOWN;
-				cln->func(cln, &out);
-				break;
-			case 0x1B:
-				if ((i < out.size - 2)
-				&& ((out.data[i + 1] == 0x5B))) {
-					if (out.data[i + 2] == 0x41) {
-						out.type = T_EVT_KEYDOWN;
-						out.keycode = T_KEY_UP;
-						cln->func(cln, &out);
-					}
-					if (out.data[i + 2] == 0x42) {
-						out.type = T_EVT_KEYDOWN;
-						out.keycode = T_KEY_DOWN;
-						cln->func(cln, &out);
-					}
-				}
-			}
-		}
 		break;
 	case TELNET_EV_IAC:
-		if (evt->iac.cmd == TELNET_IP) {
-			NET_Close(cln);
-			exit(EXIT_SUCCESS);
-		}
 		break;
 	case TELNET_EV_SEND:
 		SendClient(cln, evt->data.buffer, evt->data.size);
@@ -151,33 +105,31 @@ static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 		if (evt->neg.telopt == TELNET_TELOPT_TTYPE)
 			telnet_ttype_send(telnet);
 		if (evt->neg.telopt == TELNET_TELOPT_LINEMODE) {
-			sb[0] = TELNET_LINEMODE_MODE;
-			sb[1] = TELNET_LINEMODE_TRAPSIG;
+			buf[0] = TELNET_LINEMODE_MODE;
+			buf[1] = TELNET_LINEMODE_TRAPSIG;
 			telnet_begin_sb(telnet, TELNET_TELOPT_LINEMODE);
-			telnet_send(telnet, sb, 2);
+			telnet_send(telnet, buf, 2);
 			telnet_finish_sb(telnet);
 		}
 		break;
 	case TELNET_EV_SUBNEGOTIATION:
 		if ((evt->sub.telopt == TELNET_TELOPT_NAWS)
 		&& ((evt->sub.size == 4))) {
-			out.type = T_EVT_RESIZE;
-			buf  = evt->sub.buffer;
-			rows = (((short) buf[3]) << 8) | buf[2];
-			cols = (((short) buf[1]) << 8) | buf[0];
-			out.rows = ntohs(rows);
-			out.cols = ntohs(cols);
-			cln->func(cln, &out);
+			ptr = evt->sub.buffer;
+			rows = (((short) ptr[3]) << 8) | ptr[2];                        
+			cols = (((short) ptr[1]) << 8) | ptr[0];                        
+			rows = ntohs(rows);                                        
+			cols = ntohs(cols);   
+			Info("Setting SIZE to %dx%d", rows, cols);
+			resizeterm(rows, cols);
 		}
 		break;
 	case TELNET_EV_TTYPE:
-		out.type = T_EVT_TTYPE;
-		out.data = evt->ttype.name;
-		cln->func(cln, &out);
+		Info("Setting TERM to %s", evt->data.buffer);
+		//setterm(evt->data.buffer);
 		break;
 	case TELNET_EV_ERROR:
-		NET_Close(cln);
-		Error("Telnet protocol error");
+		break;
 	default:
 		break;
 	}
@@ -189,6 +141,7 @@ int NET_Accept(net_cln_t *out)
 	struct sockaddr *sa;
 	struct sockaddr_storage addr;
 	const char *adstr;
+	FILE *fh;
 	int fd;
 
 	solen  = sizeof(addr);
@@ -196,7 +149,9 @@ int NET_Accept(net_cln_t *out)
 	fd     = accept(sockfd, sa, &solen);
 
 	if (fd < 0) {
-		Warning(E_ACCEPT ": %s", strerror(errno));
+		if (errno != EINTR)
+			Warning(E_ACCEPT ": %s", strerror(errno));
+
 		return -1;
 	}
 
@@ -215,6 +170,19 @@ int NET_Accept(net_cln_t *out)
 	telnet_negotiate(out->telnet, TELNET_DO,   TELNET_TELOPT_LINEMODE);
 	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_COMPRESS2);
 	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_ECHO);
+
+	// Hide client terminal cursor
+	NET_Send(out, "\033[?12l", 6);
+	NET_Send(out, "\033[?25l", 6);
+
+	NET_Send(out, "\033[1;36m", 7);
+	NET_Send(out, "\033[1;40m", 7);
+
+	fh  = fdopen(out->handle, "rw");
+//	out->screen = newterm("vt100", fh, fh);
+	out->screen = newterm("xterm-color", fh, fh);
+	set_term(out->screen);
+	resizeterm(out->rows, out->cols);
 
 	return out->handle;
 }
