@@ -21,7 +21,7 @@ static const telnet_telopt_t telopts[] = {
 	{ TELNET_TELOPT_TTYPE,     TELNET_WONT, TELNET_DO   },
 	{ TELNET_TELOPT_NAWS,      TELNET_WONT, TELNET_DO   },
 	{ TELNET_TELOPT_LINEMODE,  TELNET_WONT, TELNET_DO   },
-	{ TELNET_TELOPT_COMPRESS2, TELNET_WILL, TELNET_DONT },
+	{ TELNET_TELOPT_COMPRESS2, TELNET_WONT, TELNET_DONT },
 	{ TELNET_TELOPT_ECHO,      TELNET_WILL, TELNET_DONT },
 	{ -1, 0, 0 }
 };
@@ -86,9 +86,20 @@ static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 
 	UNUSED(GetOptStr);
 	cln = (net_cln_t *) client;
+	assert(cln->func != NULL);
 
 	switch(evt->type) {
 	case TELNET_EV_DATA:
+		ptr = evt->data.buffer;
+		if ((ptr[0] == 0x0D))
+			cln->func(cln, T_KEY_RETURN);
+		if ((evt->data.size == 3)
+		&& ((ptr[0] == 0x1B && ptr[1] == 0x5B))) {
+			if (ptr[2] == 0x41)
+				cln->func(cln, T_KEY_UP);
+			if (ptr[2] == 0x42)
+				cln->func(cln, T_KEY_DOWN);
+		}
 		break;
 	case TELNET_EV_IAC:
 		break;
@@ -96,10 +107,8 @@ static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 		SendClient(cln, evt->data.buffer, evt->data.size);
 		break;
 	case TELNET_EV_DO:
-		if (evt->neg.telopt == TELNET_TELOPT_COMPRESS2) {
-			Info("DOING COMPRESSION");
-			telnet_begin_compress2(telnet);
-		}
+		// if (evt->neg.telopt == TELNET_TELOPT_COMPRESS2)
+		//	telnet_begin_compress2(telnet);
 		break;
 	case TELNET_EV_WILL:
 		if (evt->neg.telopt == TELNET_TELOPT_TTYPE)
@@ -116,12 +125,13 @@ static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 		if ((evt->sub.telopt == TELNET_TELOPT_NAWS)
 		&& ((evt->sub.size == 4))) {
 			ptr = evt->sub.buffer;
-			rows = (((short) ptr[3]) << 8) | ptr[2];                        
-			cols = (((short) ptr[1]) << 8) | ptr[0];                        
-			rows = ntohs(rows);                                        
-			cols = ntohs(cols);   
+			rows = (((short) ptr[3]) << 8) | ptr[2];
+			cols = (((short) ptr[1]) << 8) | ptr[0];
+			rows = ntohs(rows);
+			cols = ntohs(cols);
 			Info("Setting SIZE to %dx%d", rows, cols);
 			resizeterm(rows, cols);
+			cln->func(cln, T_EVT_RESIZE);
 		}
 		break;
 	case TELNET_EV_TTYPE:
@@ -135,7 +145,7 @@ static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 	}
 }
 
-int NET_Accept(net_cln_t *out)
+int NET_Accept(net_cln_t *out, net_fun_t *func)
 {
 	socklen_t solen;
 	struct sockaddr *sa;
@@ -161,6 +171,7 @@ int NET_Accept(net_cln_t *out)
 
 	out->handle   = fd;
 	out->parent   = sockfd;
+	out->func     = func;
 	out->rows     = MIN_ROW_NUM;
 	out->cols     = MIN_COL_NUM;
 	out->telnet   = telnet_init(telopts, HandleEvent, 0, out);

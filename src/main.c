@@ -10,11 +10,27 @@ static int   InitSignalHandlers(void);
 static void  HandleInterrupt(int sig);
 static void  HandleChild(int sig);
 
-// Just for prototyping the GUI...
-static void DrawMainMenu(net_cln_t *cln)
+static void InitWindow(net_cln_t *cln)
 {
-	int i, ch;
-	WINDOW *w;
+	WINDOW *wnd;
+
+	noecho();
+	start_color();
+	init_pair(1, COLOR_BLACK, COLOR_BLUE);
+	init_pair(2, COLOR_BLACK, COLOR_WHITE);
+
+	wnd = newwin(7, 14, LINES/2-3, COLS/2-7);
+	bkgd(COLOR_PAIR(1));
+	wbkgd(wnd, COLOR_PAIR(2) | A_BOLD);
+	box(wnd, 0, 0);
+
+	refresh();
+	cln->window = wnd;
+}
+
+static void DrawMenu(net_cln_t *cln, int selected)
+{
+	int i;
 	char item[64];
 	char *menu[3] = {
 		" Verladen ",
@@ -22,69 +38,48 @@ static void DrawMainMenu(net_cln_t *cln)
 		" Beenden  "
 	};
 
-	start_color();
-	init_pair(1, COLOR_BLACK, COLOR_WHITE);
-	init_pair(2, COLOR_BLACK, COLOR_BLUE);
-
-	bkgd(COLOR_PAIR(2));
-	refresh();
-
-	w = newwin(7, 14, 4, 5);
-	wbkgd(w, COLOR_PAIR(1) | A_BOLD);
-
-	box(w, 0, 0);
-
-	//wattron(w, A_BOLD);
-	//mvwprintw(w, 0, 5, "MENU");
-	//wattroff(w, A_BOLD);
-	wrefresh(w);
-
 	for (i = 0; i < 3; i++) {
-		if (i == 0)
-			wattron(w, A_STANDOUT | A_BOLD);
-		else
-			wattroff(w, A_STANDOUT | A_BOLD);
+		if (i == selected)
+			wattron(cln->window, A_STANDOUT);
 		sprintf(item, "%-7s", menu[i]);
-		mvwprintw(w, i + 2, 2, "%s", item);
+		mvwprintw(cln->window, i + 2, 2, "%s", item);
+		wattroff(cln->window, A_STANDOUT);
 	}
 
-	i = 0;
-	noecho();
-	keypad(w, TRUE);
-	curs_set(0);
+	wrefresh(cln->window);
+}
 
-	while ((ch = wgetch(w)) != 'q') {
-		sprintf(item, "%-7s", menu[i]);
-		mvwprintw(w, i + 2, 2, "%s", item);
+static void HandleInput(net_cln_t *cln, int code)
+{
+	static int mode = T_MOD_MAINMENU;
+	static int n;
 
-		switch(ch) {
-		case KEY_UP:
-		case 0x32:
-			i--;
-			i = (i < 0) ? 2 : i;
+	switch (mode) {
+	case T_MOD_MAINMENU:
+		switch (code) {
+		case T_KEY_UP:
+			n--;
+			n = (n < 0) ? 2 : n;
+			DrawMenu(cln, n);
 			break;
-		case KEY_DOWN:
-		case 0x38:
-			i++;
-			i = (i > 2) ? 0 : i;
+		case T_KEY_DOWN:
+			n++;
+			n = (n > 2) ? 0 : n;
+			DrawMenu(cln, n);
 			break;
-		case 0x0A:
-			if (i == 2) {
+		case T_KEY_RETURN:
+			if (n == 2) {
 				endwin();
 				NET_Close(cln);
 				exit(EXIT_SUCCESS);
 			}
 			break;
+		case T_EVT_RESIZE:
+			InitWindow(cln); // FIXME
+			DrawMenu(cln, n);
+			break;
 		}
-
-		wattron(w, A_STANDOUT | A_BOLD);
-		sprintf(item, "%-7s", menu[i]);
-		mvwprintw(w, i + 2, 2, "%s", item);
-		wattroff(w, A_STANDOUT | A_BOLD);
 	}
-
-	delwin(w);
-	endwin();
 }
 
 int main(void)
@@ -100,16 +95,18 @@ int main(void)
 
 	active = true;
 	while (active) {
-		if (NET_Accept(&cln) < 0)
+		if (NET_Accept(&cln, HandleInput) < 0)
 			continue;
 
 		switch (fork()) {
 		case 0: // Client process
 			close(cln.parent);
-			DrawMainMenu(&cln);
+			InitWindow(&cln);
+			DrawMenu(&cln, 1);
 			while (NET_NextEvent(&cln));
 
 			// Disconnected
+			endwin();
 			NET_Close(&cln);
 			exit(EXIT_SUCCESS);
 

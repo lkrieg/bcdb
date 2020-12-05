@@ -39,10 +39,10 @@ typedef unsigned char byte;
 typedef struct net_cln_s net_cln_t;
 typedef struct net_evt_s net_evt_t;
 
-typedef void (net_fun_t)(net_cln_t*, net_evt_t*);
+typedef void (net_fun_t)(net_cln_t*, int);
 
 int   NET_Init(void);
-int   NET_Accept(net_cln_t *out);
+int   NET_Accept(net_cln_t *out, net_fun_t *func);
 int   NET_NextEvent(net_cln_t *cln);
 void  NET_SetHandler(net_cln_t *cln, net_fun_t *func);
 void  NET_Send(net_cln_t *cln, const char *buf, int size);
@@ -58,6 +58,7 @@ struct net_cln_s {
 	int          outlen;
 	short        rows, cols;
 	SCREEN    *  screen;
+	WINDOW    *  window;
 	telnet_t  *  telnet;
 	net_fun_t *  func;
 };
@@ -71,18 +72,10 @@ struct net_evt_s {
 };
 
 enum net_evt_type {
-	T_EVT_QUIT = 0,
-	T_EVT_NONE,
-	T_EVT_DATA,
-	T_EVT_KEYDOWN,
-	T_EVT_RESIZE,
-	T_EVT_TTYPE
-};
-
-enum net_key_type {
 	T_KEY_UP,
 	T_KEY_DOWN,
-	T_KEY_RETURN
+	T_KEY_RETURN,
+	T_EVT_RESIZE
 };
 
 enum mod_type {
