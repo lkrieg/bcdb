@@ -80,6 +80,7 @@ enum net_evt_type {
 
 enum mod_type {
 	T_MOD_MAINMENU,
+	T_MOD_FORMS
 };
 
 #define _perror(...)    do { _printl(__VA_ARGS__); _fatal(); } while(0)

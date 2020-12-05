@@ -6,20 +6,33 @@
 #include <string.h>
 #include <errno.h>
 
+//#include <form.h>
+
 static int   InitSignalHandlers(void);
 static void  HandleInterrupt(int sig);
 static void  HandleChild(int sig);
 
-static void InitWindow(net_cln_t *cln)
+static void InitWindow(net_cln_t *cln, int mode)
 {
 	WINDOW *wnd;
+	int rows, cols;
 
+	// FIXME: Handle this elsewhere
+	if (mode == T_MOD_MAINMENU) {
+		rows = 7;
+		cols = 14;
+	} else {
+		rows = 4;
+		cols = 20;
+	}
+
+	clear();
 	noecho();
 	start_color();
 	init_pair(1, COLOR_BLACK, COLOR_BLUE);
 	init_pair(2, COLOR_BLACK, COLOR_WHITE);
 
-	wnd = newwin(7, 14, LINES/2-3, COLS/2-7);
+	wnd = newwin(rows, cols, LINES/2-3, COLS/2-7);
 	bkgd(COLOR_PAIR(1));
 	wbkgd(wnd, COLOR_PAIR(2) | A_BOLD);
 	box(wnd, 0, 0);
@@ -28,7 +41,7 @@ static void InitWindow(net_cln_t *cln)
 	cln->window = wnd;
 }
 
-static void DrawMenu(net_cln_t *cln, int selected)
+static void DrawMainMenu(net_cln_t *cln, int selected)
 {
 	int i;
 	char item[64];
@@ -49,6 +62,13 @@ static void DrawMenu(net_cln_t *cln, int selected)
 	wrefresh(cln->window);
 }
 
+static void DrawFormMenu(net_cln_t *cln)
+{
+	mvwprintw(cln->window, 0, 2, "Lieferungs-Nr.:");
+	wrefresh(cln->window);
+	UNUSED(cln);
+}
+
 static void HandleInput(net_cln_t *cln, int code)
 {
 	static int mode = T_MOD_MAINMENU;
@@ -60,14 +80,19 @@ static void HandleInput(net_cln_t *cln, int code)
 		case T_KEY_UP:
 			n--;
 			n = (n < 0) ? 2 : n;
-			DrawMenu(cln, n);
+			DrawMainMenu(cln, n);
 			break;
 		case T_KEY_DOWN:
 			n++;
 			n = (n > 2) ? 0 : n;
-			DrawMenu(cln, n);
+			DrawMainMenu(cln, n);
 			break;
 		case T_KEY_RETURN:
+			if (n == 0 || n == 1) {
+				mode = T_MOD_FORMS;
+				InitWindow(cln, mode);
+				DrawFormMenu(cln);
+			}
 			if (n == 2) {
 				endwin();
 				NET_Close(cln);
@@ -75,9 +100,24 @@ static void HandleInput(net_cln_t *cln, int code)
 			}
 			break;
 		case T_EVT_RESIZE:
-			InitWindow(cln); // FIXME
-			DrawMenu(cln, n);
+			InitWindow(cln, mode); // FIXME
+			DrawMainMenu(cln, n);
 			break;
+		}
+		break;
+
+	// Forms menu
+	case T_MOD_FORMS:
+		switch (code) {
+		case T_KEY_RETURN:
+			n = 0;
+			mode = T_MOD_MAINMENU;
+			InitWindow(cln, mode);
+			DrawMainMenu(cln, n);
+			break;
+		case T_EVT_RESIZE:
+			InitWindow(cln, mode);
+			DrawFormMenu(cln);
 		}
 	}
 }
@@ -101,8 +141,8 @@ int main(void)
 		switch (fork()) {
 		case 0: // Client process
 			close(cln.parent);
-			InitWindow(&cln);
-			DrawMenu(&cln, 0);
+			InitWindow(&cln, 0);
+			DrawMainMenu(&cln, 0);
 			while (NET_NextEvent(&cln));
 
 			// Disconnected
