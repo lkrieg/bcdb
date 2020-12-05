@@ -95,6 +95,42 @@ static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 		out.size = evt->data.size;
 		out.data = evt->data.buffer;
 		cln->func(cln, &out);
+
+		// TODO: Clean this up!
+		// Send additional keydown events
+		for (int i = 0; i < out.size; i++) {
+			switch (out.data[i]) {
+			case 0x0D:
+				out.type = T_EVT_KEYDOWN;
+				out.keycode = T_KEY_RETURN;
+				cln->func(cln, &out);
+				break;
+			case 0x32:
+				out.type = T_EVT_KEYDOWN;
+				out.keycode = T_KEY_UP;
+				cln->func(cln, &out);
+				break;
+			case 0x38:
+				out.type = T_EVT_KEYDOWN;
+				out.keycode = T_KEY_DOWN;
+				cln->func(cln, &out);
+				break;
+			case 0x1B:
+				if ((i < out.size - 2)
+				&& ((out.data[i + 1] == 0x5B))) {
+					if (out.data[i + 2] == 0x41) {
+						out.type = T_EVT_KEYDOWN;
+						out.keycode = T_KEY_UP;
+						cln->func(cln, &out);
+					}
+					if (out.data[i + 2] == 0x42) {
+						out.type = T_EVT_KEYDOWN;
+						out.keycode = T_KEY_DOWN;
+						cln->func(cln, &out);
+					}
+				}
+			}
+		}
 		break;
 	case TELNET_EV_IAC:
 		if (evt->iac.cmd == TELNET_IP) {

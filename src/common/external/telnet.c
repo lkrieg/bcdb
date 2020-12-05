@@ -42,7 +42,7 @@
 #endif
 
 #if defined(HAVE_ZLIB)
-# include <zlib.h>
+# include "zlib/zlib.h"
 #endif
 
 #include "telnet.h"

@@ -11,8 +11,8 @@
 #define MAX_MSG_LEN     2048
 #define MAX_ADR_LEN     46
 #define MAX_USR_LEN     80
-#define MIN_ROW_NUM     25
-#define MIN_COL_NUM     15
+#define MIN_ROW_NUM     14
+#define MIN_COL_NUM     24
 
 #define UNUSED(sym)     ((void)(sym))
 #define Info(...)       _printl("Info: "    __VA_ARGS__)
@@ -61,6 +61,7 @@ struct net_evt_s {
 	int           type;
 	int           size;
 	const char *  data;
+	int           keycode;
 	short         rows, cols;
 };
 
@@ -68,8 +69,19 @@ enum net_evt_type {
 	T_EVT_QUIT = 0,
 	T_EVT_NONE,
 	T_EVT_DATA,
+	T_EVT_KEYDOWN,
 	T_EVT_RESIZE,
 	T_EVT_TTYPE
+};
+
+enum net_key_type {
+	T_KEY_UP,
+	T_KEY_DOWN,
+	T_KEY_RETURN
+};
+
+enum mod_type {
+	T_MOD_MAINMENU,
 };
 
 #define _perror(...)    do { _printl(__VA_ARGS__); _fatal(); } while(0)
