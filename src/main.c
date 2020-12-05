@@ -102,7 +102,7 @@ int main(void)
 		case 0: // Client process
 			close(cln.parent);
 			InitWindow(&cln);
-			DrawMenu(&cln, 1);
+			DrawMenu(&cln, 0);
 			while (NET_NextEvent(&cln));
 
 			// Disconnected
