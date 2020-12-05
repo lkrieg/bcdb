@@ -149,6 +149,17 @@ typedef struct telnet_telopt_t telnet_telopt_t;
 #define TELNET_TELOPT_MCCP2 86
 /*@}*/
 
+/*! \name Protocol codes for LINEMODE commands. */
+/*@{*/
+/*! LINEMODE codes. */
+#define TELNET_LINEMODE_MODE 1
+#define TELNET_LINEMODE_EDIT 1
+#define TELNET_LINEMODE_TRAPSIG 2
+#define TELNET_LINEMODE_MODE_ACK 4
+#define TELNET_LINEMODE_SOFT_TAB 8
+#define TELNET_LINEMODE_LIT_ECHO 16
+/*@}*/
+
 /*! \name Protocol codes for TERMINAL-TYPE commands. */
 /*@{*/
 /*! TERMINAL-TYPE codes. */
