@@ -12,10 +12,25 @@ static int   InitSignalHandlers(void);
 static void  HandleInterrupt(int sig);
 static void  HandleChild(int sig);
 
+
+static void SetCursor(net_cln_t *cln, bool shown)
+{
+	if (shown)
+		NET_Send(cln, "\033[?25h", 6);
+	else
+		NET_Send(cln, "\033[?25l", 6);
+}
+
 static void InitWindow(net_cln_t *cln, int mode)
 {
 	WINDOW *wnd;
 	int rows, cols;
+
+	clear();
+	noecho();
+	start_color();
+	init_pair(1, COLOR_BLACK, COLOR_BLUE);
+	init_pair(2, COLOR_BLACK, COLOR_WHITE);
 
 	// FIXME: Handle this elsewhere
 	if (mode == T_MOD_MAINMENU) {
@@ -26,13 +41,8 @@ static void InitWindow(net_cln_t *cln, int mode)
 		cols = 20;
 	}
 
-	clear();
-	noecho();
-	start_color();
-	init_pair(1, COLOR_BLACK, COLOR_BLUE);
-	init_pair(2, COLOR_BLACK, COLOR_WHITE);
-
-	wnd = newwin(rows, cols, LINES/2-3, COLS/2-7);
+	// TODO: Check if screen is large enough...
+	wnd = newwin(rows, cols, LINES/2-rows/2, COLS/2-cols/2);
 	bkgd(COLOR_PAIR(1));
 	wbkgd(wnd, COLOR_PAIR(2) | A_BOLD);
 	box(wnd, 0, 0);
@@ -65,30 +75,47 @@ static void DrawMainMenu(net_cln_t *cln, int selected)
 static void DrawFormMenu(net_cln_t *cln)
 {
 	mvwprintw(cln->window, 0, 2, "Lieferungs-Nr.:");
+	wmove(cln->window, 2, 1);
 	wrefresh(cln->window);
-	UNUSED(cln);
+}
+
+static void FormInput(net_cln_t *cln, int code, int n)
+{
+	char ch[2];
+
+	ch[0] = code;
+	ch[1] = '\0';
+
+	if (n > 16)
+		return;
+
+	mvwprintw(cln->window, 2, 1 + n, ch);
+	wrefresh(cln->window);
 }
 
 static void HandleInput(net_cln_t *cln, int code)
 {
 	static int mode = T_MOD_MAINMENU;
-	static int n;
+	static int n, i;
 
 	switch (mode) {
 	case T_MOD_MAINMENU:
 		switch (code) {
 		case T_KEY_UP:
+		case '2':
 			n--;
 			n = (n < 0) ? 2 : n;
 			DrawMainMenu(cln, n);
 			break;
 		case T_KEY_DOWN:
+		case '8':
 			n++;
 			n = (n > 2) ? 0 : n;
 			DrawMainMenu(cln, n);
 			break;
 		case T_KEY_RETURN:
 			if (n == 0 || n == 1) {
+				i = 0;
 				mode = T_MOD_FORMS;
 				InitWindow(cln, mode);
 				DrawFormMenu(cln);
@@ -118,6 +145,17 @@ static void HandleInput(net_cln_t *cln, int code)
 		case T_EVT_RESIZE:
 			InitWindow(cln, mode);
 			DrawFormMenu(cln);
+			break;
+		case T_KEY_UP:
+		case T_KEY_DOWN:
+			break;
+		case '0': case '1': case '2':
+		case '3': case '4': case '5':
+		case '6': case '7': case '8':
+		case '9':
+			FormInput(cln, code, i);
+			i++;
+			break;
 		}
 	}
 }
@@ -141,6 +179,7 @@ int main(void)
 		switch (fork()) {
 		case 0: // Client process
 			close(cln.parent);
+			SetCursor(&cln, false);
 			InitWindow(&cln, 0);
 			DrawMainMenu(&cln, 0);
 			while (NET_NextEvent(&cln));

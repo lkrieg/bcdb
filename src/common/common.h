@@ -72,7 +72,7 @@ struct net_evt_s {
 };
 
 enum net_evt_type {
-	T_KEY_UP,
+	T_KEY_UP    = 0xF0,
 	T_KEY_DOWN,
 	T_KEY_RETURN,
 	T_EVT_RESIZE

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -91,15 +92,25 @@ static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 	switch(evt->type) {
 	case TELNET_EV_DATA:
 		ptr = evt->data.buffer;
-		if ((ptr[0] == 0x0D))
+		if ((ptr[0] == 0x0D)) {
 			cln->func(cln, T_KEY_RETURN);
+			break;
+		}
 		if ((evt->data.size == 3)
 		&& ((ptr[0] == 0x1B && ptr[1] == 0x5B))) {
-			if (ptr[2] == 0x41)
+			if (ptr[2] == 0x41) {
 				cln->func(cln, T_KEY_UP);
-			if (ptr[2] == 0x42)
+				break;
+			}
+			if (ptr[2] == 0x42) {
 				cln->func(cln, T_KEY_DOWN);
+				break;
+			}
 		}
+
+		if (evt->data.size == 1 && isdigit(ptr[0]))
+			cln->func(cln, ptr[0]);
+
 		break;
 	case TELNET_EV_IAC:
 		break;
@@ -183,11 +194,8 @@ int NET_Accept(net_cln_t *out, net_fun_t *func)
 	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_ECHO);
 
 	// Hide client terminal cursor
-	NET_Send(out, "\033[?12l", 6);
-	NET_Send(out, "\033[?25l", 6);
-
-	NET_Send(out, "\033[1;36m", 7);
-	NET_Send(out, "\033[1;40m", 7);
+	//NET_Send(out, "\033[?12l", 6);
+	//NET_Send(out, "\033[?25l", 6);
 
 	fh  = fdopen(out->handle, "rw");
 //	out->screen = newterm("vt100", fh, fh);
