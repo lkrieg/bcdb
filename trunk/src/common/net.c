@@ -1,302 +1,332 @@
-#include "common.h"
+#include "common/common.h"
+#include "common/external/zlib.h"
+#include "common/external/telnet.h"
+
+#include <unistd.h>
+#include <string.h>
+#include <assert.h>
+#include <errno.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <ctype.h>
-#include <stdio.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
-static struct {
-	int        fd;
-	int        port;
-	req_fun_t  func;
-} net;
+static const char *GetOptStr(int opt);
+static const char *GetAddrStr(struct sockaddr *addr);
+void SendClient(net_cln_t *cln, const char *buf, int size);
 
-static void *RunThread(void *fd);
-static int ParseRequest(req_t *req, int len);
-static void Prompt(req_t *req);
+static int sockfd = -1;
+static const telnet_telopt_t telopts[] = {
+	{ TELNET_TELOPT_TTYPE,     TELNET_WONT, TELNET_DO   },
+	{ TELNET_TELOPT_NAWS,      TELNET_WONT, TELNET_DO   },
+	{ TELNET_TELOPT_LINEMODE,  TELNET_WONT, TELNET_DO   },
+	{ TELNET_TELOPT_COMPRESS2, TELNET_WONT, TELNET_DONT },
+	{ TELNET_TELOPT_ECHO,      TELNET_WILL, TELNET_DONT },
+	{ -1, 0, 0 }
+};
 
-int NET_Init(int port, req_fun_t func)
+int NET_Init(void)
 {
-	struct sockaddr_in in;
-	struct sockaddr *addr;
+	struct addrinfo hints;
+	struct addrinfo *addr, *it;
+	int rc, fd, opt = 1;
 
-	AS_GEQ_ZERO(port);
-	AS_NEQ_NULL(func);
+	memset(&hints, 0, sizeof(hints));
 
-	net.port  = port;
-	net.func  = func;
-	net.fd    = socket(AF_INET, SOCK_STREAM, 0);
+	hints.ai_family   = AF_UNSPEC;   // IPv4, IPv6
+	hints.ai_socktype = SOCK_STREAM; // TCP stream
+	hints.ai_flags    = AI_PASSIVE;  // Bindable
 
-	if (net.fd < 0)
-		return -1;
+	if ((rc = getaddrinfo(NULL, "telnet", &hints, &addr)) != 0)
+		Error(E_GETADR ": %s", gai_strerror(rc));
 
-	in.sin_family       = AF_INET;
-	in.sin_addr.s_addr  = INADDR_ANY;
-	in.sin_port         = htons(net.port);
+	for (it = addr; it; it = it->ai_next) {
+		fd = socket(it->ai_family, it->ai_socktype,
+		            it->ai_protocol);
 
-	addr = (struct sockaddr *) &in;
-	if (bind(net.fd, addr, sizeof(in)) >= 0)
-		return listen(net.fd, 3);
-
-	return -1;
-}
-
-void NET_Accept(void)
-{
-	int fd;
-	struct sockaddr_in in;
-	struct sockaddr *addr;
-	socklen_t len;
-	pthread_t pid;
-	void *out;
-
-	AS_GTH_ZERO(net.fd);
-
-	out   = (void*) &fd;
-	addr  = (struct sockaddr *) &in;
-	len   = sizeof(in);
-	fd    = accept(net.fd, addr, &len);
-
-	if (fd < 0) // Create seperate thread for client
-		Warning(E_ACCEPT ": %s", strerror(errno));
-	else if (pthread_create(&pid, NULL, RunThread, out) < 0)
-		Warning(E_THREAD ": %s", strerror(errno));
-}
-
-static void NET_Message(req_t *req, const char *fmt, va_list arg)
-{
-	char msg[MAX_MSG_LEN];
-
-	AS_NEQ_NULL(req);
-	AS_NEQ_NULL(fmt);
-
-	vsnprintf(msg, MAX_MSG_LEN, fmt, arg);
-	write(req->handle, msg, strlen(msg));
-	write(req->handle, "\r\n", 2);
-}
-
-void NET_Answer(req_t *req, const char *fmt, ...)
-{
-	va_list arg;
-
-	va_start(arg, fmt);
-	NET_Message(req, fmt, arg);
-	va_end(arg);
-}
-
-void NET_Error(req_t *req, const char *fmt, ...)
-{
-	va_list arg;
-
-	va_start(arg, fmt);
-	NET_Message(req, fmt, arg);
-	va_end(arg);
-}
-
-void NET_Shutdown(void)
-{
-	AS_GTH_ZERO(net.fd);
-
-	close(net.fd);
-}
-
-static void *RunThread(void *arg)
-{
-	char *data;
-	req_t req;
-	int n, len;
-	bool rdy;
-
-	req.privileged  = false;
-	req.handle      = *((int *) arg);
-	Prompt(&req);
-
-	do {
-		data = req.data;
-		len  = MAX_REQ_LEN;
-
-		if ((n = recv(req.handle, data, len, 0)) > 0) {
-			ParseRequest(&req, n);
-			net.func(&req);
-
-			// Quick and dirty prompt fix...
-			// It's late and I need some sleep.
-
-			if (req.type != T_REQ_EMPTY || rdy) {
-				Prompt(&req);
-				rdy = true;
-			}
+		if (fd < 0) { // Keep trying each bindable address
+			Warning(E_NOSOCK ": %s", strerror(errno));
+			continue;
 		}
 
-	} while (n > 0);
-	close(req.handle);
+		// Allow immediate address reuse after closing the socket descriptor
+		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+			Warning(E_SETOPT " SO_REUSEADDR: %s", strerror(errno));
+			continue;
+		}
+
+		if (bind(fd, it->ai_addr, it->ai_addrlen) < 0) {
+			Warning(E_NOBIND ": %s", strerror(errno));
+			close(fd);
+			continue;
+		}
+
+		break;
+	}
+
+	freeaddrinfo(addr);
+	if (it == NULL)
+		return -1;
+
+	if (listen(fd, MAX_BACKLOG) < 0)
+		Error(E_LISTEN);
+
+	sockfd = fd;
 
 	return 0;
 }
 
-static int ParseRequest(req_t *req, int len)
+static void HandleEvent(telnet_t *telnet, telnet_event_t *evt, void *client)
 {
-	int i;
-	char *head;
-	char *tail;
+	net_cln_t *cln;
+	short rows, cols;
+	const char *ptr;
+	char buf[64];
 
-	head = req->data;
-	tail = head;
+	UNUSED(GetOptStr);
+	cln = (net_cln_t *) client;
+	assert(cln->func != NULL);
 
-	for (i = 0; i < len; i++) {
-		if (!isalnum(head[i]))
-			continue;
+	switch(evt->type) {
+	case TELNET_EV_DATA:
+		ptr = evt->data.buffer;
+		if ((ptr[0] == 0x0D)) {
+			cln->func(cln, T_KEY_RETURN);
+			break;
+		}
+		if ((evt->data.size == 3)
+		&& ((ptr[0] == 0x1B && ptr[1] == 0x5B))) {
+			if (ptr[2] == 0x41) {
+				cln->func(cln, T_KEY_UP);
+				break;
+			}
+			if (ptr[2] == 0x42) {
+				cln->func(cln, T_KEY_DOWN);
+				break;
+			}
+		}
 
-		// Filter garbage
-		*tail++ = head[i];
+		if (evt->data.size == 1 && isdigit(ptr[0]))
+			cln->func(cln, ptr[0]);
+
+		break;
+	case TELNET_EV_IAC:
+		break;
+	case TELNET_EV_SEND:
+		SendClient(cln, evt->data.buffer, evt->data.size);
+		break;
+	case TELNET_EV_DO:
+		// if (evt->neg.telopt == TELNET_TELOPT_COMPRESS2)
+		//	telnet_begin_compress2(telnet);
+		break;
+	case TELNET_EV_WILL:
+		if (evt->neg.telopt == TELNET_TELOPT_TTYPE)
+			telnet_ttype_send(telnet);
+		if (evt->neg.telopt == TELNET_TELOPT_LINEMODE) {
+			buf[0] = TELNET_LINEMODE_MODE;
+			buf[1] = TELNET_LINEMODE_TRAPSIG;
+			telnet_begin_sb(telnet, TELNET_TELOPT_LINEMODE);
+			telnet_send(telnet, buf, 2);
+			telnet_finish_sb(telnet);
+		}
+		break;
+	case TELNET_EV_SUBNEGOTIATION:
+		if ((evt->sub.telopt == TELNET_TELOPT_NAWS)
+		&& ((evt->sub.size == 4))) {
+			ptr = evt->sub.buffer;
+			rows = (((short) ptr[3]) << 8) | ptr[2];
+			cols = (((short) ptr[1]) << 8) | ptr[0];
+			rows = ntohs(rows);
+			cols = ntohs(cols);
+			Info("Setting SIZE to %dx%d", rows, cols);
+			resizeterm(rows, cols);
+			cln->func(cln, T_EVT_RESIZE);
+		}
+		break;
+	case TELNET_EV_TTYPE:
+		Info("Setting TERM to %s", evt->data.buffer);
+		//setterm(evt->data.buffer);
+		break;
+	case TELNET_EV_ERROR:
+		break;
+	default:
+		break;
 	}
-
-	req->type   = T_REQ_INVAL;
-	head        = req->data;
-	req->params = head;
-	*tail       = '\0';
-
-	switch (*head) {
-		case 'A': case 'a': // AUTH
-			if ((head[1] == 'U' || head[1] == 'u')
-			&& ((head[2] == 'T' || head[2] == 't'))
-			&& ((head[3] == 'H' || head[3] == 'h'))) {
-				req->type = T_REQ_AUTH;
-				req->params = head + 4;
-			}
-			break;
-
-		case 'C': case 'c': // CLEAR
-			if ((head[1] == 'L' || head[1] == 'l')
-			&& ((head[2] == 'E' || head[2] == 'e'))
-			&& ((head[3] == 'A' || head[3] == 'a'))
-			&& ((head[4] == 'R' || head[4] == 'r'))
-			&& ((head[5] == '\0'))) {
-				req->type = T_REQ_CLEAR;
-				req->params = head + 5;
-			}
-			break;
-
-		case 'D': case 'd': // DELETE
-			if ((head[1] == 'E' || head[1] == 'e')
-			&& ((head[2] == 'L' || head[2] == 'l'))
-			&& ((head[3] == 'E' || head[3] == 'e'))
-			&& ((head[4] == 'T' || head[4] == 't'))
-			&& ((head[5] == 'E' || head[5] == 'e'))) {
-				req->type = T_REQ_DELETE;
-				req->params = head + 6;
-			}
-			break;
-
-		case 'E': case 'e': // EXIT
-			if ((head[1] == 'X' || head[1] == 'x')
-			&& ((head[2] == 'I' || head[2] == 'i'))
-			&& ((head[3] == 'T' || head[3] == 't'))
-			&& ((head[4] == '\0'))) {
-				req->type = T_REQ_EXIT;
-				req->params = head + 4;
-			}
-			break;
-
-		case 'H': case 'h': // HELP
-			if ((head[1] == 'E' || head[1] == 'e')
-			&& ((head[2] == 'L' || head[2] == 'l'))
-			&& ((head[3] == 'P' || head[3] == 'p'))
-			&& ((head[4] == '\0'))) {
-				req->type = T_REQ_HELP;
-				req->params = head + 4;
-			}
-			break;
-
-		case 'I': case 'i': // INSERT
-			if ((head[1] == 'N' || head[1] == 'n')
-			&& ((head[2] == 'S' || head[2] == 's'))
-			&& ((head[3] == 'E' || head[3] == 'e'))
-			&& ((head[4] == 'R' || head[4] == 'r'))
-			&& ((head[5] == 'T' || head[5] == 't'))) {
-				req->type = T_REQ_INSERT;
-				req->params = head + 6;
-			}
-			break;
-
-		case 'Q': case 'q': // QUERY | QUIT
-			if ((head[1] == 'U' || head[1] == 'u')
-			&& ((head[2] == 'E' || head[2] == 'e'))
-			&& ((head[3] == 'R' || head[3] == 'r'))
-			&& ((head[4] == 'Y' || head[4] == 'y'))) {
-				req->type = T_REQ_QUERY;
-				req->params = head + 5;
-
-			} else if ((head[1] == 'U' || head[1] == 'u')
-			&& ((head[2] == 'I' || head[2] == 'i'))
-			&& ((head[3] == 'T' || head[3] == 't'))
-			&& ((head[4] == '\0'))) {
-				req->type = T_REQ_EXIT;
-				req->params = head + 4;
-			}
-			break;
-
-		case 'L': case 'l': // LIST
-			if ((head[1] == 'I' || head[1] == 'i')
-			&& ((head[2] == 'S' || head[2] == 's'))
-			&& ((head[3] == 'T' || head[3] == 't'))) {
-
-				if ((head[4] == '\0')
-				|| ((head[4] == 'T' || head[4] == 't')
-				&& ((head[5] == 'O' || head[5] == 'o'))
-				&& ((head[6] == 'D' || head[6] == 'd'))
-				&& ((head[7] == 'O' || head[7] == 'o'))
-				&& ((head[8] == '\0')))) {
-					req->type = T_REQ_LIST_TODO;
-					req->params = head + 8;
-					break;
-				}
-
-				if ((head[4] == 'D' || head[4] == 'd')
-				&& ((head[5] == 'O' || head[5] == 'o'))
-				&& ((head[6] == 'N' || head[6] == 'n'))
-				&& ((head[7] == 'E' || head[7] == 'e'))
-				&& ((head[8] == '\0'))) {
-					req->type = T_REQ_LIST_DONE;
-					req->params = head + 8;
-				}
-
-				if ((head[4] == 'F' || head[4] == 'f')
-				&& ((head[5] == 'U' || head[5] == 'u'))
-				&& ((head[6] == 'L' || head[6] == 'l'))
-				&& ((head[7] == 'L' || head[7] == 'l'))
-				&& ((head[8] == '\0'))) {
-					req->type = T_REQ_LIST_FULL;
-					req->params = head + 8;
-					break;
-				}
-
-				if ((head[4] == 'A' || head[4] == 'a')
-				&& ((head[5] == 'L' || head[5] == 'l'))
-				&& ((head[6] == 'L' || head[6] == 'l'))
-				&& ((head[7] == '\0'))) {
-					req->type = T_REQ_LIST_FULL;
-					req->params = head + 7;
-					break;
-				}
-			}
-			break;
-
-		case '\0': // EMPTY
-			req->type = T_REQ_EMPTY;
-			req->params = head;
-			break;
-	}
-
-	return req->type;
 }
 
-static void Prompt(req_t *req)
+int NET_Accept(net_cln_t *out, net_fun_t *func)
 {
-	write(req->handle, "\r\n$ ", 4);
+	socklen_t solen;
+	struct sockaddr *sa;
+	struct sockaddr_storage addr;
+	const char *adstr;
+	FILE *fh;
+	int fd;
+
+	solen  = sizeof(addr);
+	sa     = (struct sockaddr *) &addr;
+	fd     = accept(sockfd, sa, &solen);
+
+	if (fd < 0) {
+		if (errno != EINTR)
+			Warning(E_ACCEPT ": %s", strerror(errno));
+
+		return -1;
+	}
+
+	adstr = GetAddrStr(sa);
+	Info(M_ACCEPT ": %s", adstr);
+	strcpy(out->address, adstr);
+
+	out->handle   = fd;
+	out->parent   = sockfd;
+	out->func     = func;
+	out->rows     = MIN_ROW_NUM;
+	out->cols     = MIN_COL_NUM;
+	out->telnet   = telnet_init(telopts, HandleEvent, 0, out);
+
+	telnet_negotiate(out->telnet, TELNET_DO,   TELNET_TELOPT_NAWS);
+	telnet_negotiate(out->telnet, TELNET_DO,   TELNET_TELOPT_TTYPE);
+	telnet_negotiate(out->telnet, TELNET_DO,   TELNET_TELOPT_LINEMODE);
+	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_COMPRESS2);
+	telnet_negotiate(out->telnet, TELNET_WILL, TELNET_TELOPT_ECHO);
+
+	// Hide client terminal cursor
+	//NET_Send(out, "\033[?12l", 6);
+	//NET_Send(out, "\033[?25l", 6);
+
+	fh  = fdopen(out->handle, "rw");
+//	out->screen = newterm("vt100", fh, fh);
+	out->screen = newterm("xterm-color", fh, fh);
+	set_term(out->screen);
+	resizeterm(out->rows, out->cols);
+
+	return out->handle;
+}
+
+void NET_Close(net_cln_t *cln)
+{
+	telnet_free(cln->telnet);
+	close(cln->handle);
+}
+
+int NET_NextEvent(net_cln_t *cln)
+{
+	char buf[MAX_MSG_LEN];
+	int n;
+
+        if ((n = recv(cln->handle, buf, MAX_MSG_LEN, 0)) > 0)
+		telnet_recv(cln->telnet, buf, n);
+
+	if (n < 0 && errno != EINTR)
+		Error(E_RXDATA " from '%s'", cln->address);
+
+	return 1;
+}
+
+void NET_SetHandler(net_cln_t *cln, net_fun_t *func)
+{
+	cln->func = func;
+}
+
+void NET_Send(net_cln_t *cln, const char *buf, int size)
+{
+	telnet_send(cln->telnet, buf, size);
+}
+
+void NET_Shutdown(void)
+{
+	if (sockfd < 0)
+		return;
+
+	close(sockfd);
+}
+
+static const char *GetOptStr(int opt)
+{
+	switch (opt) {
+	case 0: return "BINARY";
+	case 1: return "ECHO";
+	case 2: return "RCP";
+	case 3: return "SGA";
+	case 4: return "NAMS";
+	case 5: return "STATUS";
+	case 6: return "TM";
+	case 7: return "RCTE";
+	case 8: return "NAOL";
+	case 9: return "NAOP";
+	case 10: return "NAOCRD";
+	case 11: return "NAOHTS";
+	case 12: return "NAOHTD";
+	case 13: return "NAOFFD";
+	case 14: return "NAOVTS";
+	case 15: return "NAOVTD";
+	case 16: return "NAOLFD";
+	case 17: return "XASCII";
+	case 18: return "LOGOUT";
+	case 19: return "BM";
+	case 20: return "DET";
+	case 21: return "SUPDUP";
+	case 22: return "SUPDUPOUTPUT";
+	case 23: return "SNDLOC";
+	case 24: return "TTYPE";
+	case 25: return "EOR";
+	case 26: return "TUID";
+	case 27: return "OUTMRK";
+	case 28: return "TTYLOC";
+	case 29: return "3270REGIME";
+	case 30: return "X3PAD";
+	case 31: return "NAWS";
+	case 32: return "TSPEED";
+	case 33: return "LFLOW";
+	case 34: return "LINEMODE";
+	case 35: return "XDISPLOC";
+	case 36: return "ENVIRON";
+	case 37: return "AUTHENTICATION";
+	case 38: return "ENCRYPT";
+	case 39: return "NEW-ENVIRON";
+	case 70: return "MSSP";
+	case 85: return "COMPRESS";
+	case 86: return "COMPRESS2";
+	case 93: return "ZMP";
+	case 255: return "EXOPL";
+	default: return "UNKNOWN";
+	}
+}
+
+static const char *GetAddrStr(struct sockaddr *addr)
+{
+	static char buf[MAX_ADR_LEN];
+	const void *src;
+
+	src = (addr->sa_family == AF_INET)
+	    ? (void*) &(((struct sockaddr_in  *) addr)->sin_addr)
+	    : (void*) &(((struct sockaddr_in6 *) addr)->sin6_addr);
+
+	// Writing to static buffer, therefore not thread-safe!
+	if (inet_ntop(addr->sa_family, src, buf, sizeof(buf)) == NULL)
+		return "INVALID";
+
+	return buf;
+}
+
+void SendClient(net_cln_t *cln, const char *buf, int size)
+{
+	int n;
+
+	if (cln->handle < 0)
+		return;
+
+	while (size > 0) {
+		if ((n = send(cln->handle, buf, size, 0)) <= 0) {
+			if (errno != EINTR && errno != ECONNRESET)
+				Error(E_TXDATA ": %s", strerror(errno));
+			return;
+		}
+
+		buf  += n;
+		size -= n;
+	}
 }

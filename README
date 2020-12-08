@@ -1,0 +1,86 @@
+Barkeeper - Barcode database with Telnet interface for barcode scanners
+  and HTTP/s interface showing real-time updates from all connected devices
+
+Copyright (C) 2020 Madcow Software (Leon Krieg)
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Since license requirements are currently unknown the project is NOT allowed
+to be redistributed either in source or binary form. Neither in its original
+nor modified form. In the future I would like to have dual licensing with the
+option to choose between MIT and public domain.
+
+This document is still incomplete and important sections are missing. This
+will hopefully change in the course of development when some implementation
+details are determined.
+
+## Requirements
+
+Barkeeper works on all POSIX-conforming systems with socket support. The HTTP/S
+interface needs a webserver with CGI support (Apache, NGINX, Lighttpd, etc.) While
+development is done using GCC, other compilers like Clang should work just as well.
+Some minor changes in the Makefile may be required for handling header dependecies
+between builds if you're using some esoteric compiler.
+
+# Standards and References
+
+The codebase strictly adheres to the ISO C99 standard. Code that interfaces with the
+operating system relies on the POSIX.1 (IEEE 1003.1) standard. The Telnet server is
+based on the Telnet Protocol Specification in RFC 854 and Telnet option negotiation
+is based on the "Q Method of Implementing Telnet Option Negotiation" in RFC 1143.
+The hashing algorithm for the database is based on Fowler-Noll-Vo 32bit FNV-1a.
+
+## How to Build
+
+Before building make sure you have the GNU make and GCC installed. If you're running
+Ubuntu or some other Debian based distribution this can propably be done with:
+
+    sudo apt update
+    sudo apt install build-essential
+
+You may want to run the provided unit-tests to ensure everything works as expected.
+To build, test and then install Barkeeper simply run the following commands from the
+project root directory. 
+
+    make
+    make check
+    sudo make install
+
+VPATH is currently ignored but build related files are kept out-of-source by default
+in the bin/.build directory. These files can be deleted using the following command:
+
+    make clean
+
+TODO: Here should later be a paragraph about setting up the webserver if we're not
+rolling our own. Which we propably should not?!
+
+## Telnet Instead of SSH?
+
+- Widest device support among barcode scanners
+- Minimal protocol overhead compared to SSH
+- Benefits of SSH data encryption negligible:
+  - No write access to remote database needed
+  - Will not be used outside of local network
+  - Basic authentication and device whitelisting still possible
+- Networking abstraction allows later addition of other protocols
+
+## Problems / Milestones
+
+- Allowing both IPv4 and IPv6 TCP sockets for future compatability
+- Handling Telnet NAWS, TTYPE, AUTH, ECHO and LINEMODE negotiations
+- Protect agains negotiation loops with unreliable clients, see RFC 1143
+- Ensure Telnet commands (and subnegotiations) are kept out of the program data path
+- Event system to fully abstract away networking, making later changes safer and easier
+- Use least number of ANSI sequences to update viewbuffer to recent state (no flickering)
+  - This could be achieved using the diff algorithm found in the ncurses implementation
+- Testing with different scanner devices in use. Proper fallback for unsuported options
+- Hashtable for constant access times independent of data size (good hashing algorithm)
+- Data persistance through serialization wiht proper handling of unexpected shutdown
+- Can we directly interface through read-only SQL or are third-party APIs involved?
+- Ensuring local and remote databases are always synchronized is high priority!
+- Fallback to CSV barcode data import if remote database access fails
+- Threads, forks or single-threaded polling?
+- Database locking between writing threads or processes
+- Live webinterface updates by ajax polling from cgi-bin

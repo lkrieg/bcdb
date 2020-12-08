@@ -7,12 +7,13 @@ LD       = $(CC)
 RM       = rm -f
 TEST     = test
 MKDIR    = mkdir -p
-CPPFLAGS = -Isrc
+CPPFLAGS = -Isrc -Ilib
 CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Werror
+CFLAGS  += -D_POSIX_C_SOURCE=200809L -DHAVE_ZLIB
 MDFLAGS  = -MM -MT $(@:.d=.o)
-LDLIBS   = -lpthread
+LDFLAGS  = -Llib/zlib
+LDLIBS   = -lz -lncurses
 VERBOSE  = false
-LDFLAGS  =
 
 DSTDIR   = bin
 TARGET  := $(DSTDIR)/barkeeper
