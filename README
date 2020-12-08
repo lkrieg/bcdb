@@ -16,7 +16,7 @@ in the course of development when some implementation details are determined.
 
 ## Requirements
 
-Barkeeper works on all POSIX-conforming systems with either IPv4 or IPv6 interface.
+Barkeeper works on all POSIX-conforming systems with either IPv4 or IPv6 networking.
 The HTTP/S interface needs a webserver with CGI support like Apache or NGINX. GCC is
 used by default but other compilers like Clang should work just as well. Supporting
 Windows would require wrappers for sockets and process handling and is not planned.
