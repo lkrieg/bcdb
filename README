@@ -1,6 +1,6 @@
 Barkeeper - Barcode database with both Telnet and HTTP/S interface. Allows real-time
 updates from connected scanner devices in the browser. Caches remote datasets locally
-only needing read access to other database. Optional stand-alone usage with CSV import.
+only needing read access to the other database. Stand-alone usage through CSV import.
 
 Copyright (C) 2020 Madcow Software, Leon Krieg <info@madcow.dev>
 
@@ -18,9 +18,9 @@ in the course of development when some implementation details are determined.
 
 Barkeeper works on all POSIX-conforming systems with either IPv4 or IPv6 networking.
 The HTTP/S interface needs a webserver with CGI support like Apache or NGINX. GCC is
-used by default but other compilers like Clang should work just as well. Supporting
-Windows would require wrappers for sockets and process handling and is not planned.
-Some minor changes in the Makefile may be required for handling header dependecies
+used for compiling by default but other compilers like Clang should work as well.
+Windows support would require wrappers for socket and process handling - not planned.
+Some minor changes in the Makefile may be required for generating header dependecies
 between builds if you're using some esoteric compiler. A few GNU specific features
 in the Makefile are currently needed to locate all source files but this could be
 changed by listing the source files by hand when the project is done.
@@ -58,8 +58,8 @@ in the bin/.build directory. These files can be deleted using the following comm
 
     $ make clean
 
-Build verbosity is reduced by default. To output all the full commands you can add
-the following flag to any make invocation like this:
+Build verbosity is reduced by default to keep the noise level low. To output the full
+commands you can add the boolean VERBOSE flag to any make invocation like this:
 
     $ make VERBOSE=true all
 
@@ -93,4 +93,5 @@ rolling our own. Which we propably should not?!
 - Ensuring local and remote databases are always synchronized is really important.
 - Fallback to CSV barcode data import if remote database access not possible.
 - Threads, forks or single-threaded polling? Locking database writes.
+- Authentication for both Telnet and Web clients, maybe even shared?
 - Live webinterface update polling from cgi-bin.
