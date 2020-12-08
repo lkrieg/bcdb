@@ -46,20 +46,21 @@ running Ubuntu or some other Debian based distribution use these commands:
     $ sudo apt install build-essential zlib1g-dev
 
 You may want to run the provided unit-tests to ensure everything works as expected.
-To build, test and then install Barkeeper simply run the following commands from the
-project root directory:
+To configure, build, test and then install Barkeeper run the following commands from
+the project root directory:
 
+    $ ./configure
     $ make all
     $ make check
     $ sudo make install
 
 VPATH is currently ignored but build related files are kept out-of-source by default
-in the bin/.build directory. These files can be deleted using the following command:
+in the bin/.build directory. These files can be removed with the following command:
 
     $ make clean
 
-Build verbosity is reduced by default to keep the noise level low. To output the full
-commands you can add the boolean VERBOSE flag to any make invocation like this:
+Build verbosity is reduced by default to keep the noise level as low as possible. For
+the full command output you can add the VERBOSE flag to any make invocation like this:
 
     $ make VERBOSE=true all
 
