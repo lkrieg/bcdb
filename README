@@ -1,6 +1,6 @@
-Barkeeper - Barcode database with both Telnet and HTTP/S interface. Allows real-time
-updates from connected scanner devices in the browser. Caches remote datasets locally
-only needing read access to the other database. Stand-alone usage through CSV import.
+Barkeeper - Barcode database with both Telnet and HTTP/S interface. Get real-time updates
+from connected scanners in the browser. Cache remote datasets locally only needing read
+access to the other database. Stand-alone usage possible through CSV file import.
 
 Copyright (C) 2020 Madcow Software, Leon Krieg <info@madcow.dev>
 
@@ -18,7 +18,7 @@ in the course of development when some implementation details are determined.
 
 Barkeeper works on all POSIX-conforming systems with either IPv4 or IPv6 networking.
 The HTTP/S interface needs a webserver with CGI support like Apache or NGINX. GCC is
-used for compiling by default but other compilers like Clang should work as well.
+used by default for compilation and linkage but other compilers like Clang work aswell.
 Windows support would require wrappers for socket and process handling - not planned.
 Some minor changes in the Makefile may be required for generating header dependecies
 between builds if you're using some esoteric compiler. A few GNU specific features
