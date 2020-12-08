@@ -39,7 +39,7 @@ which implements the deflate algorithm as described by Phil Katz in RFC 1951.
 
 ## How to Build
 
-Before building make sure you have the GNU make and GCC installed. If you're running
+Before building make sure you have GNU make and GCC installed. If you're running
 Ubuntu or some other Debian based distribution this can propably be done with:
 
     sudo apt update
@@ -61,7 +61,7 @@ in the bin/.build directory. These files can be deleted using the following comm
 Build verbosity is reduced by default. To output all the full commands you can add
 the following flag to any make invocation like this:
 
-    make VERBOSE=true all check install
+    make VERBOSE=true all
 
 TODO: Here should later be a paragraph about setting up the webserver if we're not
 rolling our own. Which we propably should not?!
