@@ -1,16 +1,16 @@
-Barkeeper - Barcode database with Telnet interface for barcode scanners
-  and HTTP/s interface showing real-time updates from all connected devices
+Barkeeper - Barcode database with both Telnet and HTTP/S interface. Allows real-time
+updates from connected scanner devices in the browser. Cache remote datasets locally
+only needing read access to a database. Optional CSV file import from the web
+interface for stand-alone usage.
 
 Copyright (C) 2020 Madcow Software (Leon Krieg)
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-Since license requirements are currently unknown the project is NOT allowed
-to be redistributed either in source or binary form. Neither in its original
-nor modified form. In the future I would like to have dual licensing with the
-option to choose between MIT and public domain.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. Since license requirements are currently unknown the project
+is NOT allowed to be redistributed either in source or binary form. Neither in
+its original nor modified version. In the future this will hopefully change to
+dual licensing with the option to choose between MIT and public domain.
 
 This document is still incomplete and important sections are missing. This
 will hopefully change in the course of development when some implementation
@@ -19,18 +19,23 @@ details are determined.
 ## Requirements
 
 Barkeeper works on all POSIX-conforming systems with socket support. The HTTP/S
-interface needs a webserver with CGI support (Apache, NGINX, Lighttpd, etc.) While
-development is done using GCC, other compilers like Clang should work just as well.
+interface needs a webserver with CGI support like Apache, NGINX, Lighttpd, etc.
+While development is done using GCC, other compilers like Clang should work as well.
 Some minor changes in the Makefile may be required for handling header dependecies
-between builds if you're using some esoteric compiler.
+between builds if you're using some esoteric compiler. Some GNU specific features
+in the Makefile are currently needed to locate all source files but this could be
+changed by listing the source files by hand when the project is finished.
 
 # Standards and References
 
-The codebase strictly adheres to the ISO C99 standard. Code that interfaces with the
-operating system relies on the POSIX.1 (IEEE 1003.1) standard. The Telnet server is
-based on the Telnet Protocol Specification in RFC 854 and Telnet option negotiation
-is based on the "Q Method of Implementing Telnet Option Negotiation" in RFC 1143.
-The hashing algorithm for the database is based on Fowler-Noll-Vo 32bit FNV-1a.
+The codebase adheres strictly to the ISO C99 standard while keeping the C90 rule of
+not mixing declarations with code. Parts that interfaces with the operating system
+rely on the POSIX.1 (IEEE 1003.1) standard. The Telnet server is based on the
+"Telnet Protocol Specification" as described in RFC 854. Telnet option negotiation
+is based on the "Q Method of Implementing Telnet Option Negotiation" as described in
+RFC 1143. Database key hashing uses the Fowler-Noll-Vo 32bit-1a algorithm. Optional
+server-sided compression uses the zlib library by Jean-loup Gailly and Mark Adler
+which implements the deflate algorithm as described by Phil Katz in RFC 1951.
 
 ## How to Build
 
@@ -42,9 +47,9 @@ Ubuntu or some other Debian based distribution this can propably be done with:
 
 You may want to run the provided unit-tests to ensure everything works as expected.
 To build, test and then install Barkeeper simply run the following commands from the
-project root directory. 
+project root directory:
 
-    make
+    make all
     make check
     sudo make install
 
@@ -52,6 +57,11 @@ VPATH is currently ignored but build related files are kept out-of-source by def
 in the bin/.build directory. These files can be deleted using the following command:
 
     make clean
+
+Build verbosity is reduced by default. To output all the full commands you can add
+the following flag to any make invocation like this:
+
+    make VERBOSE=true all check install
 
 TODO: Here should later be a paragraph about setting up the webserver if we're not
 rolling our own. Which we propably should not?!
