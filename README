@@ -80,13 +80,14 @@ rolling our own. Which we propably should not?!
 ## Problems and Milestones
 
 - Allowing both IPv4 and IPv6 TCP sockets for future compatability.
-- Handling Telnet NAWS, TTYPE, AUTH, ECHO and LINEMODE negotiations.
+- Handling Telnet NAWS, TTYPE, AUTH, ECHO and LINEMODE sub-/negotiations.
 - Protect agains negotiation loops with unreliable clients, see RFC 1143.
-- Handle different client sizes and ensure best possible window usage.
+- Handle different client sizes and ensure best possible window space usage.
 - Ensure Telnet commands (and subnegotiations) are kept out of the program data path.
 - Event system to fully abstract away networking, making later changes safer and easier.
 - Use least number of ANSI sequences to update view buffer to recent state (no flickering).
   - This could be achieved using some type of buffer diff algorithm or simply hardcoded.
+  - Piping a full ncurses TUI through TCP sockets is also possible but would be overkill.
 - Testing with different scanner devices in use. Proper fallback for unsuported options.
 - Hashtable for constant access times independent of data size (good hashing algorithm).
 - Data persistance through serialization wiht proper handling of unexpected shutdown.
@@ -95,4 +96,6 @@ rolling our own. Which we propably should not?!
 - Fallback to CSV barcode data import if remote database access not possible.
 - Threads, forks or single-threaded polling? Locking database writes.
 - Authentication for both Telnet and Web clients, maybe even shared?
-- Live webinterface update polling from cgi-bin.
+- CSV file import so the server can run in stand-alone mode.
+- Configuration file and command line argument parser logic.
+- Asynchronous web interface updates from the C API over CGI.
