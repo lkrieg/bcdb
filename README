@@ -1,96 +1,96 @@
 Barkeeper - Barcode database with both Telnet and HTTP/S interface. Allows real-time
-updates from connected scanner devices in the browser. Cache remote datasets locally
-only needing read access to a database. Optional CSV file import from the web
-interface for stand-alone usage.
+updates from connected scanner devices in the browser. Caches remote datasets locally
+only needing read access to other database. Optional stand-alone usage with CSV import.
 
-Copyright (C) 2020 Madcow Software (Leon Krieg)
+Copyright (C) 2020 Madcow Software, Leon Krieg <info@madcow.dev>
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. Since license requirements are currently unknown the project
-is NOT allowed to be redistributed either in source or binary form. Neither in
-its original nor modified version. In the future this will hopefully change to
-dual licensing with the option to choose between MIT and public domain.
+PARTICULAR PURPOSE. Since license requirements are currently unknown the project is NOT
+allowed to be redistributed either in source or binary form. Neither in its original nor
+modified version. In the future this will hopefully change to dual licensing with the
+option to choose between MIT and public domain.
 
-This document is still incomplete and important sections are missing. This
-will hopefully change in the course of development when some implementation
-details are determined.
+This document is still incomplete and important sections are missing. This will change
+in the course of development when some implementation details are determined.
 
 ## Requirements
 
-Barkeeper works on all POSIX-conforming systems with socket support. The HTTP/S
-interface needs a webserver with CGI support like Apache, NGINX, Lighttpd, etc.
-While development is done using GCC, other compilers like Clang should work as well.
+Barkeeper works on all POSIX-conforming systems with either IPv4 or IPv6 interface.
+The HTTP/S interface needs a webserver with CGI support like Apache or NGINX. GCC is
+used by default but other compilers like Clang should work just as well. Supporting
+Windows would require wrappers for sockets and process handling and is not planned.
 Some minor changes in the Makefile may be required for handling header dependecies
-between builds if you're using some esoteric compiler. Some GNU specific features
+between builds if you're using some esoteric compiler. A few GNU specific features
 in the Makefile are currently needed to locate all source files but this could be
-changed by listing the source files by hand when the project is finished.
+changed by listing the source files by hand when the project is done.
 
-# Standards and References
+## Standards and References
 
-The codebase adheres strictly to the ISO C99 standard while keeping the C90 rule of
-not mixing declarations with code. Parts that interfaces with the operating system
-rely on the POSIX.1 (IEEE 1003.1) standard. The Telnet server is based on the
-"Telnet Protocol Specification" as described in RFC 854. Telnet option negotiation
-is based on the "Q Method of Implementing Telnet Option Negotiation" as described in
-RFC 1143. Database key hashing uses the Fowler-Noll-Vo 32bit-1a algorithm. Optional
-server-sided compression uses the zlib library by Jean-loup Gailly and Mark Adler
-which implements the deflate algorithm as described by Phil Katz in RFC 1951.
+The codebase adheres pedantically to the ISO C99 standard while keeping the C89 rule
+of not mixing declarations with code. Parts that interface with the operating system
+rely on the POSIX.1 (IEEE 1003.1) standard. The Telnet server is based on the "Telnet
+Protocol Specification" as described in RFC 854. Telnet option negotiation is based
+on the "Q Method of Implementing Telnet Option Negotiation" as described in RFC 1143.
+Database key hashing uses the Fowler-Noll-Vo 32bit-1a algorithm. Optional server-sided
+compression uses the zlib library by Jean-loup Gailly and Mark Adler which implements
+the deflate algorithm as described by Phil Katz in RFC 1951.
 
 ## How to Build
 
-Before building make sure you have GNU make and GCC installed. If you're running
-Ubuntu or some other Debian based distribution this can propably be done with:
+Before building make sure you have GNU make, GCC and optionally zlib installed if
+your want server-sided data compression for clients that support it. If you're
+running Ubuntu or some other Debian based distribution use these commands:
 
-    sudo apt update
-    sudo apt install build-essential
+    $ sudo apt update
+    $ sudo apt install build-essential zlib1g-dev
 
 You may want to run the provided unit-tests to ensure everything works as expected.
 To build, test and then install Barkeeper simply run the following commands from the
 project root directory:
 
-    make all
-    make check
-    sudo make install
+    $ make all
+    $ make check
+    $ sudo make install
 
 VPATH is currently ignored but build related files are kept out-of-source by default
 in the bin/.build directory. These files can be deleted using the following command:
 
-    make clean
+    $ make clean
 
 Build verbosity is reduced by default. To output all the full commands you can add
 the following flag to any make invocation like this:
 
-    make VERBOSE=true all
+    $ make VERBOSE=true all
 
 TODO: Here should later be a paragraph about setting up the webserver if we're not
 rolling our own. Which we propably should not?!
 
-## Telnet Instead of SSH?
+## Why Telnet and not SSH?
 
 - Widest device support among barcode scanners
-- Minimal protocol overhead compared to SSH
+- Minimal protocol overhead fitting its purpose
 - Benefits of SSH data encryption negligible:
   - No write access to remote database needed
   - Will not be used outside of local network
   - Basic authentication and device whitelisting still possible
 - Networking abstraction allows later addition of other protocols
 
-## Problems / Milestones
+## Problems and Milestones
 
-- Allowing both IPv4 and IPv6 TCP sockets for future compatability
-- Handling Telnet NAWS, TTYPE, AUTH, ECHO and LINEMODE negotiations
-- Protect agains negotiation loops with unreliable clients, see RFC 1143
-- Ensure Telnet commands (and subnegotiations) are kept out of the program data path
-- Event system to fully abstract away networking, making later changes safer and easier
-- Use least number of ANSI sequences to update viewbuffer to recent state (no flickering)
-  - This could be achieved using the diff algorithm found in the ncurses implementation
-- Testing with different scanner devices in use. Proper fallback for unsuported options
-- Hashtable for constant access times independent of data size (good hashing algorithm)
-- Data persistance through serialization wiht proper handling of unexpected shutdown
+- Allowing both IPv4 and IPv6 TCP sockets for future compatability.
+- Handling Telnet NAWS, TTYPE, AUTH, ECHO and LINEMODE negotiations.
+- Protect agains negotiation loops with unreliable clients, see RFC 1143.
+- Handle different client sizes and ensure best possible window usage.
+- Ensure Telnet commands (and subnegotiations) are kept out of the program data path.
+- Event system to fully abstract away networking, making later changes safer and easier.
+- Use least number of ANSI sequences to update view buffer to recent state (no flickering).
+  - This could be achieved using some type of buffer diff algorithm or simply hardcoded.
+- Testing with different scanner devices in use. Proper fallback for unsuported options.
+- Hashtable for constant access times independent of data size (good hashing algorithm).
+- Data persistance through serialization wiht proper handling of unexpected shutdown.
 - Can we directly interface through read-only SQL or are third-party APIs involved?
-- Ensuring local and remote databases are always synchronized is high priority!
-- Fallback to CSV barcode data import if remote database access fails
-- Threads, forks or single-threaded polling?
-- Database locking between writing threads or processes
-- Live webinterface updates by ajax polling from cgi-bin
+- Ensuring local and remote databases are always synchronized is really important.
+- Fallback to CSV barcode data import if remote database access not possible.
+- Threads, forks or single-threaded polling? Locking database writes.
+- Live webinterface update polling from cgi-bin.
