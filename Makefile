@@ -45,6 +45,8 @@ clean:
 	$(Q) $(RM) $(OBJECTS)
 	$(E) "[RM] $(DEPENDS)"
 	$(Q) $(RM) $(DEPENDS)
+	$(E) "[RM] src/config.h"
+	$(Q) $(RM) src/config.h
 
 # Require processed config header
 ifeq (,$(wildcard src/config.h))
