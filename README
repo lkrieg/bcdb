@@ -25,7 +25,7 @@ require wrappers for socket and process handling - not planned. Some esoteric
 compilers may require minor Makefile changes for generating header dependencies
 between builds. A few GNU specific features in the Makefile are currently needed
 to locate all source files but this could be changed by listing the source files
-by and when the project is done.
+by hand when the project is done.
 
 ## Standards and References
 
