@@ -10,22 +10,23 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE. Since license requirements are currently unknown the project
 is NOT allowed to be redistributed either in source or binary form. Neither in
 its original nor modified version. In the future this will hopefully change to
-dual licensing with the option to choose between MIT and public domain.
+dual licensing with the option to choose between MIT license and public domain.
 
 This document is still incomplete and important sections are missing. This will
-change in the course of development when more systems are implemented.
+change in the course of development when implementation details are more clear.
 
 ## Requirements
 
 Barkeeper works on most POSIX-conforming systems over both IPv4 or IPv6 sockets.
-Threading is required for multiple users. The HTTP/S interface needs a webserver
-with CGI support like Apache or NGINX. GCC is used by default for compilation
-and linkage but other compilers like Clang work aswell. Windows support would
-require wrappers for socket and process handling - not planned. Some esoteric
-compilers may require minor Makefile changes for generating header dependencies
-between builds. A few GNU specific features in the Makefile are currently needed
-to locate all source files but this could be changed by listing the source files
-by hand when the project is done.
+Multi-threading is optionally supported through pthreads. The HTTP/S interface
+requires a webserver with CGI support like Apache or NGINX. GCC is used by
+default as both compiler and linker but other compilers like Clang should work.
+Windows support would require wrappers for socket and thread handling, which is
+not planned, but native windows clients would be possible in the future. Some
+esoteric compilers may require minor Makefile changes for generating header
+dependencies between builds. A few GNU specific features in the Makefile are
+currently needed to locate all source files but this could be changed by listing
+all source files by hand when the project is done.
 
 ## Standards and References
 
@@ -35,29 +36,35 @@ system rely on the POSIX.1 (IEEE 1003.1) standard. The Telnet server is based on
 the "Telnet Protocol Specification" as described in RFC 854. Telnet negotiation
 is based on the "Q Method of Implementing Telnet Option Negotiation" described
 in RFC 1143. Database key hashing implements the Fowler-Noll-Vo 1a algorithm.
-Optional server-sided compression needs the zlib library by Jean-loup Gailly and
-Mark Adler for the deflate algorithm as described by Phil Katz in RFC 1951.
+Optional server-sided compression uses the zlib library by Jean-loup Gailly and
+Mark Adler for the algorithm as described in RFC 1950. See the doc/RFC directory
+for all stated RFC documents including the FNV03 draft.
 
-## How to Build
+## Build Prequisites
 
 Before building make sure you have GNU make, GCC and optionally zlib installed
-if your want server-sided data compression for clients that support it. If you
-are running Ubuntu or some other Debian based distribution use these commands:
+if you want server-sided data compression for clients that support it. On Ubuntu
+and other Debian based distribution you can run these commands:
 
     $ sudo apt update
     $ sudo apt install build-essential zlib1g-dev
 
-You may want to run the provided unit-tests to ensure everything works as
-expected. To configure, build, test and then install Barkeeper run the following
-commands from the project root directory:
+## Build Configuration
+
+Build configuration is done with an oldschool build script. GNU Autotools can be
+bent to will with some tweaks but still bring the whole baggage of m4 macros and
+some questionable design decisions. Simply run the configure script found in the
+project root directory to generate all defines for optional build features.
+
+# Build Process
+
+To configure and build Barkeeper simply run the following commands:
 
     $ ./configure
     $ make all
-    $ make check
-    $ sudo make install
 
 VPATH is currently ignored but build related files are kept out-of-source by
-default (in the bin/.build directory). Build files an binaries can be cleaned up
+default (in the bin/.build directory). Build files and binaries can be removed
 with the following command:
 
     $ make clean
@@ -67,8 +74,29 @@ full command output you can add the VERBOSE flag to make invocations like this:
 
     $ make VERBOSE=true all
 
-TODO: Here should later be a paragraph about setting up the webserver if we're
-not rolling our own. Which we propably should not?!
+# Installation
+
+You may want to run the provided unit tests to ensure everything works as
+expected. Check for any failures and then install using these command:
+
+    $ make check
+    $ sudo make install
+
+TODO: Here should propably later be a paragraph about setting up the webserver,
+if we're not rolling our own. Which we propably should not?!
+
+# Documentation
+
+You can build, install and view the manpages for detailed information about
+command-line arguments and configuration file options with these commands:
+
+$   make docs
+$   make install-docs
+$   man barkeeper
+
+All previously mentioned RFCs, aswell as ISO/ANSI/POSIX standard documents can
+be found in the doc/ directory. ISO sadly does not release a plain text version
+so you'll need a PDF viewer.
 
 ## Why Telnet and not SSH?
 
@@ -95,7 +123,7 @@ not rolling our own. Which we propably should not?!
 - Seperate thread for every new telnet client.
   - Handles negotiations and emits events for subnegotiations, key states and data.
   - Responsible for drawing responsive client view depending on window size events.
-  - Should send only minimal needed ANSI sequences to achieve desired view changes. 
+  - Should send only minimal needed ANSI sequences to achieve desired view changes.
 
 ## Problems and Milestones
 
