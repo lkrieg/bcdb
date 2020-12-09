@@ -1,3 +1,4 @@
+src/config.h
 bin/barkeeper
 bin/.build/
 *.swp

@@ -1,10 +1,27 @@
 #!/bin/sh
 
-echo "Checking if zlib is installed...yes"
-
+# TODO: Check if pthread is found in the searchpaths
 # TODO: Check if zlib is found in the searchpaths
-# TODO: Add -DHAVE_ZLIB define to the compiler flags
-# TODO: Or use Autotools but that would be overkill?!
+# TODO: Set correct defines in src/config.h
 
-echo "Enabling server-sided data compression."
+INFILE="src/config.h.in"
+
+use_debug="no"
+use_pthread="no"
+use_zlib="no"
+
+if test ! -f "$INFILE"; then
+	echo "Error: Header '$INFILE' missing."
+	exit 1
+fi
+
+read -p "Enable debug mode? [y/N] " debug
+case "$debug" in
+y|Y) use_debug="yes" ;;
+*)   use_debug="no"  ;;
+esac
+
+echo "Checking for debug...$use_debug"
+echo "Checking for pthread...$use_pthread"
+echo "Checking for zlib...$use_zlib"
 echo "Configuration finished."
