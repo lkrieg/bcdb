@@ -50,10 +50,10 @@ and other Debian based distribution you can run these commands:
 
 ## Build Configuration
 
-Build configuration is done with an oldschool build script. GNU Autotools can be
+Build configuration is done with an oldschool config script. Autotools could be
 bent to will with some tweaks but still bring the whole baggage of m4 macros and
 some questionable design decisions. Instead simply run the configure script from
-the project root directory to generate the config.h header from etc/config.h.in.
+the project root directory to process etc/config.h.in and generate src/config.h.
 
 ## Build Process
 
