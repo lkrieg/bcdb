@@ -1,5 +1,5 @@
 // Build configuration for optional program features
-// This file will be modified by the configure script
+// This file is processed by the configure script
 
 #undef DEBUG           // Enables debug mode
 #undef HAVE_PTHREAD    // Enables multi-threading
