@@ -1,7 +1,7 @@
-Barkeeper - Barcode database with both Telnet and HTTP/S interface. Get real-
-time updates from connected scanners in the browser. Cache remote datasets
-locally which only requires read access to the other database. Stand-alone usage
-through CSV file import is also possible.
+Barkeeper - Barcode database with both Telnet and HTTP/S interface. Displays
+real-time updates from connected scanners in the browser. Caches remote datasets
+locally and only requires read access to the other database. Stand-alone usage
+through CSV file import also possible.
 
 Copyright (C) 2020 Madcow Software, Leon Krieg <info@madcow.dev>
 
