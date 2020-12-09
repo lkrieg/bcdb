@@ -90,12 +90,11 @@ rolling our own. Which we propably should not?!
   - Piping a full ncurses TUI through TCP sockets is also possible but would be overkill.
 - Testing with different scanner devices in use. Proper fallback for unsuported options.
 - Hashtable for constant access times independent of data size (good hashing algorithm).
-- Data persistance through serialization wiht proper handling of unexpected shutdown.
+- Data persistance through serialization with proper handling of unexpected shutdowns.
 - Can we directly interface through read-only SQL or are third-party APIs involved?
 - Ensuring local and remote databases are always synchronized is really important.
 - Fallback to CSV barcode data import if remote database access not possible.
 - Threads, forks or single-threaded polling? Locking database writes.
 - Authentication for both Telnet and Web clients, maybe even shared?
-- CSV file import so the server can run in stand-alone mode.
 - Configuration file and command line argument parser logic.
 - Asynchronous web interface updates from the C API over CGI.
