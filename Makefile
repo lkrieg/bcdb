@@ -6,14 +6,14 @@ CC       = gcc
 LD       = $(CC)
 RM       = rm -f
 TEST     = test
+VERBOSE  = false
 MKDIR    = mkdir -p
-CPPFLAGS = -Isrc -Ilib
+CPPFLAGS = -Isrc -Ilib -pthread
 CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Werror
 CFLAGS  += -D_POSIX_C_SOURCE=200809L
 MDFLAGS  = -MM -MT $(@:.d=.o)
+LDLIBS   = -lz -lpthread
 LDFLAGS  =
-LDLIBS   = -lz
-VERBOSE  = false
 
 DSTDIR   = bin
 TARGET  := $(DSTDIR)/barkeeper
