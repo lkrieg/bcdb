@@ -1,71 +1,74 @@
-Barkeeper - Barcode database with both Telnet and HTTP/S interface. Get real-time updates
-from connected scanners in the browser. Cache remote datasets locally only needing read
-access to the other database. Stand-alone usage possible through CSV file import.
+Barkeeper - Barcode database with both Telnet and HTTP/S interface. Get real-
+time updates from connected scanners in the browser. Cache remote datasets
+locally which only requires read access to the other database. Stand-alone usage
+through CSV file import is also possible.
 
 Copyright (C) 2020 Madcow Software, Leon Krieg <info@madcow.dev>
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. Since license requirements are currently unknown the project is NOT
-allowed to be redistributed either in source or binary form. Neither in its original nor
-modified version. In the future this will hopefully change to dual licensing with the
-option to choose between MIT and public domain.
+PARTICULAR PURPOSE. Since license requirements are currently unknown the project
+is NOT allowed to be redistributed either in source or binary form. Neither in
+its original nor modified version. In the future this will hopefully change to
+dual licensing with the option to choose between MIT and public domain.
 
-This document is still incomplete and important sections are missing. This will change
-in the course of development when some implementation details are determined.
+This document is still incomplete and important sections are missing. This will
+change in the course of development when more systems are implemented.
 
 ## Requirements
 
-Barkeeper works on all POSIX-conforming systems with either IPv4 or IPv6 networking.
-The HTTP/S interface needs a webserver with CGI support like Apache or NGINX. GCC is
-used by default for compilation and linkage but other compilers like Clang work aswell.
-Windows support would require wrappers for socket and process handling - not planned.
-Some minor changes in the Makefile may be required for generating header dependencies
-between builds if you're using some esoteric compiler. A few GNU specific features
-in the Makefile are currently needed to locate all source files but this could be
-changed by listing the source files by hand when the project is done.
+Barkeeper works on most POSIX-conforming systems over both IPv4 or IPv6 sockets.
+Threading is required for multiple users. The HTTP/S interface needs a webserver
+with CGI support like Apache or NGINX. GCC is used by default for compilation
+and linkage but other compilers like Clang work aswell. Windows support would
+require wrappers for socket and process handling - not planned. Some esoteric
+compilers may require minor Makefile changes for generating header dependencies
+between builds. A few GNU specific features in the Makefile are currently needed
+to locate all source files but this could be changed by listing the source files
+by and when the project is done.
 
 ## Standards and References
 
-The codebase adheres pedantically to the ISO C99 standard while keeping the C89 rule
-of not mixing declarations with code. Parts that interface with the operating system
-rely on the POSIX.1 (IEEE 1003.1) standard. The Telnet server is based on the "Telnet
-Protocol Specification" as described in RFC 854. Telnet option negotiation is based
-on the "Q Method of Implementing Telnet Option Negotiation" as described in RFC 1143.
-Database key hashing uses the Fowler-Noll-Vo 32bit-1a algorithm. Optional server-sided
-compression uses the zlib library by Jean-loup Gailly and Mark Adler which implements
-the deflate algorithm as described by Phil Katz in RFC 1951.
+The codebase adheres pedantically to the ISO C99 standard while keeping the C89
+rule of not mixing declarations with code. Parts that need to use the operating
+system rely on the POSIX.1 (IEEE 1003.1) standard. The Telnet server is based on
+the "Telnet Protocol Specification" as described in RFC 854. Telnet negotiation
+is based on the "Q Method of Implementing Telnet Option Negotiation" described
+in RFC 1143. Database key hashing implements the Fowler-Noll-Vo 1a algorithm.
+Optional server-sided compression needs the zlib library by Jean-loup Gailly and
+Mark Adler for the deflate algorithm as described by Phil Katz in RFC 1951.
 
 ## How to Build
 
-Before building make sure you have GNU make, GCC and optionally zlib installed if
-your want server-sided data compression for clients that support it. If you're
-running Ubuntu or some other Debian based distribution use these commands:
+Before building make sure you have GNU make, GCC and optionally zlib installed
+if your want server-sided data compression for clients that support it. If you
+are running Ubuntu or some other Debian based distribution use these commands:
 
     $ sudo apt update
     $ sudo apt install build-essential zlib1g-dev
 
-You may want to run the provided unit-tests to ensure everything works as expected.
-To configure, build, test and then install Barkeeper run the following commands from
-the project root directory:
+You may want to run the provided unit-tests to ensure everything works as
+expected. To configure, build, test and then install Barkeeper run the following
+commands from the project root directory:
 
     $ ./configure
     $ make all
     $ make check
     $ sudo make install
 
-VPATH is currently ignored but build related files are kept out-of-source by default
-in the bin/.build directory. These files can be removed with the following command:
+VPATH is currently ignored but build related files are kept out-of-source by
+default (in the bin/.build directory). Build files an binaries can be cleaned up
+with the following command:
 
     $ make clean
 
-Build verbosity is reduced by default to keep the noise level as low as possible. For
-the full command output you can add the VERBOSE flag to any make invocation like this:
+Build verbosity is reduced to keep the noise level as low as possible. For the
+full command output you can add the VERBOSE flag to make invocations like this:
 
     $ make VERBOSE=true all
 
-TODO: Here should later be a paragraph about setting up the webserver if we're not
-rolling our own. Which we propably should not?!
+TODO: Here should later be a paragraph about setting up the webserver if we're
+not rolling our own. Which we propably should not?!
 
 ## Why Telnet and not SSH?
 
@@ -76,6 +79,23 @@ rolling our own. Which we propably should not?!
   - Will not be used outside of local network
   - Basic authentication and device whitelisting still possible
 - Networking abstraction allows later addition of other protocols
+
+## Multi-threaded architecture
+
+- Database thread with queue for synchronizing writes from different client threads.
+  - Handles hash collisions using a linked list. Hash size should be a power of two.
+  - Hashing algorithm used is FNV-1a (Spread should be checked with real data later).
+  - Data access should be constant O(1) time as expected with evenly spread hashtables.
+  - If remote mode is enabled the database must keep in sync with a remote SQL database.
+  - If standalone mode is enabled all database entries are imported using CSV files.
+  - Data serialization and handling of improper shutdowns is important.
+- Listener thread for accepting new TCP client connections.
+  - The main thread will act as the listener after subsystem initialization.
+  - Allowed to block and not waste time on unnecessary socket polls.
+- Seperate thread for every new telnet client.
+  - Handles negotiations and emits events for subnegotiations, key states and data.
+  - Responsible for drawing responsive client view depending on window size events.
+  - Should send only minimal needed ANSI sequences to achieve desired view changes. 
 
 ## Problems and Milestones
 
@@ -98,3 +118,4 @@ rolling our own. Which we propably should not?!
 - Authentication for both Telnet and Web clients, maybe even shared?
 - Configuration file and command line argument parser logic.
 - Asynchronous web interface updates from the C API over CGI.
+- Filtering, barcode details and reports of erroneous scans.
