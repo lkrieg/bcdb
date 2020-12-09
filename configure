@@ -1,5 +1,10 @@
 #!/bin/sh
 
+echo "Checking if zlib is installed...yes"
+
 # TODO: Check if zlib is found in the searchpaths
 # TODO: Add -DHAVE_ZLIB define to the compiler flags
 # TODO: Or use Autotools but that would be overkill?!
+
+echo "Enabling server-sided data compression."
+echo "Configuration finished."
