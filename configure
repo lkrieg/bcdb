@@ -23,9 +23,9 @@ main()
 	exists "libpthread" && use_pthread="yes"
 	exists "libz"       && use_zlib="yes"
 
-	printf "Checking for debug...${use_debug}\n"
-	printf "Checking for pthread...${use_pthread}\n"
-	printf "Checking for zlib...${use_zlib}\n"
+	info "Checking for debug...${use_debug}"
+	info "Checking for pthread...${use_pthread}"
+	info "Checking for zlib...${use_zlib}"
 
 	# Process input file
 	cp "${SRC}" "${DST}"
@@ -64,8 +64,13 @@ prompt()
 
 error()
 {
-	printf "Error: ${1}\n"
+	info "Error: ${1}"
 	exit 1
+}
+
+info()
+{
+	printf "${1}\n"
 }
 
 main $@
