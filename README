@@ -94,9 +94,9 @@ $   make docs
 $   make install-docs
 $   man barkeeper
 
-All previously mentioned RFCs, aswell as ANSI/ISO/POSIX standard documents can
-be found in the doc/ directory. ISO and POSIX sadly do not release plain text
-versions so you'll need a PDF viewer.
+All previously mentioned RFCs, as well as the ANSI/ISO standard documents can be
+found in the doc/ directory. ISO sadly do not release plain text versions so
+you'll need a PDF viewer.
 
 ## Why Telnet and not SSH?
 
