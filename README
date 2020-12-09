@@ -56,7 +56,7 @@ bent to will with some tweaks but still bring the whole baggage of m4 macros and
 some questionable design decisions. Simply run the configure script found in the
 project root directory to generate all defines for optional build features.
 
-# Build Process
+## Build Process
 
 To configure and build Barkeeper simply run the following commands:
 
@@ -74,7 +74,7 @@ full command output you can add the VERBOSE flag to make invocations like this:
 
     $ make VERBOSE=true all
 
-# Installation
+## Installation
 
 You may want to run the provided unit tests to ensure everything works as
 expected. Check for any failures and then install using these command:
@@ -85,7 +85,7 @@ expected. Check for any failures and then install using these command:
 TODO: Here should propably later be a paragraph about setting up the webserver,
 if we're not rolling our own. Which we propably should not?!
 
-# Documentation
+## Documentation
 
 You can build, install and view the manpages for detailed information about
 command-line arguments and configuration file options with these commands:
