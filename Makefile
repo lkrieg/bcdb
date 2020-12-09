@@ -46,6 +46,11 @@ clean:
 	$(E) "[RM] $(DEPENDS)"
 	$(Q) $(RM) $(DEPENDS)
 
+# Require processed config header
+ifeq (,$(wildcard src/config.h))
+$(error Please run ./configure before make)
+endif
+
 # Dependencies and build verbosity
 include $(wildcard $(DEPENDS))
 ifeq ($(VERBOSE), true)
