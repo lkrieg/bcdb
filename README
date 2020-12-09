@@ -20,7 +20,7 @@ Barkeeper works on all POSIX-conforming systems with either IPv4 or IPv6 network
 The HTTP/S interface needs a webserver with CGI support like Apache or NGINX. GCC is
 used by default for compilation and linkage but other compilers like Clang work aswell.
 Windows support would require wrappers for socket and process handling - not planned.
-Some minor changes in the Makefile may be required for generating header dependecies
+Some minor changes in the Makefile may be required for generating header dependencies
 between builds if you're using some esoteric compiler. A few GNU specific features
 in the Makefile are currently needed to locate all source files but this could be
 changed by listing the source files by hand when the project is done.
