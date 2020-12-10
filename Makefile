@@ -63,11 +63,11 @@ clean:
 	$(Q) $(RM) $(TESTOBJ)
 	$(E) "[RM] $(TESTDEP)"
 	$(Q) $(RM) $(TESTDEP)
-	$(E) "[RM] src/config.h"
-	$(Q) $(RM) src/config.h
+	$(E) "[RM] src/common/config.h"
+	$(Q) $(RM) src/common/config.h
 
 # Require processed config header
-ifeq (,$(wildcard src/config.h))
+ifeq (,$(wildcard src/common/config.h))
 $(error Please run ./configure before make)
 endif
 

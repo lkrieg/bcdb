@@ -6,7 +6,7 @@
 # TODO: Update Makefile linker flags
 
 SRC="etc/config.h.in"
-DST="src/config.h"
+DST="src/common/config.h"
 
 main()
 {
