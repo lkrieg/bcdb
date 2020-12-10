@@ -27,9 +27,9 @@ main()
 	exists "libpthread" && use_pthread="yes"
 	exists "libz"       && use_zlib="yes"
 
-	info "Checking for debug...${use_debug}"
-	info "Checking for pthread...${use_pthread}"
-	info "Checking for zlib...${use_zlib}"
+	info "[CFG]\tChecking for debug...${use_debug}"
+	info "[CFG]\tChecking for pthread...${use_pthread}"
+	info "[CFG]\tChecking for zlib...${use_zlib}"
 
 	# Process input file
 	cp "${SRC}" "${DST}"
@@ -38,7 +38,7 @@ main()
 	define "HAVE_PTHREAD"  "${use_pthread}"
 	define "HAVE_ZLIB"     "${use_zlib}"
 
-	printf "Configuration finished.\n"
+	printf "[CFG]\tConfiguration successfull.\n"
 	return 0
 }
 
@@ -67,7 +67,7 @@ prompt()
 
 error()
 {
-	info "Error: ${1}"
+	info "[CFG]\tError: ${1}"
 	exit 1
 }
 

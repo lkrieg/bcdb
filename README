@@ -97,6 +97,29 @@ All previously mentioned RFCs, as well as the ANSI/ISO standard documents can be
 found in the doc/ directory. ISO sadly do not release plain text versions so
 you'll need a PDF viewer.
 
+## Example Build System Output
+
+    $ ./configure && make all check
+
+    [CFG]	Checking for debug...yes
+    [CFG]	Checking for pthread...yes
+    [CFG]	Checking for zlib...yes
+    [CFG]	Configuration successfull.
+    [CC]	src/common/telnet.c
+    [CC]	src/common/util.c
+    [CC]	src/common/socket.c
+    [CC]	src/main.c
+    [LD]	bin/barkeeper
+    [CC]	tests/test-telnet.c
+    [CC]	tests/test-socket.c
+    [CC]	tests/main.c
+    [LD]	bin/unit-test
+    [RUN]	bin/unit-test
+    [CHK]	Socket: Looks and smells like a socket......OK
+    [CHK]	Socket: Does stuff that sockets should do...OK
+    [CHK]	Telnet: Does not delete root directory......OK
+    [CHK]	Telnet: Handles protocol correctly..........OK
+
 ## Why Telnet and not SSH?
 
 - Widest device support among barcode scanners

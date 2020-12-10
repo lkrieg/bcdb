@@ -1,58 +1,118 @@
 #include "common.h"
+#include <stdlib.h>
+#include <stdio.h>
 
-void Info(const char * fmt, ...)
+enum log_levels {
+	T_LOG_INFO,
+	T_LOG_VERBOSE,
+	T_LOG_WARNING,
+	T_LOG_ERROR
+};
+
+static const char *prefixes[] = {
+	"[INFO]", "[DEBUG]",
+	"[WARN]", "[ERROR]"
+};
+
+static void Log(int level, const char *fmt, va_list arg)
 {
-	UNUSED(fmt);
+	char msg[MAX_LINEBUF];
+
+	Assert(fmt != NULL);
+
+	if (level < 0 || level > 3)
+		level = T_LOG_INFO;
+
+	vsnprintf(msg, MAX_LINEBUF, fmt, arg);
+	printf("%-9s%s\n", prefixes[level], msg);
+
+	fflush(stdout);
 }
 
-void Warning(const char * fmt, ...)
+void Info(const char *fmt, ...)
 {
-	UNUSED(fmt);
+	va_list arg;
+
+	va_start(arg, fmt);
+	Log(T_LOG_INFO, fmt, arg);
+	va_end(arg);
 }
 
-void Error(const char * fmt, ...)
+void Warning(const char *fmt, ...)
 {
-	UNUSED(fmt);
+	va_list arg;
+
+	va_start(arg, fmt);
+	Log(T_LOG_WARNING, fmt, arg);
+	va_end(arg);
+}
+
+void Error(const char *fmt, ...)
+{
+	va_list arg;
+
+	va_start(arg, fmt);
+	Log(T_LOG_ERROR, fmt, arg);
+	va_end(arg);
+
+	// Critical failure
+	exit(EXIT_FAILURE);
 }
 
 void _Verbose(const char *fmt, ...)
 {
-	UNUSED(fmt);
+	va_list arg;
+
+	va_start(arg, fmt);
+	Log(T_LOG_VERBOSE, fmt, arg);
+	va_end(arg);
+}
+
+void _Assert(int exp, const char *text, const char *file, int line)
+{
+	if (exp == 0)
+		Error(E_ASSERT ": '%s' (%s:%d)", text, file, line);
 }
 
 void *_Allocate(int size)
 {
-	UNUSED(size);
-	return NULL;
+	void *ptr;
+
+	// There is no way of safely recovering from out of memory
+	// errors, but things have to go total haywire for that. The
+	// Linux kernel will do things like disk swapping to prevent
+	// the worst case from ever happening.
+
+	ptr = malloc(size);
+
+	if (ptr == NULL)
+		Error(E_NOMEM);
+
+	return ptr;
 }
 
 void *_AllocateDebug(int size, const char *file, int line)
 {
-	UNUSED(size);
+	// TODO
 	UNUSED(file);
 	UNUSED(line);
-	return NULL;
-}
 
-void _Assert(bool exp, const char *text, const char *file, int line)
-{
-	UNUSED(exp);
-	UNUSED(text);
-	UNUSED(file);
-	UNUSED(line);
+	return _Allocate(size);
 }
 
 void _Free(void *ptr)
 {
-	UNUSED(ptr);
+	free(ptr);
 }
 
 void _FreeDebug(void *ptr)
 {
-	UNUSED(ptr);
+	// TODO
+	_Free(ptr);
 }
 
-void _MemCheck(void)
+void _Memcheck(void)
 {
+	// TODO
 	return;
 }
