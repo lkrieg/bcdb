@@ -1,0 +1,17 @@
+language: c
+compiler: gcc
+os: linux
+
+install:
+- apt install build-essential zlib1g-dev
+
+before_script:
+- cd ${TRAVIS_BUILD_DIR}
+
+script:
+- ./configure --yes
+- make all
+- make check
+
+after_success:
+- make clean
