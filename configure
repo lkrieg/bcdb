@@ -3,7 +3,7 @@
 # Very basic build configuration script
 # but it does the job at least for now.
 # Requires ldconfig for library checks.
-# Pass --yes or --no to skip prompt.
+# Pass --no-debug for production mode.
 # TODO: Update Makefile linker flags
 
 SRC="etc/config.h.in"
@@ -11,20 +11,19 @@ DST="src/common/config.h"
 
 main()
 {
-	local use_debug="no"
+	local use_debug="yes"
 	local use_pthread="no"
 	local use_zlib="no"
 
 	# Make sure the config header source file exists
 	test -f "${SRC}" || error "Header '${SRC}' missing."
 
-	case "${1}" in
-	--no-debug) use_debug="no"  ;;
-	*)          use_debug="yes" ;;
-	esac
-
 	# The prompt interferes with automated processes
 	# prompt "Enable debug mode?" && use_debug="yes"
+
+	case "${1}" in
+	--no-debug) use_debug="no" ;;
+	esac
 
 	# Check linker searchpaths for libraries
 	exists "libpthread" && use_pthread="yes"
