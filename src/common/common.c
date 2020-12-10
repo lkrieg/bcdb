@@ -20,13 +20,13 @@ void _Verbose(const char *fmt, ...)
 	UNUSED(fmt);
 }
 
-void * _Allocate(int size)
+void *_Allocate(int size)
 {
 	UNUSED(size);
 	return NULL;
 }
 
-void * _AllocateDebug(int size, const char *file, int line)
+void *_AllocateDebug(int size, const char *file, int line)
 {
 	UNUSED(size);
 	UNUSED(file);
