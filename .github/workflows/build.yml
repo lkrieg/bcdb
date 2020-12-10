@@ -1,4 +1,4 @@
-name: Barkeeper CI
+name: Build
 
 on:
   push:
