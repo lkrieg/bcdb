@@ -35,24 +35,24 @@ all: $(TARGET)
 
 .PHONY: run
 run: $(TARGET)
-	$(E) "[RUN]\t$<"
+	$(E) "[RUN] $<"
 	$(Q) ./$<
 
 .PHONY: check
 check: $(CHECKS)
-	$(E) "[RUN]\t$<"
+	$(E) "[RUN] $<"
 	$(Q) ./$<
 
 $(TARGET): $(OBJECTS) $(DEPENDS)
-	$(E) "[LD]\t$@"
+	$(E) "[LD] $@"
 	$(Q) $(LD) -o $@ $(LDFLAGS) $(OBJECTS) $(LDLIBS)
 
 $(CHECKS): $(TESTOBJ) $(TESTDEP)
-	$(E) "[LD]\t$@"
+	$(E) "[LD] $@"
 	$(Q) $(LD) -o $@ $(LDFLAGS) $(TESTOBJ) $(LDLIBS)
 
 $(TMPDIR)/%.o: %.c # OBJECTS
-	$(E) "[CC]\t$<"; $(TEST) -d $(@D) || $(MKDIR) $(@D)
+	$(E) "[CC] $<"; $(TEST) -d $(@D) || $(MKDIR) $(@D)
 	$(Q) $(CC) -c -o $@ $(CFLAGS) $(CPPFLAGS) $<
 
 $(TMPDIR)/%.d: %.c # DEPENDS
@@ -71,13 +71,13 @@ install-docs: $(DOCPATH)
 
 .PHONY: clean
 clean:
-	$(E) "[RM]\t$(TARGET)"
+	$(E) "[RM] $(TARGET)"
 	$(Q) $(RM) $(TARGET)
-	$(E) "[RM]\t$(CHECKS)"
+	$(E) "[RM] $(CHECKS)"
 	$(Q) $(RM) $(CHECKS)
-	$(E) "[RM]\t$(TMPDIR)"
+	$(E) "[RM] $(TMPDIR)"
 	$(Q) $(RM) -r $(TMPDIR)
-	$(E) "[RM]\tsrc/common/config.h"
+	$(E) "[RM] src/common/config.h"
 	$(Q) $(RM) src/common/config.h
 
 # Require processed config header

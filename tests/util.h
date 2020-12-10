@@ -90,7 +90,7 @@ static void _test_print(_test_t *test, int max)
 		*head++ = c;
 	}
 
-	printf("[CHK]\t%s\n", linebuf);
+	printf("[CHK] %s\n", linebuf);
 }
 
 int main(void)

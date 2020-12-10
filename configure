@@ -43,9 +43,9 @@ main()
 	# The prompt interferes with automated unit testing
 	# prompt "Enable debug mode?" && use_debug="yes"
 
-	info "[CFG]\tChecking for debug...${use_debug}"
-	info "[CFG]\tChecking for pthread...${use_pthread}"
-	info "[CFG]\tChecking for zlib...${use_zlib}"
+	info "[CFG] Checking for debug...${use_debug}"
+	info "[CFG] Checking for pthread...${use_pthread}"
+	info "[CFG] Checking for zlib...${use_zlib}"
 
 	# Process input file
 	cp "${SRC}" "${DST}"
@@ -54,7 +54,7 @@ main()
 	define "HAVE_PTHREAD"  "${use_pthread}"
 	define "HAVE_ZLIB"     "${use_zlib}"
 
-	printf "[CFG]\tConfiguration successfull.\n"
+	printf "[CFG] Configuration successfull.\n"
 	return 0
 }
 
@@ -83,7 +83,7 @@ prompt()
 
 error()
 {
-	info "[CFG]\tError: ${1}"
+	info "[CFG] Error: ${1}"
 	exit 1
 }
 
