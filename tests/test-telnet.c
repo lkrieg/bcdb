@@ -1,4 +1,5 @@
 #include "util.h"
+#include "common/telnet.c"
 
 TEST_SETUP(Telnet)
 {
