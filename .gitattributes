@@ -1,4 +1,6 @@
-trunk/*  linguist-vendored
 README   linguist-documentation
+doc/*    linguist-documentation
+etc/*    linguist-vendored
+trunk/*  linguist-vendored
 *.c      linguist-language=C
 *.h      linguist-language=C
