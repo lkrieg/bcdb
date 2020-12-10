@@ -19,10 +19,12 @@ main()
 	test -f "${SRC}" || error "Header '${SRC}' missing."
 
 	case "${1}" in
-	--yes) use_debug="yes" ;;
-	--no)  use_debug="no"  ;; # Prompt user for debug mode
-	*) prompt "Enable debug mode?" && use_debug="yes" ;;
+	--no-debug) use_debug="no"  ;;
+	*)          use_debug="yes" ;;
 	esac
+
+	# The prompt interferes with automated processes
+	# prompt "Enable debug mode?" && use_debug="yes"
 
 	# Check linker searchpaths for libraries
 	exists "libpthread" && use_pthread="yes"
