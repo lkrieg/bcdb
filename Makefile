@@ -5,9 +5,12 @@
 CC       = gcc
 LD       = $(CC)
 RM       = rm -f
+GZIP     = gzip
 TEST     = test
-VERBOSE  = false
+INSTALL  = install
 MKDIR    = mkdir -p
+
+VERBOSE  = false
 CPPFLAGS = -Isrc -Ilib -pthread
 CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Werror
 CFLAGS  += -D_POSIX_C_SOURCE=200809L
@@ -19,6 +22,7 @@ DSTDIR   = bin
 TMPDIR  := $(DSTDIR)/.build
 TARGET  := $(DSTDIR)/barkeeper
 CHECKS  := $(DSTDIR)/unit-test
+DOCPATH := doc/man/man8/barkeeper.8
 SOURCES := $(shell find src -name "*.c")
 TESTSRC := $(shell find tests -name "*.c")
 OBJECTS := $(SOURCES:%.c=$(TMPDIR)/%.o)
@@ -32,6 +36,14 @@ all: $(TARGET) $(CHECKS)
 .PHONY: check
 check: $(CHECKS)
 	$(Q) ./$<
+
+.PHONY: install
+	$(E) "Not implemented"
+
+.PHONY: install-docs
+install-docs: $(DOCPATH)
+	$(Q) $(INSTALL) -m 0644 $< /usr/share/man/man8/
+	$(Q) $(GZIP) /usr/share/man/man8/barkeeper.8
 
 $(TARGET): $(OBJECTS) $(DEPENDS)
 	$(E) "[LD] $@"

@@ -87,11 +87,10 @@ if we're not rolling our own. Which we propably should not?!
 
 ## Documentation
 
-The Barkeeper manpages can be build from their source files in the doc/man/
+The Barkeeper manpages can be generated from their source files in the doc/man/
 directory. To build, install and view them you can run the following commands:
 
-    $ make docs
-    $ make install-docs
+    $ sudo make install-docs
     $ man barkeeper
 
 All previously mentioned RFCs, as well as the ANSI/ISO standard documents can be
