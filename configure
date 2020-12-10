@@ -1,10 +1,8 @@
 #!/bin/bash
 
-# Very basic build configuration script
-# but it does the job at least for now.
-# Requires ldconfig for library checks.
-# Pass --no-debug for production mode.
-# TODO: Update Makefile linker flags
+# Very basic build configuration script but it does the job at least for now.
+# Requires ldconfig for library checks. Pass --no-debug for production mode.
+# TODO: Update linker flags depending on enabled features
 
 SRC="etc/config.h.in"
 DST="src/common/config.h"
@@ -41,7 +39,6 @@ main()
 	define "HAVE_ZLIB"     "${use_zlib}"
 
 	printf "Configuration finished.\n"
-
 	return 0
 }
 
