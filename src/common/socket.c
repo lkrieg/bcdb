@@ -1,5 +1,5 @@
 #include "common.h"
-#include "net.h"
+#include "socket.h"
 
 int NET_Init(int port)
 {
@@ -9,5 +9,5 @@ int NET_Init(int port)
 
 void NET_Shutdown(void)
 {
-
+	return;
 }

@@ -8,7 +8,8 @@
 
 #include "common/config.h"
 #include "common/errors.h"
-#include "common/net.h"
+#include "common/socket.h"
+#include "common/telnet.h"
 
 typedef  uint32_t       u32;
 typedef  uint16_t       u16;

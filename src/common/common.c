@@ -54,5 +54,5 @@ void _FreeDebug(void *ptr)
 
 void _MemCheck(void)
 {
-
+	return;
 }
