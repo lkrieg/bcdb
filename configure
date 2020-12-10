@@ -7,6 +7,17 @@
 SRC="etc/config.h.in"
 DST="src/common/config.h"
 
+usage()
+{
+cat << EOF
+Usage: configure [--no-debug] [--no-pthread] [--no-zlib]
+
+  --no-debug    Disables all runtime debugging features
+  --no-pthread  Disables multi-threading support
+  --no-zlib     Disables optional data compression
+EOF
+}
+
 main()
 {
 	local use_debug="yes"
@@ -16,16 +27,23 @@ main()
 	# Make sure the config header source file exists
 	test -f "${SRC}" || error "Header '${SRC}' missing."
 
-	# The prompt interferes with automated processes
-	# prompt "Enable debug mode?" && use_debug="yes"
-
-	case "${1}" in
-	--no-debug) use_debug="no" ;;
-	esac
-
 	# Check linker searchpaths for libraries
 	exists "libpthread" && use_pthread="yes"
 	exists "libz"       && use_zlib="yes"
+
+	# Command-line arguments
+	while test $# -gt 0; do
+		case "$1" in
+		--no-debug)   use_debug="no"   ;;
+		--no-pthread) use_pthread="no" ;;
+		--no-zlib)    use_zlib="no"    ;;
+		*)            usage; exit 0    ;;
+		esac
+		shift
+	done
+
+	# The prompt interferes with automated unit testing
+	# prompt "Enable debug mode?" && use_debug="yes"
 
 	info "[CFG]\tChecking for debug...${use_debug}"
 	info "[CFG]\tChecking for pthread...${use_pthread}"

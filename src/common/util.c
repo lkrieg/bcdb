@@ -18,13 +18,11 @@ static void Log(int level, const char *fmt, va_list arg)
 {
 	char msg[MAX_LINEBUF];
 
-	Assert(fmt != NULL);
-
 	if (level < 0 || level > 3)
 		level = T_LOG_INFO;
 
 	vsnprintf(msg, MAX_LINEBUF, fmt, arg);
-	printf("%-9s%s\n", prefixes[level], msg);
+	printf("%-7s\t%s\n", prefixes[level], msg);
 
 	fflush(stdout);
 }

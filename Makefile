@@ -33,6 +33,11 @@ TESTDEP := $(TESTSRC:%.c=$(TMPDIR)/%.d)
 .PHONY: all
 all: $(TARGET)
 
+.PHONY: run
+run: $(TARGET)
+	$(E) "[RUN]\t$<"
+	$(Q) ./$<
+
 .PHONY: check
 check: $(CHECKS)
 	$(E) "[RUN]\t$<"
