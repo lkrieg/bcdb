@@ -8,11 +8,11 @@ SRC="etc/config.h.in"
 DST="src/common/config.h"
 
 usage() { cat << EOF
-usage: ./configure [--no-debug] [--no-pthread] [--no-zlib]
-
-    --no-debug    Disables all runtime debugging features
-    --no-pthread  Disables multi-threading support
-    --no-zlib     Disables optional data compression
+[CFG]   Usage: ./configure [--no-debug] [--no-pthread] [--no-zlib]
+[CFG]
+[CFG]   --no-debug      Disables all runtime debugging features
+[CFG]   --no-pthread    Disables multi-threading support
+[CFG]   --no-zlib       Disables optional data compression
 EOF
 }
 
