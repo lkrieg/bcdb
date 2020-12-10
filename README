@@ -20,6 +20,7 @@ Barkeeper runs on most POSIX-conforming systems and both IPv4 and IPv6 networks.
 Multi-threading is optionally supported through pthreads. The HTTP/S interface
 requires a webserver with CGI support like Apache or NGINX. While gcc is used by
 default as both compiler and linker, other compilers like Clang should work too.
+Unit testing function registration requires gcc variables for section addresses.
 Windows support would require wrappers for socket and thread handling, which is
 not planned, but native Win32 clients are possible in the future. Some esoteric
 compilers may require minor Makefile changes for generating header dependencies
@@ -39,7 +40,7 @@ Optional server-sided compression uses the zlib library by Jean-loup Gailly and
 Mark Adler for the deflation algorithm as described in RFC 1950. See the folder
 doc/RFC/ for all mentioned RFC documents including the FNV03 draft.
 
-## Build Prequisites
+## Build Prerequisites
 
 Before building make sure you have GNU make, gcc and optionally zlib installed
 if you want server-sided data compression for clients that support it. On Ubuntu
