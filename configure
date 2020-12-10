@@ -3,6 +3,7 @@
 # Very basic build configuration script
 # but it does the job at least for now.
 # Requires ldconfig for library checks.
+# TODO: Update Makefile linker flags
 
 SRC="etc/config.h.in"
 DST="src/config.h"
