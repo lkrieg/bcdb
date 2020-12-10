@@ -5,10 +5,10 @@
 CC       = gcc
 LD       = $(CC)
 RM       = rm -f
-GZIP     = gzip
 TEST     = test
 INSTALL  = install
 MKDIR    = mkdir -p
+GZIP     = gzip -f
 
 VERBOSE  = false
 CPPFLAGS = -Isrc -Ilib -pthread
@@ -37,14 +37,6 @@ all: $(TARGET) $(CHECKS)
 check: $(CHECKS)
 	$(Q) ./$<
 
-.PHONY: install
-	$(E) "Not implemented"
-
-.PHONY: install-docs
-install-docs: $(DOCPATH)
-	$(Q) $(INSTALL) -m 0644 $< /usr/share/man/man8/
-	$(Q) $(GZIP) /usr/share/man/man8/barkeeper.8
-
 $(TARGET): $(OBJECTS) $(DEPENDS)
 	$(E) "[LD] $@"
 	$(Q) $(LD) -o $@ $(LDFLAGS) $(OBJECTS) $(LDLIBS)
@@ -60,6 +52,16 @@ $(TMPDIR)/%.o: %.c # OBJECTS
 $(TMPDIR)/%.d: %.c # DEPENDS
 	$(Q) $(TEST) -d $(@D) || $(MKDIR) $(@D)
 	$(Q) $(CC) $(CFLAGS) $(CPPFLAGS) $< $(MDFLAGS) > $@
+
+.PHONY: install
+install:
+	$(E) "Error: Target not implemented."
+	$(Q) exit 1
+
+.PHONY: install-docs
+install-docs: $(DOCPATH)
+	$(Q) $(INSTALL) -m 0644 $< /usr/share/man/man8/
+	$(Q) $(GZIP) /usr/share/man/man8/barkeeper.8
 
 .PHONY: clean
 clean:
