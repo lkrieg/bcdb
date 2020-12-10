@@ -39,7 +39,7 @@ $(TARGET): $(OBJECTS) $(DEPENDS)
 
 $(CHECKS): $(TESTOBJ) $(TESTDEP)
 	$(E) "[LD] $@"
-	$(Q) $(LD) -o $@ $(LDFLAGS) $(OBJECTS) $(LDLIBS)
+	$(Q) $(LD) -o $@ $(LDFLAGS) $(TESTOBJ) $(LDLIBS)
 
 $(TMPDIR)/%.o: %.c # OBJECTS
 	$(E) "[CC] $<"; $(TEST) -d $(@D) || $(MKDIR) $(@D)
