@@ -23,12 +23,21 @@ static void Log(int level, const char *fmt, va_list arg)
 	Assert(fmt != NULL);
 
 	if (level < 0 || level > 4)
-		level = T_LOG_INFO;
+		level = T_LOG_NONE;
 
 	vsnprintf(msg, MAX_LINEBUF, fmt, arg);
 	printf("%s%s\n", prefixes[level], msg);
 
 	fflush(stdout);
+}
+
+void Print(const char *fmt, ...)
+{
+	va_list arg;
+
+	va_start(arg, fmt);
+	Log(T_LOG_NONE, fmt, arg);
+	va_end(arg);
 }
 
 void Info(const char *fmt, ...)
@@ -59,15 +68,6 @@ void Error(const char *fmt, ...)
 
 	// Critical failure
 	exit(EXIT_FAILURE);
-}
-
-void Print(const char *fmt, ...)
-{
-	va_list arg;
-
-	va_start(arg, fmt);
-	Log(T_LOG_NONE, fmt, arg);
-	va_end(arg);
 }
 
 void _Verbose(const char *fmt, ...)

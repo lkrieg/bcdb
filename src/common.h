@@ -6,6 +6,9 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
+#include "common/config.h"
+#include "common/errors.h"
+
 typedef  uint32_t       u32;
 typedef  uint16_t       u16;
 typedef  unsigned char  byte;
@@ -61,8 +64,6 @@ void     _Memcheck(void);
 // Common submodule headers - see the respective files for
 // details about interface and implementation.
 
-#include "common/config.h"
-#include "common/errors.h"
 #include "common/cmdarg.h"
 #include "common/socket.h"
 #include "common/telnet.h"

@@ -46,5 +46,6 @@ int main(int argc, char **argv)
 		}
 	}
 
+	Memcheck();
 	return 0;
 }
