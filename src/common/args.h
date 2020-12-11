@@ -1,9 +1,9 @@
-#ifndef  CMDARG_H
-#define  CMDARG_H
+#ifndef  ARGS_H
+#define  ARGS_H
 
 #include "common.h"
 
-typedef  struct arg_s  arg_t;
+typedef  struct arg_s arg_t;
 
 void     CMD_Init(int argc, char **argv);
 int      CMD_Next(arg_t *out);
@@ -24,4 +24,4 @@ enum arg_type
 	 T_ARG_HELP
 };
 
-#endif // CMDARG_H
+#endif // ARGS_H

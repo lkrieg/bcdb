@@ -1,5 +1,6 @@
 #include "common.h"
-#include "cmdarg.h"
+#include "args.h"
+
 #include <getopt.h>
 #include <string.h>
 
@@ -21,7 +22,9 @@ void CMD_Init(int argc, char **argv)
 	if (argc > MAX_ARG_NUM)
 		Error(E_ARGNUM);
 
+	index  = 0;
 	opterr = 0;
+
 	while ((c = getopt_long(argc, argv, opstr, opts, &i)) >= 0) {
 		head = &argbuf[argnum++];
 		switch (c) {

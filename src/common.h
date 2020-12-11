@@ -22,6 +22,10 @@ typedef  unsigned char  byte;
 #define  MIN_COL_NUM    24
 #define  MAX_TTYPE      48
 
+#define  CFG_FILE       "/etc/barkeeper.cfg"
+#define  LOG_FILE       "/var/log/barkeeper.log"
+#define  VAR_DIR        "/var/lib/barkeeper"
+
 #define  BIT(n)         (1UL << (n))
 #define  UNUSED(sym)    ((void)(sym))
 #define  ARSIZE(ptr)    (sizeof(ptr)/sizeof(*(ptr)))
@@ -64,7 +68,8 @@ void     _Memcheck(void);
 // Common submodule headers - see the respective files for
 // details about interface and implementation.
 
-#include "common/cmdarg.h"
+#include "common/cvar.h"
+#include "common/args.h"
 #include "common/socket.h"
 #include "common/telnet.h"
 
