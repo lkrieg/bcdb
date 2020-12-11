@@ -8,9 +8,11 @@ barkeeper \- barcode database
 
 .SH SYNOPSIS
 .B barkeeper
-.B [ -d | -k | -h ] [ -f
+.B [ -d | -k ] [ -f
 .I filename
-.B ]
+.B ] [ -p
+.I port
+.B ] [ -h ]
 
 .SH DESCRIPTION
 barcode database with both Telnet and HTTP/S interface.
@@ -23,11 +25,13 @@ Run in daemon mode
 .IP "-k, --kill"
 Stop active daemon
 .IP "-f, --file \fIfilename\fR"
-Load additional barcode data from CSV file. This can be
-done while the daemon is running.
+Load additional barcode data from CSV file. Can be done
+while the daemon is running in the background.
+.IP "-p, --port \fIport\fR"
+Set telnet port. This option has priority over settings
+found in /etc/barkeeper.cfg.
 .IP "-h, --help"
 Print help text
-
 .SH FILES
 .I /etc/barkeeper.cfg
 .RS

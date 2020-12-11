@@ -1,9 +1,9 @@
 #ifndef  CONFIG_H
 #define  CONFIG_H
 
-int     CFG_Init(void);
-int     CFG_GetNum(int key);
-char *  CFG_GetStr(int key);
+int    CFG_Init(void);
+int    CFG_GetNum(int key);
+char * CFG_GetStr(int key);
 
 enum cfg_index
 {

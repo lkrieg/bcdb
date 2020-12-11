@@ -3,8 +3,10 @@
 
 #define E_ASSERT  "Assertion failure"
 #define E_NOMEM   "Memory allocation failure"
+#define E_CFGVAL  "Invalid configuration value"
+#define E_ARGVAL  "Invalid argument: Try --help"
 #define E_ARGNUM  "Too many command-line arguments"
 #define E_ARGLEN  "Command-line argument too long"
-#define E_CFGVAL  "Invalid configuration value"
+#define E_NOTNUM  "Value is not a valid number"
 
 #endif // ERRORS_H

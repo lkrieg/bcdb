@@ -3,10 +3,10 @@
 
 #include "common.h"
 
-typedef  struct arg_s arg_t;
+typedef struct arg_s arg_t;
 
-void     CMD_Init(int argc, char **argv);
-int      CMD_Next(arg_t *out);
+int CMD_Init(int argc, char **argv);
+int CMD_Next(arg_t *out);
 
 struct arg_s
 {
@@ -21,6 +21,7 @@ enum arg_type
          T_ARG_FORK,
          T_ARG_KILL,
          T_ARG_FILE,
+	 T_ARG_PORT,
 	 T_ARG_HELP
 };
 
