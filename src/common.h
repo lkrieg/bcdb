@@ -1,15 +1,10 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <stddef.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
-
-#include "common/config.h"
-#include "common/errors.h"
-#include "common/socket.h"
-#include "common/telnet.h"
 
 typedef  uint32_t       u32;
 typedef  uint16_t       u16;
@@ -17,6 +12,7 @@ typedef  unsigned char  byte;
 
 #define  MAX_PATH       4096
 #define  MAX_LINEBUF    2048
+#define  MAX_ARG_LEN    4096
 #define  MAX_BACKLOG    10
 #define  MIN_ROW_NUM    14
 #define  MIN_COL_NUM    24
@@ -48,6 +44,13 @@ typedef  unsigned char  byte;
 void     Info(const char * fmt, ...);
 void     Warning(const char * fmt, ...);
 void     Error(const char * fmt, ...);
+
+// Common submodule
+#include "common/config.h"
+#include "common/errors.h"
+#include "common/socket.h"
+#include "common/telnet.h"
+#include "common/cmdarg.h"
 
 // Internal helper functions - do not use these directly.
 // Use the macros without prefixed underscore instead.
