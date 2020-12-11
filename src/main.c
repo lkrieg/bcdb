@@ -7,22 +7,24 @@ static void Shutdown(void);
 
 static void Usage(void)
 {
-	Print( // command-line argument descriptions
-	"Usage: barkeeper [ -d | -k ] [ -f filename ] [ -p port ] [ -h ] \n"
-	"See 'man barkeeper' for more details about command-line options \n"
-	"                                                                \n"
-	"  -d, --daemon  run in daemon mode                              \n"
-	"  -k, --kill    stop active daemon                              \n"
-	"  -f, --file    load additional barcode data, can be done while \n"
-	"                the daemon process is running in the background \n"
-	"  -p, --port    set telnet port, this option has priority over  \n"
-	"                settings found in /etc/barkeeper.cfg            \n"
-	"  -h, --help    print this help text                            ");
+	Print( // output usage information for command-line arguments
+	"Usage: barkeeper [ -d | -k | -v | -h ] [ -f filename ] [ -p port ] \n"
+	"See 'man barkeeper' for more details about command-line options    \n"
+	"                                                                   \n"
+	"  -d, --daemon   run in daemon mode                                \n"
+	"  -k, --kill     stop active daemon                                \n"
+	"  -f, --file     load additional barcode data, can be done while   \n"
+	"                 the daemon process is running in the background   \n"
+	"  -p, --port     set telnet port, this option has priority over    \n"
+	"                 settings found in /etc/barkeeper.cfg              \n"
+	"  -v, --verbose  output verbose log messages                       \n"
+	"  -h, --help     print this help text                              ");
 }
 
 int main(int argc, char **argv)
 {
 	arg_t arg;
+	bool verbose;
 	int port;
 
 	// config file settings
@@ -33,12 +35,14 @@ int main(int argc, char **argv)
 	if (CMD_Init(argc, argv) < 0)
 		Error(E_ARGVAL);
 
-	port = CFG_GetNum(T_CFG_PORT);
+	verbose  = CFG_GetBool(T_CFG_VERBOSE);
+	port     = CFG_GetNum(T_CFG_PORT);
+
 	while (CMD_Next(&arg)) {
 		switch (arg.type) {
 
 		// -d, --daemon
-		case T_ARG_FORK:
+		case T_ARG_DAEMON:
 			Run(true);
 			break;
 
@@ -58,7 +62,11 @@ int main(int argc, char **argv)
 			port = strtol(arg.value, NULL, 0);
 			if (port <= 0 || errno == ERANGE)
 				Error(E_NOTNUM ": '%s'", arg.value);
-			Info("Setting port to %d", port);
+			break;
+
+		// -v, --verbose
+		case T_ARG_VERBOSE:
+			verbose = true;
 			break;
 
 		// -h, --help
@@ -68,7 +76,9 @@ int main(int argc, char **argv)
 		}
 	}
 
+	UNUSED(verbose);
 	UNUSED(port);
+
 	Memcheck();
 	return 0;
 }

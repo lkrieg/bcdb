@@ -12,13 +12,15 @@ struct arg_s
 {
          int   type;
          char  value[MAX_ARG_LEN];
+         int   number;
 };
 
 enum arg_type
 {
-         T_ARG_INVALID = -1,
-         T_ARG_NONE    =  0,
-         T_ARG_FORK,
+         T_ARG_INVALID  = -1,
+         T_ARG_NONE     =  0,
+         T_ARG_DAEMON,
+	 T_ARG_VERBOSE,
          T_ARG_KILL,
          T_ARG_FILE,
 	 T_ARG_PORT,
