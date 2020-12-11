@@ -16,11 +16,11 @@ struct arg_s
 
 enum arg_type
 {
-         T_ARG_INVALID  = -1,
-         T_ARG_NONE     =  0,
-         T_ARG_DAEMON,
-         T_ARG_SHUTDOWN,
-         T_ARG_IMPORT,
+         T_ARG_INVALID = -1,
+         T_ARG_NONE    =  0,
+         T_ARG_FORK,
+         T_ARG_KILL,
+         T_ARG_FILE,
 };
 
 #endif // CMDARG_H

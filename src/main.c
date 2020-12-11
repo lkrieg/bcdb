@@ -1,6 +1,17 @@
 #include "common.h"
 
-void usage(void);
+void Usage(void)
+{
+	Print( // Command-line argument usage description
+	"Usage: barkeeper [ -d | -k ] [ -f filename ] \n"
+	"See 'man barkeeper' for more information     \n"
+	"                                             \n"
+	"  -d, --daemon  run in daemon mode           \n"
+	"  -k, --kill    stop active daemon           \n"
+	"  -f, --file    load additional barcode data \n"
+	"                (this can be done while the  \n"
+	"                daemon process is running)   ");
+}
 
 int main(int argc, char **argv)
 {
@@ -11,34 +22,27 @@ int main(int argc, char **argv)
 		switch (arg.type) {
 
 		// -d, --daemon
-		case T_ARG_DAEMON:
+		case T_ARG_FORK:
 			Info("Running in daemon mode");
 			break; // TODO: Fork main process
 
 		// -k, --kill
-		case T_ARG_SHUTDOWN:
+		case T_ARG_KILL:
 			Info("Shutting down daemon");
 			break; // TODO: Kill active forks
 
 		// -f, --file [filename]
-		case T_ARG_IMPORT:
+		case T_ARG_FILE:
 			Info("Importing '%s'", arg.value);
 			break; // TODO: Import from CSV file
 
 		// Unknown argument
 		case T_ARG_INVALID:
-			usage();
+			Usage();
+			exit(0);
+			break;
 		}
 	}
 
-	UNUSED(argc);
-	UNUSED(argv);
-
 	return 0;
-}
-
-void usage(void)
-{
-	// TODO: Print usage
-	exit(EXIT_SUCCESS);
 }

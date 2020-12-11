@@ -18,10 +18,11 @@ void CMD_Init(int argc, char **argv)
 
 int CMD_Next(arg_t *out)
 {
-	UNUSED(out);
 	// T_ARG_INVALID
 	// T_ARG_DAEMON
 	// T_ARG_SHUTDOWN
 	// T_ARG_IMPORT
-	return T_ARG_NONE;
+
+	out->type = T_ARG_INVALID;
+	return out->type;
 }

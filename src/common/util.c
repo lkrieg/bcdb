@@ -6,23 +6,27 @@ enum log_levels {
 	T_LOG_INFO,
 	T_LOG_VERBOSE,
 	T_LOG_WARNING,
-	T_LOG_ERROR
+	T_LOG_ERROR,
+	T_LOG_NONE
 };
 
 static const char *prefixes[] = {
-	"[INFO]", "[DEBUG]",
-	"[WARN]", "[ERROR]"
+	"[INFO] ", "[DEBUG] ",
+	"[WARN] ", "[ERROR] ",
+	""
 };
 
 static void Log(int level, const char *fmt, va_list arg)
 {
 	char msg[MAX_LINEBUF];
 
-	if (level < 0 || level > 3)
+	Assert(fmt != NULL);
+
+	if (level < 0 || level > 4)
 		level = T_LOG_INFO;
 
 	vsnprintf(msg, MAX_LINEBUF, fmt, arg);
-	printf("%s %s\n", prefixes[level], msg);
+	printf("%s%s\n", prefixes[level], msg);
 
 	fflush(stdout);
 }
@@ -55,6 +59,15 @@ void Error(const char *fmt, ...)
 
 	// Critical failure
 	exit(EXIT_FAILURE);
+}
+
+void Print(const char *fmt, ...)
+{
+	va_list arg;
+
+	va_start(arg, fmt);
+	Log(T_LOG_NONE, fmt, arg);
+	va_end(arg);
 }
 
 void _Verbose(const char *fmt, ...)
