@@ -24,13 +24,13 @@ int main(int argc, char **argv)
 	arg_t arg;
 	int port;
 
+	// configuration file settings
 	if (CFG_Init() < 0)
 		Error(E_CFGVAL);
 
-	// get configuration file settings
-	port = CFG_GetNumber(T_CFG_PORT);
+	port = CFG_GetNum(T_CFG_PORT);
 
-	// parse command-line
+	// program arguments
 	CMD_Init(argc, argv);
 	while (CMD_Next(&arg)) {
 		switch (arg.type) {

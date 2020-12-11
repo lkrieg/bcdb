@@ -6,7 +6,7 @@
 # TODO: Fallback for systems without ldconfig
 
 SRC="etc/config.h.in"
-DST="src/common/config.h"
+DST="src/config.h"
 
 usage()
 {

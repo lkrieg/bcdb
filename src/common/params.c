@@ -1,5 +1,5 @@
 #include "common.h"
-#include "args.h"
+#include "params.h"
 
 #include <getopt.h>
 #include <string.h>

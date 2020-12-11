@@ -1,4 +1,4 @@
-src/common/config.h
+src/config.h
 bin/barkeeper
 bin/unit-test
 bin/.build/

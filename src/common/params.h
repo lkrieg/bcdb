@@ -1,5 +1,5 @@
-#ifndef  ARGS_H
-#define  ARGS_H
+#ifndef  PARAMS_H
+#define  PARAMS_H
 
 #include "common.h"
 
@@ -24,4 +24,4 @@ enum arg_type
 	 T_ARG_HELP
 };
 
-#endif // ARGS_H
+#endif // PARAMS_H

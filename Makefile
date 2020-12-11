@@ -98,11 +98,11 @@ clean: # Highwaaay to the danger zone
 	$(Q) $(RM) $(CHECKS)
 	$(E) "[RM] $(TMPDIR)"
 	$(Q) $(RM) -r $(TMPDIR)
-	$(E) "[RM] src/common/config.h"
-	$(Q) $(RM) src/common/config.h
+	$(E) "[RM] src/config.h"
+	$(Q) $(RM) src/config.h
 
 # Require processed config header
-ifeq (,$(wildcard src/common/config.h))
+ifeq (,$(wildcard src/config.h))
 $(error Please run ./configure before make)
 endif
 
