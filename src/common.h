@@ -1,5 +1,5 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef  COMMON_H
+#define  COMMON_H
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -12,8 +12,9 @@ typedef  unsigned char  byte;
 
 #define  MAX_PATH       4096
 #define  MAX_LINEBUF    2048
-#define  MAX_ARG_LEN    4096
 #define  MAX_BACKLOG    10
+#define  MAX_ARG_NUM    16
+#define  MAX_ARG_LEN    256
 #define  MIN_ROW_NUM    14
 #define  MIN_COL_NUM    24
 #define  MAX_TTYPE      48
@@ -45,13 +46,6 @@ void     Info(const char * fmt, ...);
 void     Warning(const char * fmt, ...);
 void     Error(const char * fmt, ...);
 
-// Common submodule
-#include "common/config.h"
-#include "common/errors.h"
-#include "common/socket.h"
-#include "common/telnet.h"
-#include "common/cmdarg.h"
-
 // Internal helper functions - do not use these directly.
 // Use the macros without prefixed underscore instead.
 
@@ -62,5 +56,14 @@ void     _Verbose(const char *fmt, ...);
 void     _Free(void *ptr);
 void     _FreeDebug(void *ptr);
 void     _Memcheck(void);
+
+// Common submodule headers - see the respective files for
+// details about interface and implementation.
+
+#include "common/config.h"
+#include "common/errors.h"
+#include "common/cmdarg.h"
+#include "common/socket.h"
+#include "common/telnet.h"
 
 #endif // COMMON_H

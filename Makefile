@@ -91,7 +91,7 @@ else
 endif
 
 .PHONY: clean
-clean:
+clean: # Highwaaay to the danger zone
 	$(E) "[RM] $(TARGET)"
 	$(Q) $(RM) $(TARGET)
 	$(E) "[RM] $(CHECKS)"
