@@ -8,7 +8,9 @@
 SRC="etc/config.h.in"
 DST="src/common/config.h"
 
-usage() { cat << EOF
+usage()
+{
+cat << EOF
 Usage: ./configure [--no-debug] [--no-pthread] [--no-zlib]
 
   --no-debug      Disables all runtime debugging features
@@ -24,8 +26,8 @@ main()
 	local use_zlib="no"
 
 	# Make sure the source file and ldconfig are available
-	test -f "${SRC}" || error "Header '${SRC}' missing."
-	command -v ldconfig || error "Cannot find ldconfig."
+	test -f "${SRC}"    || error "Header '${SRC}' missing."
+	command -v ldconfig || error "ldconfig not installed."
 
 	# Check linker searchpaths for libraries
 	exists "libpthread" && use_pthread="yes"
