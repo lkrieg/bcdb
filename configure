@@ -27,7 +27,8 @@ main()
 
 	# Make sure the source file and ldconfig are available
 	test -f "${SRC}"    || error "Header '${SRC}' missing."
-	command -v ldconfig || error "ldconfig not installed."
+	prereq "ldconfig"   || error "ldconfig not installed."
+
 
 	# Check linker searchpaths for libraries
 	exists "libpthread" && use_pthread="yes"
@@ -60,6 +61,12 @@ main()
 
 	printf "[CFG] Configuration successfull.\n"
 	return 0
+}
+
+prereq()
+{
+	command -v ${1} >/dev/null
+	return ${?}
 }
 
 exists()
