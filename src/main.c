@@ -11,7 +11,7 @@ void Usage(void)
 	"  -f, --file    load additional barcode data  \n"
 	"                (this can be done while the   \n"
 	"                daemon process is running)    \n"
-	"  -h, --help    output this help text         ");
+	"  -h, --help    print this help text          ");
 }
 
 int main(int argc, char **argv)
