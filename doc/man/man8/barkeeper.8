@@ -8,7 +8,7 @@ barkeeper \- barcode database
 
 .SH SYNOPSIS
 .B barkeeper
-.B [ -d | -k ] [ -f
+.B [ -d | -k | -h ] [ -f
 .I filename
 .B ]
 
@@ -25,6 +25,8 @@ Stop active daemon
 .IP "-f, --file \fIfilename\fR"
 Load additional barcode data from CSV file. This can be
 done while the daemon is running.
+.IP "-h, --help"
+Print help text
 
 .SH FILES
 .I /etc/barkeeper.cfg

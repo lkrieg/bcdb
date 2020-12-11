@@ -2,15 +2,16 @@
 
 void Usage(void)
 {
-	Print( // Command-line argument usage description
-	"Usage: barkeeper [ -d | -k ] [ -f filename ] \n"
-	"See 'man barkeeper' for more information     \n"
-	"                                             \n"
-	"  -d, --daemon  run in daemon mode           \n"
-	"  -k, --kill    stop active daemon           \n"
-	"  -f, --file    load additional barcode data \n"
-	"                (this can be done while the  \n"
-	"                daemon process is running)   ");
+	Print( // Command-line argument usage description:
+	"Usage: barkeeper [ -d | -k ] [ -f filename ]  \n"
+	"See 'man barkeeper' for more information      \n"
+	"                                              \n"
+	"  -d, --daemon  run in daemon mode            \n"
+	"  -k, --kill    stop active daemon            \n"
+	"  -f, --file    load additional barcode data  \n"
+	"                (this can be done while the   \n"
+	"                daemon process is running)    \n"
+	"  -h, --help    output this help text         ");
 }
 
 int main(int argc, char **argv)
@@ -36,7 +37,8 @@ int main(int argc, char **argv)
 			Info("Importing '%s'", arg.value);
 			break; // TODO: Import from CSV file
 
-		// Unknown argument
+		// -h, --help
+		case T_ARG_HELP:
 		case T_ARG_INVALID:
 			Usage();
 			exit(0);

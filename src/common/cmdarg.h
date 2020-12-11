@@ -21,6 +21,7 @@ enum arg_type
          T_ARG_FORK,
          T_ARG_KILL,
          T_ARG_FILE,
+	 T_ARG_HELP
 };
 
 #endif // CMDARG_H
