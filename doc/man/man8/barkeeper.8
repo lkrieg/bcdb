@@ -1,15 +1,48 @@
-.\" Manpage for barkeeper.
-.\" Contact info@madcow.dev to correct errors or typos.
-.TH man 8 "05 Dec 2020" "1.0" "barkeeper man page"
+.\" Manpage for barkeeper. Run 'make install-docs' to install.
+.\" Contact info@madcow.dev to correct any errors or typos.
+
+.TH BARKEEPER 8
+
 .SH NAME
 barkeeper \- barcode database
+
 .SH SYNOPSIS
-barkeeper [--verbose]
+.B barkeeper
+.B [ -d | -k ] [ -f
+.I filename
+.B ]
+
 .SH DESCRIPTION
-barkeeper is a barcode database with both Telnet and HTTP/S interface. It displays real-time updates from connected scanners in the web browser.
+barcode database with both Telnet and HTTP/S interface.
+It displays real-time updates from connected scanners
+in the web browser.
+
 .SH OPTIONS
-There are currently no options defined.
+.IP "-d, --daemon"
+Run in daemon mode
+.IP "-k, --kill"
+Stop active daemon
+.IP "-f, --file filename"
+Load additional barcode data from CSV file. This
+can be done even while the daemon is running.
+
+.SH FILES
+.I /etc/barkeeper.cfg
+.RS
+System wide configuration file. See README for details.
+.RE
+
+.I /var/log/barkeeper.log
+.RS
+Console output generated while running in daemon mode.
+.RE
+
+.I /var/lib/barkeeper/
+.RS
+Variable state information like the local database.
+
 .SH BUGS
 No known bugs.
+
 .SH AUTHOR
 Leon Krieg <info@madcow.dev>
