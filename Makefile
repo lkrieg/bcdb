@@ -18,11 +18,16 @@ MDFLAGS  = -MM -MT $(@:.d=.o)
 LDLIBS   = -lz -lpthread
 LDFLAGS  =
 
-DSTDIR   = bin
-TMPDIR  := $(DSTDIR)/.build
-TARGET  := $(DSTDIR)/barkeeper
-CHECKS  := $(DSTDIR)/unit-test
-DOCPATH := doc/man/man8/barkeeper.8
+BINDIR   = bin
+TMPDIR   = $(BINDIR)/.build
+TARGET   = $(BINDIR)/barkeeper
+CHECKS   = $(BINDIR)/unit-test
+
+MANFILE  = doc/man/man8/barkeeper.8
+DOCPATH  = /usr/share/man/man8
+VARPATH  = /var/lib/barkeeper
+BINPATH  = /usr/bin
+
 SOURCES := $(shell find src -name "*.c")
 TESTSRC := $(shell find tests -name "*.c")
 OBJECTS := $(SOURCES:%.c=$(TMPDIR)/%.o)
@@ -60,14 +65,26 @@ $(TMPDIR)/%.d: %.c # DEPENDS
 	$(Q) $(CC) $(CFLAGS) $(CPPFLAGS) $< $(MDFLAGS) > $@
 
 .PHONY: install
-install:
-	$(E) "Error: Target not implemented."
-	$(Q) exit 1
+install: $(TARGET) check-root install-docs
+	$(E) "[INSTALL] $(BINPATH)/barkeeper"
+	$(Q) $(INSTALL) -m 0755 $(TARGET) $(BINPATH)
+	$(E) "[INSTALL] $(VARPATH)"
+	$(Q) $(INSTALL) -d $(VARPATH)
 
 .PHONY: install-docs
-install-docs: $(DOCPATH)
-	$(Q) $(INSTALL) -m 0644 $< /usr/share/man/man8/
-	$(Q) $(GZIP) /usr/share/man/man8/barkeeper.8
+install-docs: $(MANFILE) check-root
+	$(E) "[INSTALL] $(DOCPATH)/barkeeper.8"
+	$(Q) $(INSTALL) -m 0644 $(MANFILE) $(DOCPATH)
+	$(Q) $(GZIP) $(DOCPATH)/barkeeper.8
+
+.PHONY: check-root
+check-root:
+ifneq ($(shell id -u), 0) # Check for root permissions
+	$(E) "You must be root to perform this action."
+	$(Q) exit 1
+else
+	$(Q) true
+endif
 
 .PHONY: clean
 clean:
