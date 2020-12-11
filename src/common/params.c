@@ -11,6 +11,7 @@ void CMD_Init(int argc, char **argv)
 {
 	arg_t *head;
 	int c, i = 0;
+
 	static char opstr[] = "dkhf:";
 	static struct option opts[] = {
 		{"daemon",  no_argument,        0,  'd'},
@@ -42,8 +43,8 @@ void CMD_Init(int argc, char **argv)
 		           } // fallthrough
 		default:
 		case ':':
-		case '?':  argnum++;
-			   argbuf[0].type = T_ARG_INVALID;
+		case '?':  argbuf[0].type = T_ARG_INVALID;
+		           argnum++;
 		           return;
 		}
 	}
