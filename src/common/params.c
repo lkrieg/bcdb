@@ -4,6 +4,10 @@
 #include <getopt.h>
 #include <string.h>
 #include <limits.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define NUM_OPTDEFS (NUM_CVAR_IDS)
 #define NUM_VARDEFS (NUM_CVAR_IDS - 1)
@@ -22,7 +26,12 @@ static const cvar_t vardefs[NUM_VARDEFS] = {
 
 void CFG_ParseFile(const char *path)
 {
-	UNUSED(path);
+	int fd;
+
+	if ((fd = open(path, O_RDONLY)) < 0) {
+		Warning(E_NOCONF " '%s'", path);
+		return;
+	}
 }
 
 void CFG_ParseArgs(int argc, char **argv)
