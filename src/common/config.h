@@ -10,6 +10,7 @@ enum cfg_indices
 {
 	T_CFG_PORT,
 	T_CFG_VERBOSE,
+	T_CFG_DAEMON,
 	NUM_CFG_VARS
 };
 

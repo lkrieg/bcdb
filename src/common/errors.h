@@ -7,7 +7,7 @@
 #define E_ARGVAL  "Invalid argument: Try --help"
 #define E_ARGNUM  "Too many command-line arguments"
 #define E_ARGLEN  "Command-line argument too long"
-#define E_NOTNUM  "Value is not a valid number"
+#define E_NOTNUM  "Invalid numeric value given"
 #define E_NOSOCK  "Unable to bind to socket"
 
 #endif // ERRORS_H

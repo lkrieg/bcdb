@@ -1,7 +1,6 @@
 #include "common.h"
 
-static void Usage(void);
-static void Run(bool daemon);
+static int  Run(bool daemon, int port);
 static void Import(const char *path);
 static void Shutdown(void);
 
@@ -24,6 +23,7 @@ static void Usage(void)
 int main(int argc, char **argv)
 {
 	arg_t arg;
+	bool daemon;
 	int port;
 
 	// config file settings
@@ -35,6 +35,7 @@ int main(int argc, char **argv)
 		Error(E_ARGVAL);
 
 	verbose  = CFG_GetBool(T_CFG_VERBOSE);
+	daemon   = CFG_GetBool(T_CFG_DAEMON);
 	port     = CFG_GetNum(T_CFG_PORT);
 
 	while (CMD_Next(&arg)) {
@@ -42,22 +43,22 @@ int main(int argc, char **argv)
 
 		// -d, --daemon
 		case T_ARG_DAEMON:
-			Run(true);
+			daemon = true;
 			break;
 
 		// -k, --kill
 		case T_ARG_KILL:
 			Shutdown();
-			break;
+			exit(0);
 
 		// -f, --file
 		case T_ARG_FILE:
-			Import(arg.str);
+			Import(arg.as.str);
 			break;
 
 		// -p, --port
 		case T_ARG_PORT:
-			port = arg.num;
+			port = arg.as.num;
 			break;
 
 		// -v, --verbose
@@ -72,20 +73,22 @@ int main(int argc, char **argv)
 		}
 	}
 
+	// Begin program execution
+	return Run(daemon, port);
+}
+
+static int Run(bool daemon, int port)
+{
+	if (daemon)
+		Info("Running as daemon");
+
 	Verbose("Log level set to verbose");
 	Info("Binding to port %d...", port);
 
 	if (NET_Init(port) < 0)
 		Error(E_NOSOCK);
 
-	Memcheck();
 	return 0;
-}
-
-static void Run(bool daemon)
-{
-	if (daemon == true)
-		Info("Running as daemon");
 }
 
 static void Import(const char *filename)

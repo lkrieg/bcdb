@@ -43,16 +43,19 @@ int CMD_Init(int argc, char **argv)
 		           || ((strlen(optarg) >= MAX_ARG_LEN)))
 				return -1;
 
-		           strcpy(head->str, optarg);
 		           head->type = (c == 'f') ? T_ARG_FILE :
 		                        (c == 'p') ? T_ARG_PORT : 0;
 
+		           if (head->type == T_ARG_FILE)
+			           strcpy(head->as.str, optarg);
+
 		           if (head->type == T_ARG_PORT) {
-				errno = 0; // convert port to numeric
-				num = strtol(head->str, NULL, 0);
-				if (num <= 0 || num > INT_MAX)
-					Error(E_NOTNUM ": '%s'", head->str);
-				head->num = num;
+				num = strtol(optarg, NULL, 0);
+				if (num > 0 && num <= INT_MAX) {
+					head->as.num = num;
+				} else {
+					Error(E_NOTNUM);
+				}
 			   }
 		           break;
 		default:

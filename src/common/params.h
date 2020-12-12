@@ -10,9 +10,11 @@ int CMD_Next(arg_t *out);
 
 struct arg_s
 {
-	int   type;
-	char  str[MAX_ARG_LEN];
-	int   num;
+	int type;
+	union {
+		char  str[MAX_ARG_LEN];
+		int   num;
+	} as;
 };
 
 enum arg_type
