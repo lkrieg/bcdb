@@ -4,13 +4,14 @@
 static int     varnum, index;
 static cvar_t  varbuf[MAX_CFG_NUM];
 
-static const cvar_t vardefs[] = { // Config file and command-line options
+#define NUM_VARDEFS (NUM_CVAR_IDS - 1)
+static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
 	{T_CFG_KILL,    T_VAR_BOOL, 'k', "kill",    {0}, {.bol = false}},
 	{T_CFG_VERBOSE, T_VAR_BOOL, 'v', "verbose", {0}, {.bol = false}},
 	{T_CFG_HELP,    T_VAR_BOOL, 'h', "help",    {0}, {.bol = false}},
 	{T_CFG_FILE,    T_VAR_STR,  'f', "file",    {0}, {.str = NULL}},
-	{T_CFG_PORT,    T_VAR_NUM,  'p', "port",    {0}, {.num = 0}}};
+	{T_CFG_PORT,    T_VAR_NUM,  'p', "port",    {0}, {.num = 23}}};
 
 int CFG_ParseFile(const char *path)
 {
@@ -22,6 +23,9 @@ int CFG_ParseFile(const char *path)
 
 int CFG_ParseArgs(int argc, char **argv)
 {
+	for (size_t i = 0; i < NUM_VARDEFS; i++)
+		Info("%s", vardefs[i].key);
+
 	// TODO
 	UNUSED(argc);
 	UNUSED(argv);
@@ -33,13 +37,12 @@ int CFG_Next(cvar_t *out)
 	cvar_t *head;
 
 	Assert(out != NULL);
-	out->type = T_CFG_NONE;
+	out->type = T_CFG_END;
 
-	if (index >= varnum)
-		return out->type;
-
-	head = &varbuf[index++];
-	*out = *head; // memcpy
+	if (index < varnum) {
+		head = &varbuf[index++];
+		*out = *head; // memcpy
+	}
 
 	return out->type;
 }

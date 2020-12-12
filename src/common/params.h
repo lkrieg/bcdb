@@ -31,14 +31,15 @@ struct cvar_s
 
 enum cvar_ids
 {
-	T_CFG_INVALID  = -1,
-	T_CFG_NONE     =  0,
-	T_CFG_DAEMON,
+	T_CFG_DAEMON = 1,
 	T_CFG_VERBOSE,
 	T_CFG_KILL,
 	T_CFG_FILE,
 	T_CFG_PORT,
-	T_CFG_HELP
+	T_CFG_HELP,
+
+	NUM_CVAR_IDS,
+	T_CFG_END = 0
 };
 
 enum cvar_types
