@@ -16,13 +16,12 @@ typedef  unsigned char  byte;
 #define  MAX_PATH       4096
 #define  MAX_LINEBUF    2048
 #define  MAX_BACKLOG    10
-#define  MAX_CFG_KEY    16
 #define  MAX_CFG_NUM    64
-#define  MAX_CFG_LEN    256
-#define  MIN_ROW_NUM    14
-#define  MIN_COL_NUM    24
+#define  MAX_CFG_KEY    16
+#define  MAX_CFG_VAL    256
 #define  MAX_TTYPE      48
-#define  DEFAULT_PORT   23
+#define  MIN_ROWS       14
+#define  MIN_COLS       24
 
 #define  CONFPATH       "/etc/barkeeper.cfg"
 #define  LOGPATH        "/var/log/barkeeper.log"

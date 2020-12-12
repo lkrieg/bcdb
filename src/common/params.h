@@ -21,7 +21,7 @@ struct cvar_s
 	int   type;
 	char  argchar;
 	char  key[MAX_CFG_KEY];
-	char  raw[MAX_CFG_LEN];
+	char  val[MAX_CFG_VAL];
 	union {
 		char *  str;
 		int     num;
