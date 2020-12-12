@@ -8,7 +8,7 @@ static int port;
 static void  Usage(void);
 static void  Configure(int argc, char **argv);
 static void  Import(const char *filename);
-static int   Run(bool do_fork, int port);
+static int   Run(void);
 static void  Shutdown(void);
 
 static void Usage(void)
@@ -74,7 +74,7 @@ static void Configure(int argc, char **argv)
 	}
 }
 
-static int Run(bool do_fork, int port)
+static int Run(void)
 {
 	Verbose("Log level set to verbose");
 	Info("Running in %s mode", (do_fork)
@@ -105,5 +105,6 @@ int main(int argc, char **argv)
 
 	// TODO: Is daemon active?
 	// Begin normal execution
-	return Run(do_fork, port);
+
+	return Run();
 }
