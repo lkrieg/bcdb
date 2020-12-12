@@ -35,8 +35,8 @@ main()
 	exists "libz"       && use_zlib="yes"
 
 	# Command-line arguments
-	while test $# -gt 0; do
-		case "$1" in
+	while test ${#} -gt 0; do
+		case "${1}" in
 		--no-debug)   use_debug="no"   ;;
 		--no-pthread) use_pthread="no" ;;
 		--no-zlib)    use_zlib="no"    ;;
@@ -103,4 +103,4 @@ info()
 	printf "${1}\n"
 }
 
-main $@
+main ${@}
