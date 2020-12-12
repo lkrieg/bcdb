@@ -31,14 +31,14 @@ typedef  unsigned char  byte;
 #define  UNUSED(sym)    ((void)(sym))
 #define  ARSIZE(ptr)    (sizeof(ptr)/sizeof(*(ptr)))
 #define  Assert(exp)    UNUSED(0) // Debug mode only
+#define  Memcheck()     UNUSED(0) // Debug mode only
 #define  Allocate(n)    _Allocate(n)
 #define  Free(ptr)      _Free(ptr)
-#define  Memcheck()     UNUSED(0)
 
 #ifdef   DEBUG          // DEBUG MODE:
 #undef   Assert         // - Enables runtime assertions
 #undef   Allocate       // - Tracks memory allocations
-#undef   Memcheck       // - Prints memory leak reports
+#undef   Memcheck       // - Prints memory leak report
 #undef   Free
 
 #define  Assert(exp)    _Assert((exp), #exp, __FILE__, __LINE__)
