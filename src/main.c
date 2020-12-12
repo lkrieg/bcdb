@@ -1,15 +1,14 @@
 #include "common.h"
 
-// General settings
-static bool do_fork;
+static void    Usage(void);
+static void    Configure(int argc, char **argv);
+static void    Import(const char *filename);
+static int     Run(void);
+static void    Shutdown(void);
+
+static bool    do_fork;
 static char *  file;
 static int     port;
-
-static void  Usage(void);
-static void  Configure(int argc, char **argv);
-static void  Import(const char *filename);
-static int   Run(void);
-static void  Shutdown(void);
 
 static void Usage(void)
 {
@@ -40,13 +39,13 @@ static void Configure(int argc, char **argv)
 		// -v, --verbose
 		// verbose = true
 		case T_CFG_VERBOSE:
-			verbose = CBOOL(cvar);
+			verbose = true;
 			break;
 
 		// -d, --daemon
 		// daemon = true
 		case T_CFG_DAEMON:
-			do_fork = CBOOL(cvar);
+			do_fork = true;
 			break;
 
 		// -f, --file
