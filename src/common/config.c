@@ -27,8 +27,9 @@ static int types[NUM_CFG_VARS] = {
 
 int CFG_Init(void)
 {
-	// TODO
-	UNUSED(cvars);
+	// TODO: Parse config file
+	cvars[T_CFG_PORT].as._int      = DEFAULT_PORT;
+	cvars[T_CFG_VERBOSE].as._bool  = false;
 	return 0;
 }
 

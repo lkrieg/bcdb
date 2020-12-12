@@ -72,8 +72,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-	UNUSED(verbose);
-	UNUSED(port);
+	Verbose("Log level set to verbose");
+	Info("Binding to port %d...", port);
+
+	if (NET_Init(port) < 0)
+		Error(E_NOSOCK);
 
 	Memcheck();
 	return 0;
