@@ -39,23 +39,23 @@ int main(int argc, char **argv)
 		// -v, --verbose
 		// verbose = true
 		case T_CFG_VERBOSE:
-			verbose = CBOL(cvar);
+			verbose = CBOOL(cvar);
 			break;
 
 		// -d, --daemon
 		// daemon = true
 		case T_CFG_DAEMON:
-			do_fork = CBOL(cvar);
+			do_fork = CBOOL(cvar);
 			break;
 
 		// -k, --kill
 		case T_CFG_KILL:
-			do_kill = CBOL(cvar);
+			do_kill = CBOOL(cvar);
 			break;
 
 		// -h, --help
 		case T_CFG_HELP:
-			do_help = CBOL(cvar);
+			do_help = CBOOL(cvar);
 			break;
 
 		// -f, --file

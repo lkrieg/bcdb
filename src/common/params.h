@@ -10,10 +10,10 @@ int CFG_ParseArgs(int argc, char **argv);
 int CFG_Next(cvar_t *out);
 
 // Access macros with type checking in DEBUG mode
-#define CNUM(cvar)  (_C_AS((cvar), NUM), cvar.as.num)
-#define CSTR(cvar)  (_C_AS((cvar), STR), cvar.as.str)
-#define CBOL(cvar)  (_C_AS((cvar), STR), cvar.as.bol)
-#define _C_AS(v,t)  Assert((v).type == T_VAR_##t)
+#define CNUM(cvar)   (_C_AS((cvar), NUM), cvar.as.num)
+#define CSTR(cvar)   (_C_AS((cvar), STR), cvar.as.str)
+#define CBOOL(cvar)  (_C_AS((cvar), STR), cvar.as.bol)
+#define _C_AS(v,t)   Assert((v).type == T_VAR_##t)
 
 struct cvar_s
 {
