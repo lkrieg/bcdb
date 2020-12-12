@@ -2,9 +2,14 @@
 
 // General settings
 static bool do_fork;
-static bool do_kill;
 static char *file;
 static int port;
+
+static void  Usage(void);
+static void  Configure(int argc, char **argv);
+static void  Import(const char *filename);
+static int   Run(bool do_fork, int port);
+static void  Shutdown(void);
 
 static void Usage(void)
 {
@@ -44,11 +49,6 @@ static void Configure(int argc, char **argv)
 			do_fork = CBOOL(cvar);
 			break;
 
-		// -k, --kill
-		case T_CFG_KILL:
-			do_kill = CBOOL(cvar);
-			break;
-
 		// -f, --file
 		// file = foo.csv
 		case T_CFG_FILE:
@@ -60,6 +60,11 @@ static void Configure(int argc, char **argv)
 		case T_CFG_PORT:
 			port = CNUM(cvar);
 			break;
+
+		// -k, --kill
+		case T_CFG_KILL:
+			Shutdown();
+			exit(0);
 
 		// -h, --help
 		case T_CFG_HELP:
@@ -88,7 +93,6 @@ static void Import(const char *filename)
 
 static void Shutdown(void)
 {
-	// Check for active daemon
 	Info("Shutting down");
 }
 
@@ -96,14 +100,10 @@ int main(int argc, char **argv)
 {
 	Configure(argc, argv);
 
-	if (do_kill) {
-		Shutdown();
-		return 0;
-	}
-
 	if (file != NULL)
 		Import(file);
 
+	// TODO: Is daemon active?
 	// Begin normal execution
 	return Run(do_fork, port);
 }
