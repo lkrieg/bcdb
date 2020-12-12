@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 		// -k, --kill
 		case T_ARG_KILL:
 			Shutdown();
-			exit(0);
+			return 0;
 
 		// -f, --file
 		case T_ARG_FILE:
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 		// -h, --help
 		case T_ARG_HELP:
 			Usage();
-			exit(0);
+			return 0;
 		}
 	}
 
