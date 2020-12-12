@@ -1,8 +1,6 @@
 #ifndef TEST_UTIL_H
 #define TEST_UTIL_H
 
-#include <stdbool.h>
-
 #define TEST_SETUP(g)      static void _test_setup_##g(void)
 #define TEST_TEAR_DOWN(g)  static void _test_clean_##g(void)
 #define TEST(g, c)         static void _test_main_##g##_##c(void); \
@@ -16,7 +14,7 @@
 
 typedef void (*_test_fn)(void);
 typedef struct _test_s _test_t;
-void _test_assert(bool exp);
+void _test_assert(int exp);
 
 struct _test_s {
 	char        *name;
@@ -28,7 +26,7 @@ struct _test_s {
 } __attribute__((
   aligned((32))));
 
-#endif /* TEST_H */
+#endif // TEST_UTIL_H
 #ifdef TEST_MAIN
 
 #include <stdlib.h>
@@ -47,9 +45,9 @@ extern _test_t __start_test;
 extern _test_t __stop_test;
 static int _test_numfailed;
 
-void _test_assert(bool exp)
+void _test_assert(int exp)
 {
-	if (exp == false)
+	if (exp == 0)
 		_TEST_EXIT(1);
 }
 
@@ -107,4 +105,4 @@ int main(void)
 	return _test_numfailed > 0;
 }
 
-#endif // TEST_UTIL_H
+#endif // TEST_MAIN
