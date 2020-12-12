@@ -75,13 +75,13 @@ void CFG_ParseArgs(int argc, char **argv)
 
 			*out = vardefs[n];
 			switch (out->type) {
-			case T_VAR_NUM: // Numberic
+			case T_VAR_NUM: // Numeric
 				strncpy(out->val, optarg, MAX_CFG_VAL);
 				out->as.num = strtol(out->val, NULL, 0);
 				if (out->as.num <= 0 || out->as.num > INT_MAX)
 					Error(E_NOTNUM);
 				break;
-			case T_VAR_STR: // String
+			case T_VAR_STR: // Textual
 				strncpy(out->val, optarg, MAX_CFG_VAL);
 				out->as.str = out->val;
 				break;
