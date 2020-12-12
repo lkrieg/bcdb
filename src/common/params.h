@@ -13,7 +13,7 @@ int   CFG_Next(cvar_t *out);
 #define CNUM(cvar)   (_C_AS((cvar), NUM),  cvar.as.num)
 #define CSTR(cvar)   (_C_AS((cvar), STR),  cvar.as.str)
 #define CBOOL(cvar)  (_C_AS((cvar), BOOL), cvar.as.bol)
-#define _C_AS(v,t)   Assert((v).type == T_VAR_##t)
+#define _C_AS(v, t)  Assert((v).type == T_VAR_##t)
 
 struct cvar_s
 {
@@ -44,6 +44,7 @@ enum cvar_ids
 
 enum cvar_types
 {
+	T_VAR_NIL,
 	T_VAR_STR,
 	T_VAR_NUM,
 	T_VAR_BOOL

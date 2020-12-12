@@ -5,12 +5,12 @@
 #include <string.h>
 #include <limits.h>
 
-static int     varnum, index;
-static cvar_t  varbuf[MAX_CFG_NUM];
-
 #define NUM_OPTDEFS (NUM_CVAR_IDS)
 #define NUM_VARDEFS (NUM_CVAR_IDS - 1)
 #define MAX_ARGSTR  (NUM_VARDEFS * 2 + 1)
+
+static int     varnum, index;
+static cvar_t  varbuf[MAX_CFG_NUM];
 
 static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
@@ -32,7 +32,7 @@ void CFG_ParseArgs(int argc, char **argv)
 	struct option *opt;
 	const cvar_t * def;
 	int n, m, i, j;
-	long num;
+	cvar_t *out;
 
 	if (argc == 0)
 		return;
@@ -69,17 +69,26 @@ void CFG_ParseArgs(int argc, char **argv)
 			if (vardefs[n].argchar != m)
 				continue;
 
-			switch (vardefs[n].type) {
-			case T_VAR_NUM:
-				num = strtol(optarg, NULL, 0);
-				if (num <= 0 || num > INT_MAX)
+			out = &varbuf[varnum++];
+			if (varnum >= MAX_CFG_NUM)
+				Error(E_ARGNUM);
+
+			*out = vardefs[n];
+			switch (out->type) {
+			case T_VAR_NUM: // Numberic
+				strncpy(out->val, optarg, MAX_CFG_VAL);
+				out->as.num = strtol(out->val, NULL, 0);
+				if (out->as.num <= 0 || out->as.num > INT_MAX)
 					Error(E_NOTNUM);
 				break;
-			case T_VAR_STR:
-				// optarg
+			case T_VAR_STR: // String
+				strncpy(out->val, optarg, MAX_CFG_VAL);
+				out->as.str = out->val;
 				break;
-			case T_VAR_BOOL:
-				// true
+			default:
+			case T_VAR_BOOL: // Boolean
+				strcpy(out->val, "true");
+				out->as.bol = true;
 				break;
 			}
 		}
