@@ -1,6 +1,6 @@
 #include "common.h"
 
-static int  Run(bool daemon, int port);
+static int  Run(bool do_fork, int port);
 static void Import(const char *path);
 static void Shutdown(void);
 
@@ -23,7 +23,7 @@ static void Usage(void)
 int main(int argc, char **argv)
 {
 	arg_t arg;
-	bool daemon;
+	bool do_fork;
 	int port;
 
 	// config file settings
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 		Error(E_ARGVAL);
 
 	verbose  = CFG_GetBool(T_CFG_VERBOSE);
-	daemon   = CFG_GetBool(T_CFG_DAEMON);
+	do_fork  = CFG_GetBool(T_CFG_DAEMON);
 	port     = CFG_GetNum(T_CFG_PORT);
 
 	while (CMD_Next(&arg)) {
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
 		// -d, --daemon
 		case T_ARG_DAEMON:
-			daemon = true;
+			do_fork = true;
 			break;
 
 		// -k, --kill
@@ -74,16 +74,15 @@ int main(int argc, char **argv)
 	}
 
 	// Begin program execution
-	return Run(daemon, port);
+	return Run(do_fork, port);
 }
 
-static int Run(bool daemon, int port)
+static int Run(bool do_fork, int port)
 {
-	if (daemon)
-		Info("Running as daemon");
-
 	Verbose("Log level set to verbose");
-	Info("Binding to port %d...", port);
+
+	if (do_fork)
+		Info("Running as daemon");
 
 	if (NET_Init(port) < 0)
 		Error(E_NOSOCK);
