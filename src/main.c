@@ -1,12 +1,14 @@
 #include "common.h"
 
-static int  Run(bool do_fork, int port);
-static void Import(const char *path);
-static void Shutdown(void);
+// General settings
+static bool do_fork;
+static bool do_kill;
+static char *file;
+static int port;
 
 static void Usage(void)
 {
-	Print( // output usage information for command-line arguments
+	Print( // Output usage information for command-line arguments
 	"Usage: barkeeper [ -d | -k | -v | -h ] [ -f filename ] [ -p port ] \n"
 	"See 'man barkeeper' for more details about command-line options    \n"
 	"                                                                   \n"
@@ -20,16 +22,10 @@ static void Usage(void)
 	"  -h, --help     print this help text                              ");
 }
 
-int main(int argc, char **argv)
+static void Configure(int argc, char **argv)
 {
 	cvar_t cvar;
-	bool do_fork;
-	bool do_kill;
-	bool do_help;
-	char *file;
-	int port;
 
-	// User configuration
 	CFG_ParseFile(CONFPATH);
 	CFG_ParseArgs(argc, argv);
 
@@ -53,11 +49,6 @@ int main(int argc, char **argv)
 			do_kill = CBOOL(cvar);
 			break;
 
-		// -h, --help
-		case T_CFG_HELP:
-			do_help = CBOOL(cvar);
-			break;
-
 		// -f, --file
 		// file = foo.csv
 		case T_CFG_FILE:
@@ -70,32 +61,19 @@ int main(int argc, char **argv)
 			port = CNUM(cvar);
 			break;
 
+		// -h, --help
+		case T_CFG_HELP:
+			Usage();
+			exit(0);
 		}
 	}
-
-	if (do_help) {
-		Usage();
-		return 0;
-	}
-
-	if (do_kill) {
-		Shutdown();
-		return 0;
-	}
-
-	// Begin program execution
-	return Run(do_fork, port);
-
-	UNUSED(Import);
-	UNUSED(file);
 }
 
 static int Run(bool do_fork, int port)
 {
 	Verbose("Log level set to verbose");
-
-	if (do_fork)
-		Info("Running as daemon");
+	Info("Running in %s mode", (do_fork)
+	     ? "daemon" : "interactive");
 
 	if (NET_Init(port) < 0)
 		Error(E_NOSOCK);
@@ -110,5 +88,22 @@ static void Import(const char *filename)
 
 static void Shutdown(void)
 {
+	// Check for active daemon
 	Info("Shutting down");
+}
+
+int main(int argc, char **argv)
+{
+	Configure(argc, argv);
+
+	if (do_kill) {
+		Shutdown();
+		return 0;
+	}
+
+	if (file != NULL)
+		Import(file);
+
+	// Begin normal execution
+	return Run(do_fork, port);
 }
