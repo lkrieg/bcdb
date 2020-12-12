@@ -38,30 +38,31 @@ int CMD_Init(int argc, char **argv)
 		case 'v':  head->type = T_ARG_VERBOSE;  break;
 		case 'h':  head->type = T_ARG_HELP;     break;
 		case -1 :  head->type = T_ARG_NONE;     return 0;
-		case 'f':  // T_ARG_FILE || T_ARG_PORT
-		case 'p':  if ((optarg == NULL) // required value
-		           || ((strlen(optarg) >= MAX_ARG_LEN)))
+
+		case 'f':
+		case 'p': // T_ARG_FILE || T_ARG_PORT
+			if ((optarg == NULL) // required value
+			|| ((strlen(optarg) >= MAX_ARG_LEN)))
 				return -1;
 
-		           head->type = (c == 'f') ? T_ARG_FILE :
-		                        (c == 'p') ? T_ARG_PORT : 0;
+			head->type = (c == 'f') ? T_ARG_FILE :
+			             (c == 'p') ? T_ARG_PORT : 0;
 
-		           if (head->type == T_ARG_FILE)
-			           strcpy(head->as.str, optarg);
+			if (head->type == T_ARG_FILE)
+				strcpy(head->as.str, optarg);
 
-		           if (head->type == T_ARG_PORT) {
+			if (head->type == T_ARG_PORT) {
 				num = strtol(optarg, NULL, 0);
-				if (num > 0 && num <= INT_MAX) {
+				if (num > 0 && num <= INT_MAX)
 					head->as.num = num;
-				} else {
+				else
 					Error(E_NOTNUM);
-				}
-			   }
-		           break;
+			}
+			break;
 		default:
 		case ':':
-		case '?':  // invalid
-		           return -1;
+		case '?': // invalid
+			return -1;
 		}
 	}
 
