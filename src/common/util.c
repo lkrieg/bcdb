@@ -10,6 +10,7 @@ enum log_levels {
 	T_LOG_NONE
 };
 
+bool verbose = false;
 static const char *prefixes[] = {
 	"[INFO] ", "[DEBUG] ",
 	"[WARN] ", "[ERROR] ",
@@ -49,6 +50,18 @@ void Info(const char *fmt, ...)
 	va_end(arg);
 }
 
+void Verbose(const char *fmt, ...)
+{
+	va_list arg;
+
+	if (!verbose)
+		return;
+
+	va_start(arg, fmt);
+	Log(T_LOG_VERBOSE, fmt, arg);
+	va_end(arg);
+}
+
 void Warning(const char *fmt, ...)
 {
 	va_list arg;
@@ -68,15 +81,6 @@ void Error(const char *fmt, ...)
 
 	// Critical failure
 	exit(EXIT_FAILURE);
-}
-
-void _Verbose(const char *fmt, ...)
-{
-	va_list arg;
-
-	va_start(arg, fmt);
-	Log(T_LOG_VERBOSE, fmt, arg);
-	va_end(arg);
 }
 
 void _Assert(int exp, const char *text, const char *file, int line)

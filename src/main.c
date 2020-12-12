@@ -24,7 +24,6 @@ static void Usage(void)
 int main(int argc, char **argv)
 {
 	arg_t arg;
-	bool verbose;
 	int port;
 
 	// config file settings
@@ -53,15 +52,12 @@ int main(int argc, char **argv)
 
 		// -f, --file
 		case T_ARG_FILE:
-			Import(arg.value);
+			Import(arg.str);
 			break;
 
 		// -p, --port
 		case T_ARG_PORT:
-			errno = 0;
-			port = strtol(arg.value, NULL, 0);
-			if (port <= 0 || errno == ERANGE)
-				Error(E_NOTNUM ": '%s'", arg.value);
+			port = arg.num;
 			break;
 
 		// -v, --verbose

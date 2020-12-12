@@ -33,16 +33,13 @@ typedef  unsigned char  byte;
 #define  Allocate(n)    _Allocate(n)
 #define  Free(ptr)      _Free(ptr)
 #define  Memcheck()     UNUSED(0)
-#define  Verbose(...)   UNUSED(0)
 
 #ifdef   DEBUG          // DEBUG MODE:
-#undef   Allocate       // - Tracks memory allocations
-#undef   Verbose        // - Outputs verbose log messages
 #undef   Assert         // - Enables runtime assertions
+#undef   Allocate       // - Tracks memory allocations
 #undef   Memcheck       // - Prints memory leak reports
 #undef   Free
 
-#define  Verbose(...)   _Verbose(__VA_ARGS__)
 #define  Assert(exp)    _Assert((exp), #exp, __FILE__, __LINE__)
 #define  Allocate(n)    _AllocateDebug((n),  __FILE__, __LINE__)
 #define  Free(ptr)      _FreeDebug(ptr)
@@ -50,6 +47,7 @@ typedef  unsigned char  byte;
 #endif
 
 void     Info(const char *fmt, ...);
+void     Verbose(const char *fmt, ...);
 void     Warning(const char *fmt, ...);
 void     Error(const char *fmt, ...);
 void     Print(const char *fmt, ...);
@@ -60,7 +58,6 @@ void     Print(const char *fmt, ...);
 void *   _Allocate(int size);
 void *   _AllocateDebug(int size, const char *file, int line);
 void     _Assert(int exp, const char *text, const char *file, int line);
-void     _Verbose(const char *fmt, ...);
 void     _Free(void *ptr);
 void     _FreeDebug(void *ptr);
 void     _Memcheck(void);
@@ -73,5 +70,7 @@ void     _Memcheck(void);
 #include "common/params.h"
 #include "common/socket.h"
 #include "common/telnet.h"
+
+extern bool verbose;
 
 #endif // COMMON_H

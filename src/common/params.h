@@ -11,8 +11,8 @@ int CMD_Next(arg_t *out);
 struct arg_s
 {
          int   type;
-         char  value[MAX_ARG_LEN];
-         int   number;
+         char  str[MAX_ARG_LEN];
+         int   num;
 };
 
 enum arg_type
