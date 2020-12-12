@@ -22,59 +22,72 @@ static void Usage(void)
 
 int main(int argc, char **argv)
 {
-	arg_t arg;
+	cvar_t cvar;
 	bool do_fork;
+	bool do_kill;
+	bool do_help;
+	char *file;
 	int port;
 
-	// config file settings
-	if (CFG_Init() < 0)
-		Error(E_CFGVAL);
+	// User configuration
+	CFG_ParseFile(CONFPATH);
+	CFG_ParseArgs(argc, argv);
 
-	// command-line arguments
-	if (CMD_Init(argc, argv) < 0)
-		Error(E_ARGVAL);
+	while (CFG_Next(&cvar)) {
+		switch (cvar.id) {
 
-	verbose  = CFG_GetBool(T_CFG_VERBOSE);
-	do_fork  = CFG_GetBool(T_CFG_DAEMON);
-	port     = CFG_GetNum(T_CFG_PORT);
-
-	while (CMD_Next(&arg)) {
-		switch (arg.type) {
+		// -v, --verbose
+		// verbose = true
+		case T_CFG_VERBOSE:
+			verbose = CBOL(cvar);
+			break;
 
 		// -d, --daemon
-		case T_ARG_DAEMON:
-			do_fork = true;
+		// daemon = true
+		case T_CFG_DAEMON:
+			do_fork = CBOL(cvar);
 			break;
 
 		// -k, --kill
-		case T_ARG_KILL:
-			Shutdown();
-			return 0;
-
-		// -f, --file
-		case T_ARG_FILE:
-			Import(arg.as.str);
-			break;
-
-		// -p, --port
-		case T_ARG_PORT:
-			port = arg.as.num;
-			break;
-
-		// -v, --verbose
-		case T_ARG_VERBOSE:
-			verbose = true;
+		case T_CFG_KILL:
+			do_kill = CBOL(cvar);
 			break;
 
 		// -h, --help
-		case T_ARG_HELP:
-			Usage();
-			return 0;
+		case T_CFG_HELP:
+			do_help = CBOL(cvar);
+			break;
+
+		// -f, --file
+		// file = foo.csv
+		case T_CFG_FILE:
+			file = CSTR(cvar);
+			break;
+
+		// -p, --port
+		// port = 2323
+		case T_CFG_PORT:
+			port = CNUM(cvar);
+			break;
+
 		}
+	}
+
+	if (do_help) {
+		Usage();
+		return 0;
+	}
+
+	if (do_kill) {
+		Shutdown();
+		return 0;
 	}
 
 	// Begin program execution
 	return Run(do_fork, port);
+
+	UNUSED(Import);
+	UNUSED(file);
 }
 
 static int Run(bool do_fork, int port)

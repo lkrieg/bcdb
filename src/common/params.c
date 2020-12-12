@@ -1,6 +1,41 @@
 #include "common.h"
 #include "params.h"
 
+static int     varnum, index;
+static cvar_t  varbuf[MAX_CFG_NUM];
+
+int CFG_ParseFile(const char *path)
+{
+	// TODO
+	UNUSED(path);
+	return 0;
+}
+
+int CFG_ParseArgs(int argc, char **argv)
+{
+	// TODO
+	UNUSED(argc);
+	UNUSED(argv);
+	return 0;
+}
+
+int CFG_Next(cvar_t *out)
+{
+	cvar_t *head;
+
+	Assert(out != NULL);
+	out->type = T_CFG_NONE;
+
+	if (index >= varnum)
+		return out->type;
+
+	head = &varbuf[index++];
+	*out = *head; // memcpy
+
+	return out->type;
+}
+
+#if 0
 #include <getopt.h>
 #include <string.h>
 #include <limits.h>
@@ -83,3 +118,4 @@ int CMD_Next(arg_t *out)
 
 	return out->type;
 }
+#endif

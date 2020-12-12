@@ -16,16 +16,16 @@ typedef  unsigned char  byte;
 #define  MAX_PATH       4096
 #define  MAX_LINEBUF    2048
 #define  MAX_BACKLOG    10
-#define  MAX_ARG_NUM    16
-#define  MAX_ARG_LEN    256
+#define  MAX_CFG_NUM    64
+#define  MAX_CFG_LEN    256
 #define  MIN_ROW_NUM    14
 #define  MIN_COL_NUM    24
 #define  MAX_TTYPE      48
 #define  DEFAULT_PORT   23
 
-#define  CFG_FILE       "/etc/barkeeper.cfg"
-#define  LOG_FILE       "/var/log/barkeeper.log"
-#define  VAR_DIR        "/var/lib/barkeeper"
+#define  CONFPATH       "/etc/barkeeper.cfg"
+#define  LOGPATH        "/var/log/barkeeper.log"
+#define  VARDIR         "/var/lib/barkeeper"
 
 #define  BIT(n)         (1UL << (n))
 #define  UNUSED(sym)    ((void)(sym))
@@ -66,7 +66,6 @@ void     _Memcheck(void);
 // Common submodule headers - see the respective files for
 // details about interface and implementation.
 
-#include "common/config.h"
 #include "common/errors.h"
 #include "common/params.h"
 #include "common/socket.h"
