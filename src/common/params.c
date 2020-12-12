@@ -1,6 +1,10 @@
 #include "common.h"
 #include "params.h"
 
+#include <getopt.h>
+#include <string.h>
+#include <limits.h>
+
 static int     varnum, index;
 static cvar_t  varbuf[MAX_CFG_NUM];
 
@@ -23,12 +27,67 @@ int CFG_ParseFile(const char *path)
 
 int CFG_ParseArgs(int argc, char **argv)
 {
-	for (size_t i = 0; i < NUM_VARDEFS; i++)
-		Info("%s", vardefs[i].key);
+	struct option opts[NUM_VARDEFS + 1];
+	char optstr[NUM_VARDEFS * 2 + 1];
+	struct option * opt;
+	const cvar_t * def;
+	int n, i = 0;
+	int m, j = 0;
+	long num;
 
-	// TODO
-	UNUSED(argc);
-	UNUSED(argv);
+	if (argc == 0)
+		return 0;
+
+	if (argc > MAX_CFG_NUM) {
+		Warning(E_ARGNUM);
+		argc = MAX_CFG_NUM;
+	}
+
+	index  = 0;
+	opterr = 0;
+	opt = opts;
+	def = vardefs;
+
+	memset(opts, 0, sizeof(opts));
+	for (n = 0; n < NUM_VARDEFS; n++) {
+		opt->name     = def->key;
+		opt->val      = def->argchar;
+		opt->has_arg  = no_argument;
+		opt->flag     = NULL;
+
+		optstr[i++] = opt->val;
+		if (def->type != T_VAR_BOOL) {
+			opt->has_arg = required_argument;
+			optstr[i++] = ':';
+		}
+
+		opt++;
+		def++;
+	}
+
+	optstr[i] = '\0';
+	do { // Parse command-line arguments from vardefs
+		m = getopt_long(argc, argv, optstr, opts, &j);
+		if (m == '?' || m == ':')
+			Error(E_ARGVAL);
+
+		for (n = 0; n < NUM_VARDEFS; n++) {
+			if (vardefs[n].argchar != m)
+				continue;
+
+			if (vardefs[n].type == T_VAR_NUM) {
+				num = strtol(optarg, NULL, 0);
+				if (num <= 0 || num > INT_MAX)
+					Error(E_NOTNUM);
+				Info("%s = %d", vardefs[n].key, num);
+			} else if (vardefs[n].type == T_VAR_STR) {
+				Info("%s = %s", vardefs[n].key, optarg);
+			} else {
+				Info("%s = true", vardefs[n].key);
+			}
+		}
+	} while (m >= 0);
+
 	return 0;
 }
 
@@ -46,88 +105,3 @@ int CFG_Next(cvar_t *out)
 
 	return out->type;
 }
-
-#if 0
-#include <getopt.h>
-#include <string.h>
-#include <limits.h>
-
-static int   argnum, index;
-static arg_t argbuf[MAX_ARG_NUM];
-
-int CMD_Init(int argc, char **argv)
-{
-	arg_t *head;
-	int c, i = 0;
-	long num;
-
-	static const char opstr[] = "dkvhf:p:";
-	static const struct option opts[] = {
-		{"daemon",   no_argument,        0,  'd'},
-		{"kill",     no_argument,        0,  'k'},
-		{"verbose",  no_argument,        0,  'v'},
-		{"help",     no_argument,        0,  'h'},
-		{"file",     required_argument,  0,  'f'},
-		{"port",     required_argument,  0,  'p'},
-		{0,          0,                  0,   0 }};
-
-	if (argc > MAX_ARG_NUM)
-		Error(E_ARGNUM);
-
-	index  = 0;
-	opterr = 0;
-
-	while ((c = getopt_long(argc, argv, opstr, opts, &i)) >= 0) {
-		head = &argbuf[argnum++];
-		switch (c) {
-		case 'd':  head->type = T_ARG_DAEMON;   break;
-		case 'k':  head->type = T_ARG_KILL;     break;
-		case 'v':  head->type = T_ARG_VERBOSE;  break;
-		case 'h':  head->type = T_ARG_HELP;     break;
-		case -1 :  head->type = T_ARG_NONE;     return 0;
-
-		case 'f':
-		case 'p': // T_ARG_FILE || T_ARG_PORT
-			if ((optarg == NULL) // required value
-			|| ((strlen(optarg) >= MAX_ARG_LEN)))
-				return -1;
-
-			head->type = (c == 'f') ? T_ARG_FILE :
-			             (c == 'p') ? T_ARG_PORT : 0;
-
-			if (head->type == T_ARG_FILE)
-				strcpy(head->as.str, optarg);
-
-			if (head->type == T_ARG_PORT) {
-				num = strtol(optarg, NULL, 0);
-				if (num > 0 && num <= INT_MAX)
-					head->as.num = num;
-				else
-					Error(E_NOTNUM);
-			}
-			break;
-		default:
-		case ':':
-		case '?': // invalid
-			return -1;
-		}
-	}
-
-	return 0;
-}
-
-int CMD_Next(arg_t *out)
-{
-	arg_t *head;
-
-	if (index >= argnum) {
-		out->type = T_ARG_NONE;
-		return out->type;
-	}
-
-	head = &argbuf[index++];
-	*out = *head; // memcpy
-
-	return out->type;
-}
-#endif
