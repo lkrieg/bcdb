@@ -8,7 +8,10 @@
 static int     varnum, index;
 static cvar_t  varbuf[MAX_CFG_NUM];
 
+#define NUM_OPTDEFS (NUM_CVAR_IDS)
 #define NUM_VARDEFS (NUM_CVAR_IDS - 1)
+#define MAX_ARGSTR  (NUM_VARDEFS * 2 + 1)
+
 static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
 	{T_CFG_KILL,    T_VAR_BOOL, 'k', "kill",    {0}, {.bol = false}},
@@ -17,57 +20,48 @@ static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_FILE,    T_VAR_STR,  'f', "file",    {0}, {.str = NULL}},
 	{T_CFG_PORT,    T_VAR_NUM,  'p', "port",    {0}, {.num = 23}}};
 
-int CFG_ParseFile(const char *path)
+void CFG_ParseFile(const char *path)
 {
-	// TODO
 	UNUSED(path);
-	UNUSED(vardefs);
-	return 0;
 }
 
-int CFG_ParseArgs(int argc, char **argv)
+void CFG_ParseArgs(int argc, char **argv)
 {
-	struct option opts[NUM_VARDEFS + 1];
-	char optstr[NUM_VARDEFS * 2 + 1];
-	struct option * opt;
+	char argstr[MAX_ARGSTR];
+	struct option opts[NUM_OPTDEFS];
+	struct option *opt;
 	const cvar_t * def;
-	int n, i = 0;
-	int m, j = 0;
+	int n, m, i, j;
 	long num;
 
 	if (argc == 0)
-		return 0;
+		return;
 
-	if (argc > MAX_CFG_NUM) {
-		Warning(E_ARGNUM);
-		argc = MAX_CFG_NUM;
-	}
-
-	index  = 0;
-	opterr = 0;
 	opt = opts;
 	def = vardefs;
-
+	opterr = m = i = j = 0;
 	memset(opts, 0, sizeof(opts));
+
+	// Translate vardefs to options
 	for (n = 0; n < NUM_VARDEFS; n++) {
 		opt->name     = def->key;
 		opt->val      = def->argchar;
 		opt->has_arg  = no_argument;
 		opt->flag     = NULL;
 
-		optstr[i++] = opt->val;
+		argstr[i++] = opt->val;
 		if (def->type != T_VAR_BOOL) {
 			opt->has_arg = required_argument;
-			optstr[i++] = ':';
+			argstr[i++] = ':';
 		}
 
 		opt++;
 		def++;
 	}
 
-	optstr[i] = '\0';
-	do { // Parse command-line arguments from vardefs
-		m = getopt_long(argc, argv, optstr, opts, &j);
+	argstr[i] = '\0';
+	while (m >= 0) { // Parse command-line arguments
+		m = getopt_long(argc, argv, argstr, opts, &j);
 		if (m == '?' || m == ':')
 			Error(E_ARGVAL);
 
@@ -75,20 +69,21 @@ int CFG_ParseArgs(int argc, char **argv)
 			if (vardefs[n].argchar != m)
 				continue;
 
-			if (vardefs[n].type == T_VAR_NUM) {
+			switch (vardefs[n].type) {
+			case T_VAR_NUM:
 				num = strtol(optarg, NULL, 0);
 				if (num <= 0 || num > INT_MAX)
 					Error(E_NOTNUM);
-				Info("%s = %d", vardefs[n].key, num);
-			} else if (vardefs[n].type == T_VAR_STR) {
-				Info("%s = %s", vardefs[n].key, optarg);
-			} else {
-				Info("%s = true", vardefs[n].key);
+				break;
+			case T_VAR_STR:
+				// optarg
+				break;
+			case T_VAR_BOOL:
+				// true
+				break;
 			}
 		}
-	} while (m >= 0);
-
-	return 0;
+	}
 }
 
 int CFG_Next(cvar_t *out)
