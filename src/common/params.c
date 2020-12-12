@@ -3,6 +3,7 @@
 
 #include <getopt.h>
 #include <string.h>
+#include <limits.h>
 
 static int   argnum, index;
 static arg_t argbuf[MAX_ARG_NUM];
@@ -11,7 +12,7 @@ int CMD_Init(int argc, char **argv)
 {
 	arg_t *head;
 	int c, i = 0;
-	int num;
+	long num;
 
 	static const char opstr[] = "dkvhf:p:";
 	static const struct option opts[] = {
@@ -49,7 +50,7 @@ int CMD_Init(int argc, char **argv)
 		           if (head->type == T_ARG_PORT) {
 				errno = 0; // convert port to numeric
 				num = strtol(head->str, NULL, 0);
-				if (num <= 0 || errno == ERANGE)
+				if (num <= 0 || num > INT_MAX)
 					Error(E_NOTNUM ": '%s'", head->str);
 				head->num = num;
 			   }
