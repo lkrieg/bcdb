@@ -2,8 +2,8 @@
 
 // General settings
 static bool do_fork;
-static char *file;
-static int port;
+static char *  file;
+static int     port;
 
 static void  Usage(void);
 static void  Configure(int argc, char **argv);

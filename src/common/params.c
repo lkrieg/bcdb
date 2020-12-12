@@ -4,10 +4,19 @@
 static int     varnum, index;
 static cvar_t  varbuf[MAX_CFG_NUM];
 
+static const cvar_t vardefs[] = { // Config file and command-line options
+	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
+	{T_CFG_KILL,    T_VAR_BOOL, 'k', "kill",    {0}, {.bol = false}},
+	{T_CFG_VERBOSE, T_VAR_BOOL, 'v', "verbose", {0}, {.bol = false}},
+	{T_CFG_HELP,    T_VAR_BOOL, 'h', "help",    {0}, {.bol = false}},
+	{T_CFG_FILE,    T_VAR_STR,  'f', "file",    {0}, {.str = NULL}},
+	{T_CFG_PORT,    T_VAR_NUM,  'p', "port",    {0}, {.num = 0}}};
+
 int CFG_ParseFile(const char *path)
 {
 	// TODO
 	UNUSED(path);
+	UNUSED(vardefs);
 	return 0;
 }
 

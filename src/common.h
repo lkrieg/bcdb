@@ -16,6 +16,7 @@ typedef  unsigned char  byte;
 #define  MAX_PATH       4096
 #define  MAX_LINEBUF    2048
 #define  MAX_BACKLOG    10
+#define  MAX_CFG_KEY    16
 #define  MAX_CFG_NUM    64
 #define  MAX_CFG_LEN    256
 #define  MIN_ROW_NUM    14
