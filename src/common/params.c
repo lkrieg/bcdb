@@ -210,16 +210,19 @@ static void Store(int id, const char *val, int len)
 
 static int ReadKey(char **buf, char **key)
 {
-	int spaces = 0;
-	char *head, c;
-	char *tail;
-	int len;
+	char *head, *tail;
+	int len, spaces = 0;
+	char c;
 
-	head = *buf;
-	tail = head;
-	c = *tail;
+	head  = *buf;
+	tail  = head;
 
-	do {
+	for (;;) {
+		c = *tail++;
+
+		if (c == '=')
+			break;
+
 		if (c <= ' ')
 			spaces++;
 
@@ -230,14 +233,14 @@ static int ReadKey(char **buf, char **key)
 		// Illegal whitespace
 		if (spaces && (c > ' '))
 			Error(E_SPACES);
+	}
 
-	} while ((c = *tail++) != '=');
 	len = tail - head - spaces - 1;
-	*buf = tail;
-	*key = head;
-
 	if (len >= MAX_CFG_KEY)
 		return 0;
+
+	*buf = tail;
+	*key = head;
 
 	return len;
 }
