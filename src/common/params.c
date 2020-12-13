@@ -196,27 +196,20 @@ static int GetFile(const char *path, char *out)
 
 static int GetOpts(const struct option *opts, const char *argstr)
 {
-	cvar_t *out;
-	int m = 0;
-	int j = 0;
-	int n;
+	int opt, j, n;
 
 	opterr = 0;
-	while (m >= 0) {
-		m = getopt_long(vargc, vargv, argstr, opts, &j);
-		if (m == '?' || m == ':')
+	opt = j = 0;
+	while (opt >= 0) {
+		opt = getopt_long(vargc, vargv, argstr, opts, &j);
+		if (opt == '?' || opt == ':')
 			return -1;
 
 		for (n = 0; n < NUM_VARDEFS; n++) {
-			if (vardefs[n].argchar != m)
+			if (vardefs[n].argchar != opt)
 				continue;
 
-			out = &varbuf[varnum++];
-			if (varnum >= MAX_CFG_NUM)
-				Error(E_ARGNUM);
-
-			*out = vardefs[n];
-			switch (out->type) {
+			switch (vardefs[n].type) {
 			case T_VAR_NUM:
 			case T_VAR_STR:
 				Store(n, optarg, strlen(optarg));
@@ -243,7 +236,7 @@ static void Store(int id, const char *val, int len)
 	strncpy(out->val, val, len);
 	out->val[len] = '\0';
 
-	Info("Parsed config value %s='%s'",
+	Verbose("Parsed config value %s='%s'",
 	        out->key, out->val);
 
 	switch (out->type) {
