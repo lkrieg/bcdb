@@ -5,9 +5,9 @@
 
 typedef struct cvar_s cvar_t;
 
-void  CFG_ParseFile(const char *path);
-void  CFG_ParseArgs(int argc, char **argv);
-int   CFG_Next(cvar_t *out);
+int  CFG_ParseFile(const char *path);
+int  CFG_ParseArgs(int argc, char **argv);
+int  CFG_Next(cvar_t *out);
 
 // Access macros with type checking in DEBUG mode
 #define CNUM(cvar)   (_C_AS((cvar), NUM),  cvar.as.num)

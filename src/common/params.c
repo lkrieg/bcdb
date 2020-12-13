@@ -18,9 +18,12 @@ static cvar_t   varbuf[MAX_CFG_NUM];
 static int      vargc;
 static char **  vargv;
 
-static int   GetFile(const char *path, char *out);
-static int   GetOpts(const struct option *opts, const char *argstr);
-static void  Store(int id, const char *val, int len);
+static int    GetFile(const char *path, char *out);
+static int    GetOpts(const struct option *opts, const char *argstr);
+static void   Store(int id, const char *val, int len);
+static int    ReadKey(char **buf, char **key);
+static int    ReadVal(char **buf, char **val);
+static int    SkipWhitespace(char **buf);
 
 static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
@@ -30,94 +33,44 @@ static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_FILE,    T_VAR_STR,  'f', "file",    {0}, {.str = NULL}},
 	{T_CFG_PORT,    T_VAR_NUM,  'p', "port",    {0}, {.num = 0}}};
 
-void CFG_ParseFile(const char *path)
+int CFG_ParseFile(const char *path)
 {
 	char buf[MAX_FILEBUF];
-	char *tail, *head = buf;
-	int len, klen, vlen;
-	int spaces, n;
+	char *head = buf;
+	char *key, *val;
+	int id, len;
 	bool found;
 
-	// TODO: Split into multiple functions
-	// TODO: Clean up and write unit-tests
-
-	if ((len = GetFile(path, buf)) < 0) {
-		Warning(E_NOCONF " '%s'", path);
-		return;
+	if (GetFile(path, buf) < 0) {
+		Warning(E_NOREAD " '%s'", path);
+		return -1;
 	}
 
-	while (*head != '\0') {
-		if (*head <= ' ') {
-			head++;
-			continue;
-		}
-
-		if (*head == '#') {
-			while ((*head != '\0')
-			   && ((*head != '\n')))
-				head++;
-			continue;
-		}
-
-		spaces = 0;
-		tail = head;
-		while (*tail != '=') {
-			if (*tail <= ' ')
-				spaces++;
-
-			// Expect OP_ASSIGN
-			if ((*tail == '#')
-			|| ((*tail == '\0'))
-			|| ((*tail == '\n')))
-				Error(E_EXPECT " '='");
-
-			// Non-trailing whitespace
-			if (spaces && *tail > ' ')
-				Error(E_SPACES);
-
-			tail++;
-		}
+	while (SkipWhitespace(&head)) {
+		if (!ReadKey(&head, &key))
+			Error(E_GETKEY);
 
 		found = false;
-		klen = tail - head - spaces;
-		if (klen >= MAX_CFG_KEY)
-			Error(E_KEYLEN);
-
-		for (n = 0; n < NUM_VARDEFS; n++) {
-			if (!strncmp(vardefs[n].key, head, klen)) {
+		for (id = 0; id < NUM_VARDEFS; id++) {
+			if (!strcmp(vardefs[id].key, key)) {
 				found = true;
 				break;
 			}
 		}
 
-		if (!found) // Invalid key name
-			Error(E_CFGKEY ": '%.*s'", klen, head);
+		if (!found) // No matching vardef
+			Error(E_GETKEY": '%s'", key);
 
-		head = tail + 1;
-		while (*head && *head <= ' ') {
-			if (*head == '\n')
-				break;
-			head++;
-		}
+		if ((len = ReadVal(&head, &val)) < 1)
+			Error(E_GETVAL);
 
-		tail = head;
-		while ((*tail > ' ')
-		   && ((*tail != '#')))
-			tail++;
-
-		vlen = tail - head;
-
-		if (vlen == 0)
-			Error(E_NOVAL);
-		if (vlen >= MAX_CFG_VAL)
-			Error(E_VALLEN);
-
-		Store(n, head, vlen);
-		head = tail;
+		Store(id, val, len);
 	}
+
+	return 0;
 }
 
-void CFG_ParseArgs(int argc, char **argv)
+int CFG_ParseArgs(int argc, char **argv)
 {
 	char argstr[MAX_ARGSTR];
 	struct option opts[NUM_OPTDEFS];
@@ -126,7 +79,7 @@ void CFG_ParseArgs(int argc, char **argv)
 	int n, i;
 
 	if (argc < 2)
-		return;
+		return 0;
 
 	vargc  = argc;
 	vargv  = argv;
@@ -154,6 +107,8 @@ void CFG_ParseArgs(int argc, char **argv)
 	argstr[i] = '\0';
 	if (GetOpts(opts, argstr) < 0)
 		Error(E_ARGVAL);
+
+	return 0;
 }
 
 int CFG_Next(cvar_t *out)
@@ -257,4 +212,88 @@ static void Store(int id, const char *val, int len)
 		else
 			Error(E_NOBOOL ": '%s'", out->val);
 	}
+}
+
+static int ReadKey(char **buf, char **key)
+{
+	// TODO
+	UNUSED(buf);
+	UNUSED(key);
+	return 0;
+#if 0
+	spaces = 0;
+	tail = head;
+	while (*tail != '=') {
+		if (*tail <= ' ')
+			spaces++;
+
+		// Expect OP_ASSIGN
+		if ((*tail == '#')
+		|| ((*tail == '\0'))
+		|| ((*tail == '\n')))
+			Error(E_EXPECT " '='");
+
+		// Non-trailing whitespace
+		if (spaces && *tail > ' ')
+			Error(E_SPACES);
+
+		tail++;
+	}
+
+	found = false;
+	klen = tail - head - spaces;
+	if (klen >= MAX_CFG_KEY)
+		Error(E_KEYLEN);
+#endif
+}
+
+static int ReadVal(char **buf, char **val)
+{
+	// TODO
+	UNUSED(buf);
+	UNUSED(val);
+	return 0;
+#if 0
+	head = tail + 1;
+	while (*head && *head <= ' ') {
+		if (*head == '\n')
+			break;
+		head++;
+	}
+
+	tail = head;
+	while ((*tail > ' ')
+	   && ((*tail != '#')))
+		tail++;
+
+	vlen = tail - head;
+
+	if (vlen == 0)
+		Error(E_NOVAL);
+	if (vlen >= MAX_CFG_VAL)
+		Error(E_VALLEN);
+
+	Store(n, head, vlen);
+	head = tail;
+#endif
+}
+
+static int SkipWhitespace(char **buf)
+{
+	// TODO
+	UNUSED(buf);
+	return 0;
+#if 0
+	if (*head <= ' ') {
+		head++;
+		continue;
+	}
+
+	if (*head == '#') {
+		while ((*head != '\0')
+		   && ((*head != '\n')))
+			head++;
+		continue;
+	}
+#endif
 }
