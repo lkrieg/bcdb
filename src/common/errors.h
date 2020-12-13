@@ -2,12 +2,10 @@
 #define ERRORS_H
 
 #define E_ASSERT  "Assertion failure"
-
 #define E_NOMEM   "Memory allocation failure"
 #define E_FSIZE   "File size is too large"
 #define E_EXPECT  "Expected character"
 #define E_NOCONF  "Unable to open config file"
-
 #define E_SPACES  "Invalid whitespace detected"
 #define E_CFGKEY  "Invalid configuration key"
 #define E_CFGVAL  "Invalid configuration value"
