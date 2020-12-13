@@ -229,7 +229,7 @@ static void Store(int id, const char *val, int len)
 	case T_VAR_NUM: // Numeric
 		out->as.num = strtol(out->val, NULL, 0);
 		if (out->as.num <= 0 || out->as.num > INT_MAX)
-			Error(E_NOTNUM);
+			Error(E_NOTNUM ": '%s'", out->val);
 		break;
 	case T_VAR_STR: // Textual
 		out->as.str = out->val;
