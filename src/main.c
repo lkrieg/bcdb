@@ -36,8 +36,11 @@ static void Configure(int argc, char **argv)
 	port = DEFAULT_PORT;
 	file = DEFAULT_FILE;
 
-	CFG_ParseFile(CONFPATH);
-	CFG_ParseArgs(argc, argv);
+	if (CFG_ParseFile(CONFPATH) < 0)
+		Error(E_GETCFG " '%s'", CONFPATH);
+
+	if (CFG_ParseArgs(argc, argv) < 0)
+		Error(E_GETARG);
 
 	while (CFG_Next(&cvar)) {
 		switch (cvar.id) {
@@ -120,9 +123,6 @@ int main(int argc, char **argv)
 		if (!do_restart && !do_fork)
 			return 0;
 	}
-
-	// TODO: Is daemon active?
-	// Begin normal execution
 
 	return Run();
 }

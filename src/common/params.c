@@ -21,7 +21,7 @@ static char **  vargv;
 static int    GetCvar(const char *key, int len);
 static int    GetFile(const char *path, char *out);
 static int    GetArgs(const struct option *opts, const char *argstr);
-static void   Store(int id, const char *val, int len);
+static int    Store(int id, const char *val, int len);
 static int    ReadKey(char **buf, char **key);
 static int    ReadVal(char **buf, char **val);
 static int    SkipWhitespace(char **buf);
@@ -44,21 +44,30 @@ int CFG_ParseFile(const char *path)
 
 	Assert(path != NULL);
 
-	if (GetFile(path, buf) < 0)
-		Error(E_NOREAD " '%s'", path);
+	if (GetFile(path, buf) < 0) {
+		Warning(E_NOREAD " '%s'", path);
+		return -1;
+	}
 
 	// TODO: Report FILE and LINENO
 	while (SkipWhitespace(&head)) {
-		if ((len = ReadKey(&head, &key)) < 1)
-			Error(E_GETKEY);
+		if ((len = ReadKey(&head, &key)) < 1) {
+			Warning(E_GETKEY);
+			return -2;
+		}
 
-		if ((id = GetCvar(key, len)) < 0)
-			Error(E_GETKEY ": '%.*s'", len, key);
+		if ((id = GetCvar(key, len)) < 0) {
+			Warning(E_GETKEY ": '%.*s'", len, key);
+			return -3;
+		}
 
-		if ((len = ReadVal(&head, &val)) < 1)
-			Error(E_GETVAL);
+		if ((len = ReadVal(&head, &val)) < 1) {
+			Warning(E_GETVAL);
+			return -4;
+		}
 
-		Store(id, val, len);
+		if (Store(id, val, len) < 0)
+			return -5;
 	}
 
 	return 0;
@@ -99,8 +108,10 @@ int CFG_ParseArgs(int argc, char **argv)
 	}
 
 	argstr[i] = '\0';
-	if (GetArgs(opts, argstr) < 0)
-		Error(E_ARGVAL);
+	if (GetArgs(opts, argstr) < 0) {
+		Warning(E_ARGVAL);
+		return -1;
+	}
 
 	return 0;
 }
@@ -158,7 +169,7 @@ static int GetFile(const char *path, char *out)
 	do {
 		if ((total == MAX_FILEBUF)
 		|| ((n = read(fd, out + total, MAX_FILEBUF - total)) < 0))
-			return -1;
+			return -2;
 
 		total += n;
 	} while (n);
@@ -183,7 +194,7 @@ static int GetArgs(const struct option *opts, const char *argstr)
 		if (opt == '?' || opt == ':')
 			return -1;
 
-		// TODO: This should use GetCvar()
+		// TODO: Should use GetCvar() here
 		for (id = 0; id < NUM_VARDEFS; id++) {
 			if (vardefs[id].argchar != opt)
 				continue;
@@ -191,11 +202,13 @@ static int GetArgs(const struct option *opts, const char *argstr)
 			switch (vardefs[id].type) {
 			case T_VAR_NUM:
 			case T_VAR_STR:
-				Store(id, optarg, strlen(optarg));
+				if (Store(id, optarg, strlen(optarg)) < 0)
+					return -2;
 				break;
 			default:
 			case T_VAR_BOOL:
-				Store(id, "true", 4);
+				if (Store(id, "true", 4) < 0)
+					return -2;
 			}
 		}
 	}
@@ -203,7 +216,7 @@ static int GetArgs(const struct option *opts, const char *argstr)
 	return 0;
 }
 
-static void Store(int id, const char *val, int len)
+static int Store(int id, const char *val, int len)
 {
 	cvar_t *out;
 
@@ -211,38 +224,49 @@ static void Store(int id, const char *val, int len)
 	Assert(id < NUM_VARDEFS);
 	Assert(val != NULL);
 
-	if (len > MAX_CFG_VAL)
-		Error(E_CFGLEN);
+	if (len > MAX_CFG_VAL) {
+		Warning(E_CFGLEN);
+		return -1;
+	}
 
-	if (varnum > MAX_CFG_NUM)
-		Error(E_CFGNUM);
+	if (varnum > MAX_CFG_NUM) {
+		Warning(E_CFGNUM);
+		return -2;
+	}
 
 	out = &varbuf[varnum++];
 	*out = vardefs[id]; // Memcpy
 	strncpy(out->val, val, len);
 	out->val[len] = '\0';
 
-	Verbose("Parsed config value %s='%s'",
-	        out->key, out->val);
-
 	switch (out->type) {
 	case T_VAR_NUM: // Numeric
 		out->as.num = strtol(out->val, NULL, 0);
-		if (out->as.num <= 0 || out->as.num > INT_MAX)
-			Error(E_NOTNUM ": '%s'", out->val);
+		if (out->as.num <= 0 || out->as.num > INT_MAX) {
+			Warning(E_NOTNUM ": '%s'", out->val);
+			return -3;
+		}
 		break;
 	case T_VAR_STR: // Textual
 		out->as.str = out->val;
+		if (strlen(out->val) == 0) {
+			Warning(E_NOTSTR);
+			return -3;
+		}
 		break;
 	default:
 	case T_VAR_BOOL: // Boolean
-		if (!strcmp("true", out->val))
+		if (!strcmp("true", out->val)) {
 			out->as.bol = true;
-		else if (!strcmp("false", out->val))
+		} else if (!strcmp("false", out->val)) {
 			out->as.bol = false;
-		else
-			Error(E_NOBOOL ": '%s'", out->val);
+		} else {
+			Warning(E_NOTBOL ": '%s'", out->val);
+			return -3;
+		}
 	}
+
+	return 0;
 }
 
 static int ReadKey(char **buf, char **key)
@@ -265,17 +289,21 @@ static int ReadKey(char **buf, char **key)
 			spaces++;
 
 		if ((c == '#') // Need OP_ASSIGN
-		|| ((c == '\0') || (c == '\n')))
-			Error(E_EXPECT " '='");
+		|| ((c == '\0') || (c == '\n'))) {
+			Warning(E_EXPECT " '='");
+			return -1;
+		}
 
 		// Illegal whitespace
-		if (spaces && (c > ' '))
-			Error(E_SPACES);
+		if (spaces && (c > ' ')) {
+			Warning(E_SPACES);
+			return -2;
+		}
 	}
 
 	len = tail - head - spaces - 1;
-	if (len >= MAX_CFG_KEY)
-		return 0;
+	if (!len || len >= MAX_CFG_KEY)
+		return -3;
 
 	*buf = tail;
 	*key = head;
@@ -314,8 +342,10 @@ static int ReadVal(char **buf, char **val)
 	}
 
 	len = tail - head;
-	if (len > MAX_CFG_VAL)
-		return 0;
+	if (!len || len > MAX_CFG_VAL) {
+		Warning(E_CFGLEN " '%.*s'", len, head);
+		return -1;
+	}
 
 	*buf = tail;
 	*val = head;
@@ -332,16 +362,18 @@ static int SkipWhitespace(char **buf)
 	while (*head != '\0') {
 		if (*head <= ' ') {
 			head++;
-		} else if (*head == '#') {
+			continue;
+		}
+
+		if (*head == '#') {
 			while (*head != '\n') {
 				if (*head == '\0')
 					break;
 				head++;
 			}
 			continue;
-		} else {
-			break;
 		}
+		break;
 	}
 
 	*buf = head;
