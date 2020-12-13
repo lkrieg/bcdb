@@ -180,8 +180,9 @@ static int GetFile(const char *path, char *out)
 
 static int GetArgs(const struct option *opts, const char *argstr)
 {
+	int id = 0;
 	int opt = 0;
-	int n, id = 0;
+	int len, n;
 
 	Assert(opts != NULL);
 	Assert(argstr && *argstr);
@@ -194,6 +195,7 @@ static int GetArgs(const struct option *opts, const char *argstr)
 			return -1;
 		}
 
+		// Could propably use GetCvar() here
 		for (id = 0; id < NUM_VARDEFS; id++) {
 			if (vardefs[id].argchar != opt)
 				continue;
@@ -201,7 +203,8 @@ static int GetArgs(const struct option *opts, const char *argstr)
 			switch (vardefs[id].type) {
 			case T_VAR_NUM:
 			case T_VAR_STR:
-				if (Store(id, optarg, strlen(optarg)) < 0)
+				len = strlen(optarg);
+				if (Store(id, optarg, len) < 0)
 					return -2;
 				break;
 			default:
