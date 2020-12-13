@@ -32,14 +32,94 @@ static const cvar_t vardefs[NUM_VARDEFS] = {
 void CFG_ParseFile(const char *path)
 {
 	char buf[MAX_FILEBUF];
+	char *tail, *head = buf;
+	int len, klen, vlen;
+	int spaces, n;
+	bool found;
+	cvar_t *out;
 
-	// TODO: Parse config file for option keys
-	// defined above and write values to varbuf
-	// Print("%s\n", buf);
-
-	if (GetFile(path, buf) < 0) {
+	// TODO: Split into multiple functions
+	// TODO: Clean up and write unit-tests
+	if ((len = GetFile(path, buf)) < 0) {
 		Warning(E_NOCONF " '%s'", path);
 		return;
+	}
+
+	for (;;) { // Read line
+
+		if (*head == '\0')
+			return;
+
+		if (*head <= ' ') {
+			head++;
+			continue;
+		}
+
+		if (*head == '#') {
+			while ((*head != '\0')
+			   && ((*head != '\n')))
+				head++; // Skip
+			continue;
+		}
+
+		spaces = 0;
+		tail = head;
+		while (*tail != '=') {
+			if (*tail <= ' ')
+				spaces++;
+
+			// Trailing whitespace only
+			if (spaces && *tail > ' ')
+				Error(E_SPACES);
+
+			// Expect OP_ASSIGN
+			if ((*tail == '\0')
+			|| ((*tail == '\n')))
+				Error(E_EXPECT " '='");
+			tail++;
+		}
+
+		klen = tail - head - spaces;
+		if (klen >= MAX_CFG_KEY)
+			Error(E_KEYLEN);
+
+		for (n = 0; n < NUM_VARDEFS; n++) {
+			if (!strncmp(vardefs[n].key, head, klen)) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) // Invalid configuration key name
+			Error(E_CFGKEY ": '%.*s'", klen, head);
+
+		spaces = 0;
+		head = tail + 1;
+		while (*head && *head <= ' ')
+			head++;
+
+		tail = head;
+		while (*tail > ' ')
+			tail++;
+
+		vlen = tail - head;
+		if (vlen == 0)
+			Error(E_NOVAL);
+		if (vlen >= MAX_CFG_VAL)
+			Error(E_VALLEN);
+
+		out = &varbuf[varnum++];
+		if (varnum >= MAX_CFG_NUM)
+			Error(E_ARGNUM);
+
+		*out = vardefs[n]; // Memcpy
+		strncpy(out->val, head, vlen);
+		out->val[vlen] = '\0';
+		head = tail;
+
+		// TODO: Convert to correct cvar type
+		Info("Parsed config value %s='%s'",
+		        out->key, out->val);
 	}
 }
 
@@ -117,7 +197,7 @@ static int GetFile(const char *path, char *out)
 	out[total] = '\0';
 	close(fd);
 
-	return 0;
+	return total;
 }
 
 static int GetOpts(const struct option *opts, const char *argstr)
@@ -159,6 +239,9 @@ static int GetOpts(const struct option *opts, const char *argstr)
 				out->as.bol = true;
 				break;
 			}
+
+			Info("Parsed argument value %s='%s'",
+			     out->key, out->val);
 		}
 	}
 
