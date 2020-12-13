@@ -1,0 +1,51 @@
+BARKEEPER(8)                System Manager's Manual               BARKEEPER(8)
+
+NAME
+       barkeeper - barcode database
+
+SYNOPSIS
+       barkeeper [ -d | -k | -r | -v | -h ] [ -f filename ] [ -p port ]
+
+DESCRIPTION
+       barcode  database  with  both Telnet and HTTP/S interface.  It displays
+       real-time updates from connected scanners in the web browser.
+
+OPTIONS
+       -d, --daemon
+              Run in daemon mode.
+
+       -k, --kill
+              Stop active daemon.
+
+       -r, --restart
+              Restart active daemon. Shorthand for -kill --daemon.
+
+       -f, --file filename
+              Load additional barcode data from CSV file. Can  be  done  while
+              the daemon is running in the background.
+
+       -p, --port port
+              Set telnet port. This option has priority over settings found in
+              /etc/barkeeper.cfg.
+
+       -v, --verbose
+              Output verbose log messages.
+
+       -h, --help
+              Print help text.
+
+FILES
+       /etc/barkeeper.cfg
+              System wide configuration file. See README for details.
+
+       /var/log/barkeeper.log
+              Console output generated while running in daemon mode.
+
+       /var/lib/barkeeper/
+              Variable state information like the local database.
+
+BUGS
+       No known bugs.
+
+AUTHOR
+       Leon Krieg <info@madcow.dev>
