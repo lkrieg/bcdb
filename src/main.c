@@ -20,7 +20,7 @@ static void Usage(void)
 	"                                                                   \n"
 	"  -d, --daemon   run in daemon mode                                \n"
 	"  -k, --kill     stop active daemon                                \n"
-	"  -r, --restart  restart active daemon                             \n"
+	"  -r, --restart  restart active daemon, same as --kill --daemon    \n"
 	"  -f, --file     load additional barcode data, can be done while   \n"
 	"                 the daemon process is running in the background   \n"
 	"  -p, --port     set telnet port, this option has priority over    \n"
@@ -62,10 +62,8 @@ static void Configure(int argc, char **argv)
 		// -r, --restart
 		case T_CFG_RESTART:
 			do_restart = CBOOL(cvar);
-			if (CBOOL(cvar) == true) {
+			if (CBOOL(cvar) == true)
 				do_fork = true;
-				do_kill = true;
-			}
 			break;
 
 		// -f, --file
@@ -117,12 +115,9 @@ int main(int argc, char **argv)
 	Configure(argc, argv);
 	Verbose("Log level set to verbose");
 
-	if (do_kill) {
-		if (do_restart)
-			Info("Restarting daemon...");
-
+	if (do_restart || do_kill) {
 		Shutdown();
-		if (!do_restart)
+		if (!do_restart && !do_fork)
 			return 0;
 	}
 
