@@ -40,6 +40,8 @@ int CFG_ParseFile(const char *path)
 	char *key, *val;
 	int id, len;
 
+	Assert(path != NULL);
+
 	if (GetFile(path, buf) < 0)
 		Error(E_NOREAD " '%s'", path);
 
@@ -177,10 +179,14 @@ static void Store(int id, const char *val, int len)
 {
 	cvar_t *out;
 
-	out = &varbuf[varnum++];
-	if (varnum >= MAX_CFG_NUM)
+	Assert(id >= 0);
+	Assert(id < NUM_VARDEFS);
+	Assert(val != NULL);
+
+	if (varnum > MAX_CFG_NUM)
 		Error(E_ARGNUM);
 
+	out = &varbuf[varnum++];
 	*out = vardefs[id]; // Memcpy
 	strncpy(out->val, val, len);
 	out->val[len] = '\0';
@@ -210,12 +216,13 @@ static void Store(int id, const char *val, int len)
 
 static int ReadKey(char **buf, char **key)
 {
-	char *head, *tail;
+	char *head = *buf;
+	char *tail = head;
 	int len, spaces = 0;
 	char c;
 
-	head  = *buf;
-	tail  = head;
+	Assert(buf && *buf);
+	Assert(key != NULL);
 
 	for (;;) {
 		c = *tail++;
@@ -247,38 +254,49 @@ static int ReadKey(char **buf, char **key)
 
 static int ReadVal(char **buf, char **val)
 {
-	// TODO
-	UNUSED(buf);
-	UNUSED(val);
-	return 0;
-#if 0
-	head = tail + 1;
-	while (*head && *head <= ' ') {
-		if (*head == '\n')
+	char *head = *buf;
+	char *tail = head;
+	int len;
+	char c;
+
+	Assert(buf && *buf);
+	Assert(val != NULL);
+
+	for (;;) {
+		c = *head++;
+
+		if (c == '\0')
 			break;
-		head++;
+
+		if (c <= ' ')
+			continue;
+
+		head--;
+		tail = head;
+		while (*tail > ' ') {
+			if (*tail == '#')
+				break;
+			tail++;
+		}
+
+		break;
 	}
 
-	tail = head;
-	while ((*tail > ' ')
-	   && ((*tail != '#')))
-		tail++;
+	len = tail - head;
+	if (len > MAX_CFG_VAL)
+		return 0;
 
-	vlen = tail - head;
+	*buf = tail;
+	*val = head;
 
-	if (vlen == 0)
-		Error(E_NOVAL);
-	if (vlen >= MAX_CFG_VAL)
-		Error(E_VALLEN);
-
-	Store(n, head, vlen);
-	head = tail;
-#endif
+	return len;
 }
 
 static int SkipWhitespace(char **buf)
 {
 	char *head = *buf;
+
+	Assert(buf && *buf);
 
 	while (*head != '\0') {
 		if (*head <= ' ') {
