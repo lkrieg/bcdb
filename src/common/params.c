@@ -18,7 +18,7 @@ static cvar_t   varbuf[MAX_CFG_NUM];
 static int      vargc;
 static char **  vargv;
 
-static void GetOpts(struct option *opts, char *argstr);
+static void GetOpts(const struct option *opts, const char *argstr);
 static int  GetFile(const char *path, char *out);
 
 static const cvar_t vardefs[NUM_VARDEFS] = {
@@ -95,7 +95,7 @@ int CFG_Next(cvar_t *out)
 	return out->type;
 }
 
-static void GetOpts(struct option *opts, char *argstr)
+static void GetOpts(const struct option *opts, const char *argstr)
 {
 	cvar_t *out;
 	int m = 0;
