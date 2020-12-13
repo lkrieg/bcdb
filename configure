@@ -59,7 +59,6 @@ main()
 	define "HAVE_PTHREAD"  "${use_pthread}"
 	define "HAVE_ZLIB"     "${use_zlib}"
 
-	printf "[CFG] Configuration successfull.\n"
 	return 0
 }
 
