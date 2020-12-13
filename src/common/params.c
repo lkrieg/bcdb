@@ -191,7 +191,7 @@ static int GetArgs(const struct option *opts, const char *argstr)
 	while (opt >= 0) {
 		opt = getopt_long(vargc, vargv, argstr, opts, &n);
 		if (opt == '?' || opt == ':') {
-			Warning(E_ARGVAL);
+			Warning(E_NOVAL);
 			return -1;
 		}
 
@@ -356,8 +356,8 @@ static int Store(int id, const char *val, int len)
 	case T_VAR_NUM: // Numeric value
 		out->as.num = strtol(out->val, NULL, 0);
 		if (out->as.num <= 0 || out->as.num > INT_MAX) {
-			Warning(E_NOTNUM " for %s option: '%s'",
-			        out->key, out->val);
+			Warning(E_NOTNUM " '%s' for %s",
+			        out->val, out->key);
 			return -3;
 		}
 		break;
@@ -365,8 +365,8 @@ static int Store(int id, const char *val, int len)
 		out->as.str = out->val;
 		if ((strlen(out->val) == 0)
 		|| ((out->val[0] == '-'))) {
-			Warning(E_NOTSTR " for %s option: '%s'",
-			       out->key, out->val);
+			Warning(E_NOTSTR " '%s' for %s",
+			       out->val, out->key);
 			return -3;
 		}
 		break;
@@ -377,8 +377,8 @@ static int Store(int id, const char *val, int len)
 		} else if (!strcmp("false", out->val)) {
 			out->as.bol = false;
 		} else {
-			Warning(E_NOTBOL " for %s option: '%s'",
-			        out->key, out->val);
+			Warning(E_NOTBOL " '%s' for %s",
+			        out->val, out->key);
 			return -3;
 		}
 	}
