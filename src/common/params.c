@@ -1,10 +1,10 @@
 #include "common.h"
 #include "params.h"
 
-#include <getopt.h>
 #include <string.h>
 #include <limits.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -18,9 +18,9 @@ static cvar_t   varbuf[MAX_CFG_NUM];
 static int      vargc;
 static char **  vargv;
 
-static int GetFile(const char *path, char *out);
-static int GetOpts(const struct option *opts, const char *argstr);
-static void Store(int id, const char *val, int len);
+static int   GetFile(const char *path, char *out);
+static int   GetOpts(const struct option *opts, const char *argstr);
+static void  Store(int id, const char *val, int len);
 
 static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
