@@ -18,8 +18,9 @@ static cvar_t   varbuf[MAX_CFG_NUM];
 static int      vargc;
 static char **  vargv;
 
+static int    GetCvar(const char *key, int len);
 static int    GetFile(const char *path, char *out);
-static int    GetOpts(const struct option *opts, const char *argstr);
+static int    GetArgs(const struct option *opts, const char *argstr);
 static void   Store(int id, const char *val, int len);
 static int    ReadKey(char **buf, char **key);
 static int    ReadVal(char **buf, char **val);
@@ -45,16 +46,12 @@ int CFG_ParseFile(const char *path)
 	if (GetFile(path, buf) < 0)
 		Error(E_NOREAD " '%s'", path);
 
+	// TODO: Report FILE and LINENO
 	while (SkipWhitespace(&head)) {
 		if ((len = ReadKey(&head, &key)) < 1)
 			Error(E_GETKEY);
 
-		for (id = 0; id < NUM_VARDEFS; id++) {
-			if (!strncmp(vardefs[id].key, key, len))
-				break; // Matching vardef
-		}
-
-		if (id >= NUM_VARDEFS)
+		if ((id = GetCvar(key, len)) < 0)
 			Error(E_GETKEY ": '%.*s'", len, key);
 
 		if ((len = ReadVal(&head, &val)) < 1)
@@ -101,7 +98,7 @@ int CFG_ParseArgs(int argc, char **argv)
 	}
 
 	argstr[i] = '\0';
-	if (GetOpts(opts, argstr) < 0)
+	if (GetArgs(opts, argstr) < 0)
 		Error(E_ARGVAL);
 
 	return 0;
@@ -112,8 +109,8 @@ int CFG_Next(cvar_t *out)
 	cvar_t *head;
 
 	Assert(out != NULL);
-	out->type = T_CFG_END;
 
+	out->type = T_CFG_END;
 	if (index < varnum) {
 		head = &varbuf[index++];
 		*out = *head; // memcpy
@@ -122,12 +119,38 @@ int CFG_Next(cvar_t *out)
 	return out->type;
 }
 
+static int GetCvar(const char *key, int len)
+{
+	int id;
+	bool found;
+
+	Assert(key != NULL);
+
+	if (len == 0)
+		return -1;
+
+	// Using hashtables here would be overkill
+	// since the number of vardefs stays manageable
+	// and at worst only effects the startup time
+
+	found = false;
+	for (id = 0; id < NUM_VARDEFS; id++) {
+		if (!strncmp(vardefs[id].key, key, len)) {
+			found = true; // Matching vardef
+			break;
+		}
+	}
+
+	return (found) ? id : -1;
+}
+
 static int GetFile(const char *path, char *out)
 {
 	int fd, n;
-	int total;
+	int total = 0;
 
-	total = 0;
+	Assert(path != NULL);
+	Assert(out != NULL);
 
 	if ((fd = open(path, O_RDONLY)) < 0)
 		return -1;
@@ -145,29 +168,33 @@ static int GetFile(const char *path, char *out)
 	return total;
 }
 
-static int GetOpts(const struct option *opts, const char *argstr)
+static int GetArgs(const struct option *opts, const char *argstr)
 {
-	int opt, j, n;
+	int opt = 0;
+	int n, id = 0;
+
+	Assert(opts != NULL);
+	Assert(argstr && *argstr);
 
 	opterr = 0;
-	opt = j = 0;
 	while (opt >= 0) {
-		opt = getopt_long(vargc, vargv, argstr, opts, &j);
+		opt = getopt_long(vargc, vargv, argstr, opts, &n);
 		if (opt == '?' || opt == ':')
 			return -1;
 
-		for (n = 0; n < NUM_VARDEFS; n++) {
-			if (vardefs[n].argchar != opt)
+		// TODO: This should use GetCvar()
+		for (id = 0; id < NUM_VARDEFS; id++) {
+			if (vardefs[id].argchar != opt)
 				continue;
 
-			switch (vardefs[n].type) {
+			switch (vardefs[id].type) {
 			case T_VAR_NUM:
 			case T_VAR_STR:
-				Store(n, optarg, strlen(optarg));
+				Store(id, optarg, strlen(optarg));
 				break;
 			default:
 			case T_VAR_BOOL:
-				Store(n, "true", 4);
+				Store(id, "true", 4);
 			}
 		}
 	}
@@ -183,8 +210,11 @@ static void Store(int id, const char *val, int len)
 	Assert(id < NUM_VARDEFS);
 	Assert(val != NULL);
 
+	if (len > MAX_CFG_VAL)
+		Error(E_CFGLEN);
+
 	if (varnum > MAX_CFG_NUM)
-		Error(E_ARGNUM);
+		Error(E_CFGNUM);
 
 	out = &varbuf[varnum++];
 	*out = vardefs[id]; // Memcpy
