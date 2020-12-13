@@ -18,6 +18,7 @@
 #define E_KEYLEN  "Configuration key too long"
 #define E_VALLEN  "Configuration value too long"
 #define E_NOTNUM  "Invalid numeric value given"
+#define E_NOBOOL  "Invalid boolean value given"
 #define E_NOSOCK  "Unable to bind to socket"
 
 #endif // ERRORS_H

@@ -41,13 +41,13 @@ static void Configure(int argc, char **argv)
 		// -v, --verbose
 		// verbose = true
 		case T_CFG_VERBOSE:
-			verbose = true;
+			verbose = CBOOL(cvar);
 			break;
 
 		// -d, --daemon
 		// daemon = true
 		case T_CFG_DAEMON:
-			do_fork = true;
+			do_fork = CBOOL(cvar);
 			break;
 
 		// -f, --file

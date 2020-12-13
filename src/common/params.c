@@ -40,16 +40,13 @@ void CFG_ParseFile(const char *path)
 
 	// TODO: Split into multiple functions
 	// TODO: Clean up and write unit-tests
+
 	if ((len = GetFile(path, buf)) < 0) {
 		Warning(E_NOCONF " '%s'", path);
 		return;
 	}
 
-	for (;;) { // Read line
-
-		if (*head == '\0')
-			return;
-
+	while (*head != '\0') {
 		if (*head <= ' ') {
 			head++;
 			continue;
@@ -58,7 +55,7 @@ void CFG_ParseFile(const char *path)
 		if (*head == '#') {
 			while ((*head != '\0')
 			   && ((*head != '\n')))
-				head++; // Skip
+				head++;
 			continue;
 		}
 
@@ -99,7 +96,8 @@ void CFG_ParseFile(const char *path)
 			head++;
 
 		tail = head;
-		while (*tail > ' ')
+		while ((*tail > ' ')
+		   && ((*tail != '#')))
 			tail++;
 
 		vlen = tail - head;
@@ -117,9 +115,28 @@ void CFG_ParseFile(const char *path)
 		out->val[vlen] = '\0';
 		head = tail;
 
-		// TODO: Convert to correct cvar type
 		Info("Parsed config value %s='%s'",
 		        out->key, out->val);
+
+		switch (out->type) {
+		case T_VAR_NUM: // Numeric
+			out->as.num = strtol(out->val, NULL, 0);
+			if (out->as.num <= 0 || out->as.num > INT_MAX)
+				Error(E_NOTNUM);
+			break;
+		case T_VAR_STR: // Textual
+			out->as.str = out->val;
+			break;
+		default:
+		case T_VAR_BOOL: // Boolean
+			if (!strcmp("true", out->val))
+				out->as.bol = true;
+			else if (!strcmp("false", out->val))
+				out->as.bol = false;
+			else
+				Error(E_NOBOOL ": '%s'", out->val);
+			break;
+		}
 	}
 }
 
