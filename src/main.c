@@ -37,7 +37,7 @@ static void Configure(int argc, char **argv)
 	file = DEFAULT_FILE;
 
 	if (CFG_ParseFile(CONFPATH) < 0)
-		Error(E_GETCFG " '%s'", CONFPATH);
+		Error(E_GETCFG);
 
 	if (CFG_ParseArgs(argc, argv) < 0)
 		Error(E_GETARG);

@@ -27,7 +27,8 @@ static void Log(int level, const char *fmt, va_list arg)
 		level = T_LOG_NONE;
 
 	vsnprintf(msg, MAX_LINEBUF, fmt, arg);
-	printf("%s%s\n", prefixes[level], msg);
+	printf("%s%s%s\n", prefixes[level], msg,
+		(level == T_LOG_ERROR) ? ", aborting..." : "");
 
 	fflush(stdout);
 }
