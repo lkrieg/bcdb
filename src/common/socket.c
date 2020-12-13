@@ -3,7 +3,7 @@
 
 int NET_Init(int port)
 {
-	Info("Binding to port %d...", port);
+	Info("Binding to socket 0.0.0.0:%d...", port);
 
 	// TODO
 	return -1;
