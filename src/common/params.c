@@ -18,8 +18,8 @@ static cvar_t   varbuf[MAX_CFG_NUM];
 static int      vargc;
 static char **  vargv;
 
-static int GetOpts(const struct option *opts, const char *argstr);
 static int GetFile(const char *path, char *out);
+static int GetOpts(const struct option *opts, const char *argstr);
 
 static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
@@ -97,6 +97,29 @@ int CFG_Next(cvar_t *out)
 	return out->type;
 }
 
+static int GetFile(const char *path, char *out)
+{
+	int fd, n;
+	int total;
+
+	total = 0;
+
+	if ((fd = open(path, O_RDONLY)) < 0)
+		return -1;
+	do {
+		if ((total == MAX_FILEBUF)
+		|| ((n = read(fd, out + total, MAX_FILEBUF)) < 0))
+			return -1;
+
+		total += n;
+	} while (n);
+
+	out[total] = '\0';
+	close(fd);
+
+	return 0;
+}
+
 static int GetOpts(const struct option *opts, const char *argstr)
 {
 	cvar_t *out;
@@ -138,29 +161,6 @@ static int GetOpts(const struct option *opts, const char *argstr)
 			}
 		}
 	}
-
-	return 0;
-}
-
-static int GetFile(const char *path, char *out)
-{
-	int fd, n;
-	int total;
-
-	total = 0;
-
-	if ((fd = open(path, O_RDONLY)) < 0)
-		return -1;
-	do {
-		if ((total == MAX_FILEBUF)
-		|| ((n = read(fd, out + total, MAX_FILEBUF)) < 0))
-			return -1;
-
-		total += n;
-	} while (n);
-
-	out[total] = '\0';
-	close(fd);
 
 	return 0;
 }
