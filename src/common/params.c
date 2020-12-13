@@ -279,7 +279,6 @@ static int ReadVal(char **buf, char **val)
 static int SkipWhitespace(char **buf)
 {
 	char *head = *buf;
-	int len;
 
 	while (*head != '\0') {
 		if (*head <= ' ') {
@@ -296,8 +295,6 @@ static int SkipWhitespace(char **buf)
 		}
 	}
 
-	len = head - *buf;
 	*buf = head;
-
-	return len;
+	return (*head != '\0');
 }
