@@ -8,9 +8,9 @@ static void    Shutdown(void);
 
 static bool    do_fork;  // Daemon mode
 static bool    do_kill;  // Shutdown active
+static int     telport;  // External telnet port
+static int     webport;  // External http port
 static char *  file;     // Data file path
-static int     ptel;     // Telnet port
-static int     pweb;     // HTTP port
 
 static void Usage(void)
 {
@@ -33,9 +33,9 @@ static void Configure(int argc, char **argv)
 {
 	cvar_t cvar;
 
-	ptel = BASE_TEL_PORT;
-	pweb = BASE_WEB_PORT;
-	file = BASE_FILE;
+	telport  = BASE_TEL_PORT;
+	webport  = BASE_WEB_PORT;
+	file     = BASE_FILE;
 
 	if (CFG_ParseFile(CONFPATH) < 0)
 		Error(E_GETCFG);
@@ -64,13 +64,16 @@ static void Configure(int argc, char **argv)
 			do_kill = CBOOL(cvar);
 			break;
 
-		// -r, --restart
-		// restart = <cbool>
-		case T_CFG_RESTART:
-			if (CBOOL(cvar) == true) {
-				do_kill = true;
-				do_fork = true;
-			}
+		// -p, --port
+		// port = <cnum>
+		case T_CFG_PORT:
+			telport = CNUM(cvar);
+			break;
+
+		// -w, --http
+		// http = <cnum>
+		case T_CFG_HTTP:
+			webport = CNUM(cvar);
 			break;
 
 		// -f, --file
@@ -79,16 +82,13 @@ static void Configure(int argc, char **argv)
 			file = CSTR(cvar);
 			break;
 
-		// -p, --port
-		// port = <cnum>
-		case T_CFG_PORT:
-			ptel = CNUM(cvar);
-			break;
-
-		// -w, --http
-		// http = <cnum>
-		case T_CFG_HTTP:
-			pweb = CNUM(cvar);
+		// -r, --restart
+		// restart = <cbool>
+		case T_CFG_RESTART:
+			if (CBOOL(cvar) == true) {
+				do_kill = true;
+				do_fork = true;
+			}
 			break;
 
 		// -h, --help
@@ -108,7 +108,7 @@ static int Run(void)
 	if (file != NULL)
 		Import(file);
 
-	if (NET_Init(ptel, pweb) < 0)
+	if (NET_Init(telport, webport) < 0)
 		Error(E_NOSOCK);
 
 	return 0;
