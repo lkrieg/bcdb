@@ -12,24 +12,28 @@ DESCRIPTION
 
 OPTIONS
        -d, --daemon
-              Run in daemon mode.
+              Run process in background.
 
        -k, --kill
-              Stop active daemon.
+              Stop active background process.
 
        -r, --restart
-              Restart active daemon. Shorthand for -kill --daemon.
+              Restart active daemon. Same as -kill --daemon.
 
        -f, --file filename
-              Load additional barcode data from CSV file. Can  be  done  while
+              Import additional barcode data from CSV file. Can be done  while
               the daemon is running in the background.
 
        -p, --port port
-              Set telnet port. This option has priority over settings found in
-              /etc/barkeeper.cfg.
+              Set external telnet port. This option has priority over settings
+              found in /etc/barkeeper.cfg.
+
+       -w, --http port
+              Set external http port. This option has priority  over  settings
+              found in /etc/barkeeper.cfg.
 
        -v, --verbose
-              Output verbose log messages.
+              Enable verbose logging.
 
        -h, --help
               Print help text.
