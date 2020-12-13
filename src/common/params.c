@@ -20,6 +20,7 @@ static char **  vargv;
 
 static int GetFile(const char *path, char *out);
 static int GetOpts(const struct option *opts, const char *argstr);
+static void Store(int id, const char *val, int len);
 
 static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
@@ -36,7 +37,6 @@ void CFG_ParseFile(const char *path)
 	int len, klen, vlen;
 	int spaces, n;
 	bool found;
-	cvar_t *out;
 
 	// TODO: Split into multiple functions
 	// TODO: Clean up and write unit-tests
@@ -65,17 +65,19 @@ void CFG_ParseFile(const char *path)
 			if (*tail <= ' ')
 				spaces++;
 
-			// Trailing whitespace only
+			// Non-trailing whitespace
 			if (spaces && *tail > ' ')
 				Error(E_SPACES);
 
 			// Expect OP_ASSIGN
-			if ((*tail == '\0')
+			if ((*tail == '#')
+			|| ((*tail == '\0'))
 			|| ((*tail == '\n')))
 				Error(E_EXPECT " '='");
 			tail++;
 		}
 
+		found = false;
 		klen = tail - head - spaces;
 		if (klen >= MAX_CFG_KEY)
 			Error(E_KEYLEN);
@@ -87,10 +89,10 @@ void CFG_ParseFile(const char *path)
 			}
 		}
 
-		if (!found) // Invalid configuration key name
-			Error(E_CFGKEY ": '%.*s'", klen, head);
+		if (!found) // Invalid key name
+			Error(E_CFGKEY ": '%.*s'",
+			      klen, head);
 
-		spaces = 0;
 		head = tail + 1;
 		while (*head && *head <= ' ')
 			head++;
@@ -106,37 +108,8 @@ void CFG_ParseFile(const char *path)
 		if (vlen >= MAX_CFG_VAL)
 			Error(E_VALLEN);
 
-		out = &varbuf[varnum++];
-		if (varnum >= MAX_CFG_NUM)
-			Error(E_ARGNUM);
-
-		*out = vardefs[n]; // Memcpy
-		strncpy(out->val, head, vlen);
-		out->val[vlen] = '\0';
+		Store(n, head, vlen);
 		head = tail;
-
-		Info("Parsed config value %s='%s'",
-		        out->key, out->val);
-
-		switch (out->type) {
-		case T_VAR_NUM: // Numeric
-			out->as.num = strtol(out->val, NULL, 0);
-			if (out->as.num <= 0 || out->as.num > INT_MAX)
-				Error(E_NOTNUM);
-			break;
-		case T_VAR_STR: // Textual
-			out->as.str = out->val;
-			break;
-		default:
-		case T_VAR_BOOL: // Boolean
-			if (!strcmp("true", out->val))
-				out->as.bol = true;
-			else if (!strcmp("false", out->val))
-				out->as.bol = false;
-			else
-				Error(E_NOBOOL ": '%s'", out->val);
-			break;
-		}
 	}
 }
 
@@ -240,27 +213,51 @@ static int GetOpts(const struct option *opts, const char *argstr)
 
 			*out = vardefs[n];
 			switch (out->type) {
-			case T_VAR_NUM: // Numeric
-				strncpy(out->val, optarg, MAX_CFG_VAL);
-				out->as.num = strtol(out->val, NULL, 0);
-				if (out->as.num <= 0 || out->as.num > INT_MAX)
-					Error(E_NOTNUM);
-				break;
-			case T_VAR_STR: // Textual
-				strncpy(out->val, optarg, MAX_CFG_VAL);
-				out->as.str = out->val;
+			case T_VAR_NUM:
+			case T_VAR_STR:
+				Store(n, optarg, strlen(optarg));
 				break;
 			default:
-			case T_VAR_BOOL: // Boolean
-				strcpy(out->val, "true");
-				out->as.bol = true;
-				break;
+			case T_VAR_BOOL:
+				Store(n, "true", 4);
 			}
-
-			Info("Parsed argument value %s='%s'",
-			     out->key, out->val);
 		}
 	}
 
 	return 0;
+}
+
+static void Store(int id, const char *val, int len)
+{
+	cvar_t *out;
+
+	out = &varbuf[varnum++];
+	if (varnum >= MAX_CFG_NUM)
+		Error(E_ARGNUM);
+
+	*out = vardefs[id]; // Memcpy
+	strncpy(out->val, val, len);
+	out->val[len] = '\0';
+
+	Info("Parsed config value %s='%s'",
+	        out->key, out->val);
+
+	switch (out->type) {
+	case T_VAR_NUM: // Numeric
+		out->as.num = strtol(out->val, NULL, 0);
+		if (out->as.num <= 0 || out->as.num > INT_MAX)
+			Error(E_NOTNUM);
+		break;
+	case T_VAR_STR: // Textual
+		out->as.str = out->val;
+		break;
+	default:
+	case T_VAR_BOOL: // Boolean
+		if (!strcmp("true", out->val))
+			out->as.bol = true;
+		else if (!strcmp("false", out->val))
+			out->as.bol = false;
+		else
+			Error(E_NOBOOL ": '%s'", out->val);
+	}
 }
