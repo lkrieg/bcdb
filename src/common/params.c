@@ -205,7 +205,7 @@ static int GetFile(const char *path, char *out)
 		return -1;
 	do {
 		if ((total == MAX_FILEBUF)
-		|| ((n = read(fd, out + total, MAX_FILEBUF)) < 0))
+		|| ((n = read(fd, out + total, MAX_FILEBUF - total)) < 0))
 			return -1;
 
 		total += n;
