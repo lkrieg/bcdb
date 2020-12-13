@@ -31,6 +31,7 @@ static void Configure(int argc, char **argv)
 	cvar_t cvar;
 
 	port = DEFAULT_PORT;
+	file = DEFAULT_FILE;
 
 	CFG_ParseFile(CONFPATH);
 	CFG_ParseArgs(argc, argv);
