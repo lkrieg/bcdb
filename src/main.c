@@ -8,7 +8,6 @@ static void    Shutdown(void);
 
 static bool    do_fork;
 static bool    do_kill;
-static bool    do_restart;
 static char *  file;
 static int     port;
 
@@ -64,9 +63,10 @@ static void Configure(int argc, char **argv)
 
 		// -r, --restart
 		case T_CFG_RESTART:
-			do_restart = CBOOL(cvar);
-			if (CBOOL(cvar) == true)
+			if (CBOOL(cvar) == true) {
+				do_kill = true;
 				do_fork = true;
+			}
 			break;
 
 		// -f, --file
@@ -116,11 +116,11 @@ static void Shutdown(void)
 int main(int argc, char **argv)
 {
 	Configure(argc, argv);
-	Verbose("Log level set to verbose");
+	Verbose("Setting log level to verbose...");
 
-	if (do_restart || do_kill) {
+	if (do_kill) {
 		Shutdown();
-		if (!do_restart && !do_fork)
+		if (!do_fork)
 			return 0;
 	}
 
