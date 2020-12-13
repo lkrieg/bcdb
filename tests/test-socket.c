@@ -1,22 +1,22 @@
 #include "util.h"
 #include "common/socket.c"
 
-TEST_SETUP(Socket)
+TEST_SETUP(SOCKET)
 {
 
 }
 
-TEST_TEAR_DOWN(Socket)
+TEST_TEAR_DOWN(SOCKET)
 {
 
 }
 
-TEST(Socket, Does_stuff_that_sockets_should_do)
+TEST(SOCKET, Does_stuff_that_sockets_should_do)
 {
 	TEST_ASSERT(1);
 }
 
-TEST(Socket, Looks_and_smells_like_a_socket)
+TEST(SOCKET, Looks_and_smells_like_a_socket)
 {
 	TEST_ASSERT(1);
 }

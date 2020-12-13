@@ -1,22 +1,22 @@
 #include "util.h"
 #include "common/params.c"
 
-TEST_SETUP(Params)
+TEST_SETUP(PARAMS)
 {
 
 }
 
-TEST_TEAR_DOWN(Params)
+TEST_TEAR_DOWN(PARAMS)
 {
 
 }
 
-TEST(Params, Get_parsed_correctly)
+TEST(PARAMS, Parses_config_file_settings)
 {
 	TEST_ASSERT(1);
 }
 
-TEST(Params, Handle_long_path_names)
+TEST(PARAMS, Parses_command_line_options)
 {
 	TEST_ASSERT(1);
 }
