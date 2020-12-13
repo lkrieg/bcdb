@@ -73,6 +73,7 @@ void     _Memcheck(void);
 #include "common/params.h"
 #include "common/socket.h"
 #include "common/telnet.h"
+#include "common/webapi.h"
 
 extern bool verbose;
 
