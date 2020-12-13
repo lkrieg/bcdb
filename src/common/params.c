@@ -65,15 +65,16 @@ void CFG_ParseFile(const char *path)
 			if (*tail <= ' ')
 				spaces++;
 
-			// Non-trailing whitespace
-			if (spaces && *tail > ' ')
-				Error(E_SPACES);
-
 			// Expect OP_ASSIGN
 			if ((*tail == '#')
 			|| ((*tail == '\0'))
 			|| ((*tail == '\n')))
 				Error(E_EXPECT " '='");
+
+			// Non-trailing whitespace
+			if (spaces && *tail > ' ')
+				Error(E_SPACES);
+
 			tail++;
 		}
 
@@ -90,12 +91,14 @@ void CFG_ParseFile(const char *path)
 		}
 
 		if (!found) // Invalid key name
-			Error(E_CFGKEY ": '%.*s'",
-			      klen, head);
+			Error(E_CFGKEY ": '%.*s'", klen, head);
 
 		head = tail + 1;
-		while (*head && *head <= ' ')
+		while (*head && *head <= ' ') {
+			if (*head == '\n')
+				break;
 			head++;
+		}
 
 		tail = head;
 		while ((*tail > ' ')
@@ -103,6 +106,7 @@ void CFG_ParseFile(const char *path)
 			tail++;
 
 		vlen = tail - head;
+
 		if (vlen == 0)
 			Error(E_NOVAL);
 		if (vlen >= MAX_CFG_VAL)
