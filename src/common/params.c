@@ -18,8 +18,8 @@ static cvar_t   varbuf[MAX_CFG_NUM];
 static int      vargc;
 static char **  vargv;
 
-static void GetOpts(const struct option *opts, const char *argstr);
-static int  GetFile(const char *path, char *out);
+static int GetOpts(const struct option *opts, const char *argstr);
+static int GetFile(const char *path, char *out);
 
 static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
@@ -35,6 +35,7 @@ void CFG_ParseFile(const char *path)
 
 	// TODO: Parse config file for option keys
 	// defined above and write values to varbuf
+	// Print("%s\n", buf);
 
 	if (GetFile(path, buf) < 0) {
 		Warning(E_NOCONF " '%s'", path);
@@ -53,10 +54,10 @@ void CFG_ParseArgs(int argc, char **argv)
 	if (argc < 2)
 		return;
 
-	vargc = argc;
-	vargv = argv;
-	opt   = opts;
-	def   = vardefs;
+	vargc  = argc;
+	vargv  = argv;
+	opt    = opts;
+	def    = vardefs;
 
 	// Generate list of options
 	memset(opts, 0, sizeof(opts));
@@ -77,7 +78,8 @@ void CFG_ParseArgs(int argc, char **argv)
 	}
 
 	argstr[i] = '\0';
-	GetOpts(opts, argstr);
+	if (GetOpts(opts, argstr) < 0)
+		Error(E_ARGVAL);
 }
 
 int CFG_Next(cvar_t *out)
@@ -95,7 +97,7 @@ int CFG_Next(cvar_t *out)
 	return out->type;
 }
 
-static void GetOpts(const struct option *opts, const char *argstr)
+static int GetOpts(const struct option *opts, const char *argstr)
 {
 	cvar_t *out;
 	int m = 0;
@@ -106,7 +108,7 @@ static void GetOpts(const struct option *opts, const char *argstr)
 	while (m >= 0) {
 		m = getopt_long(vargc, vargv, argstr, opts, &j);
 		if (m == '?' || m == ':')
-			Error(E_ARGVAL);
+			return -1;
 
 		for (n = 0; n < NUM_VARDEFS; n++) {
 			if (vardefs[n].argchar != m)
@@ -136,17 +138,29 @@ static void GetOpts(const struct option *opts, const char *argstr)
 			}
 		}
 	}
+
+	return 0;
 }
 
 static int GetFile(const char *path, char *out)
 {
-	int fd;
+	int fd, n;
+	int total;
+
+	total = 0;
 
 	if ((fd = open(path, O_RDONLY)) < 0)
 		return -1;
+	do {
+		if ((total == MAX_FILEBUF)
+		|| ((n = read(fd, out + total, MAX_FILEBUF)) < 0))
+			return -1;
 
-	// TODO
-	UNUSED(fd);
-	UNUSED(out);
+		total += n;
+	} while (n);
+
+	out[total] = '\0';
+	close(fd);
+
 	return 0;
 }
