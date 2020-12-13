@@ -28,8 +28,9 @@ static int    SkipWhitespace(char **buf);
 
 static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
-	{T_CFG_KILL,    T_VAR_BOOL, 'k', "kill",    {0}, {.bol = false}},
 	{T_CFG_VERBOSE, T_VAR_BOOL, 'v', "verbose", {0}, {.bol = false}},
+	{T_CFG_RESTART, T_VAR_BOOL, 'r', "restart", {0}, {.bol = false}},
+	{T_CFG_KILL,    T_VAR_BOOL, 'k', "kill",    {0}, {.bol = false}},
 	{T_CFG_HELP,    T_VAR_BOOL, 'h', "help",    {0}, {.bol = false}},
 	{T_CFG_FILE,    T_VAR_STR,  'f', "file",    {0}, {.str = NULL}},
 	{T_CFG_PORT,    T_VAR_NUM,  'p', "port",    {0}, {.num = 0}}};

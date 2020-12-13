@@ -8,7 +8,7 @@ barkeeper \- barcode database
 
 .SH SYNOPSIS
 .B barkeeper
-.B [ -d | -k | -v | -h ] [ -f
+.B [ -d | -k | -r | -v | -h ] [ -f
 .I filename
 .B ] [ -p
 .I port
@@ -24,6 +24,9 @@ in the web browser.
 Run in daemon mode
 .IP "-k, --kill"
 Stop active daemon
+.IP "-r, --restart"
+Restart active daemon. Sorthand for running barkeeper
+--kill followed by barkeeper --daemon.
 .IP "-f, --file \fIfilename\fR"
 Load additional barcode data from CSV file. Can be done
 while the daemon is running in the background.
