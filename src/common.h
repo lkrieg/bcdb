@@ -26,7 +26,7 @@ typedef  unsigned char  byte;
 #define  DEFAULT_PORT   23
 #define  DEFAULT_FILE   NULL
 
-#define  CONFPATH       "/etc/barkeeper.cfg"
+#define  CONFPATH       "/etc/barkeeper.conf"
 #define  LOGPATH        "/var/log/barkeeper.log"
 #define  VARDIR         "/var/lib/barkeeper"
 

@@ -23,7 +23,7 @@ TMPDIR   = $(BINDIR)/.build
 TARGET   = $(BINDIR)/barkeeper
 CHECKS   = $(BINDIR)/unit-test
 
-CONFIG   = etc/barkeeper.cfg
+CONFIG   = etc/barkeeper.conf
 MANFILE  = doc/man/man8/barkeeper.8
 DOCPATH  = /usr/share/man/man8
 VARPATH  = /var/lib/barkeeper
@@ -70,8 +70,8 @@ $(TMPDIR)/%.d: %.c # DEPENDS
 install: $(TARGET) check-root install-docs
 	$(E) "[INSTALL] $(BINPATH)/barkeeper"
 	$(Q) $(INSTALL) -m 0755 $(TARGET) $(BINPATH)
-	$(E) "[INSTALL] $(ETCPATH)/barkeeper.cfg"
-	$(Q) $(INSTALL) -m 0644 $(CONFIG) $(ETCPATH)
+	$(E) "[INSTALL] $(ETCPATH)/barkeeper.conf"
+	$(Q) $(INSTALL) -m 0777 $(CONFIG) $(ETCPATH)
 	$(E) "[INSTALL] $(VARPATH)"
 	$(Q) $(INSTALL) -d $(VARPATH)
 
