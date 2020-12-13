@@ -13,8 +13,13 @@
 #define NUM_VARDEFS (NUM_CVAR_IDS - 1)
 #define MAX_ARGSTR  (NUM_VARDEFS * 2 + 1)
 
-static int     varnum, index;
-static cvar_t  varbuf[MAX_CFG_NUM];
+static int      varnum, index;
+static cvar_t   varbuf[MAX_CFG_NUM];
+static int      vargc;
+static char **  vargv;
+
+static void GetOpts(struct option *opts, char *argstr);
+static int  GetFile(const char *path, char *out);
 
 static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_DAEMON,  T_VAR_BOOL, 'd', "daemon",  {0}, {.bol = false}},
@@ -26,9 +31,12 @@ static const cvar_t vardefs[NUM_VARDEFS] = {
 
 void CFG_ParseFile(const char *path)
 {
-	int fd;
+	char buf[MAX_FILEBUF];
 
-	if ((fd = open(path, O_RDONLY)) < 0) {
+	// TODO: Parse config file for option keys
+	// defined above and write values to varbuf
+
+	if (GetFile(path, buf) < 0) {
 		Warning(E_NOCONF " '%s'", path);
 		return;
 	}
@@ -39,20 +47,20 @@ void CFG_ParseArgs(int argc, char **argv)
 	char argstr[MAX_ARGSTR];
 	struct option opts[NUM_OPTDEFS];
 	struct option *opt;
-	const cvar_t * def;
-	int n, m, i, j;
-	cvar_t *out;
+	const cvar_t *def;
+	int n, i;
 
-	if (argc == 0)
+	if (argc < 2)
 		return;
 
-	opt = opts;
-	def = vardefs;
-	opterr = m = i = j = 0;
-	memset(opts, 0, sizeof(opts));
+	vargc = argc;
+	vargv = argv;
+	opt   = opts;
+	def   = vardefs;
 
-	// Translate vardefs to options
-	for (n = 0; n < NUM_VARDEFS; n++) {
+	// Generate list of options
+	memset(opts, 0, sizeof(opts));
+	for (n = i = 0; n < NUM_VARDEFS; n++) {
 		opt->name     = def->key;
 		opt->val      = def->argchar;
 		opt->has_arg  = no_argument;
@@ -69,8 +77,34 @@ void CFG_ParseArgs(int argc, char **argv)
 	}
 
 	argstr[i] = '\0';
-	while (m >= 0) { // Parse command-line arguments
-		m = getopt_long(argc, argv, argstr, opts, &j);
+	GetOpts(opts, argstr);
+}
+
+int CFG_Next(cvar_t *out)
+{
+	cvar_t *head;
+
+	Assert(out != NULL);
+	out->type = T_CFG_END;
+
+	if (index < varnum) {
+		head = &varbuf[index++];
+		*out = *head; // memcpy
+	}
+
+	return out->type;
+}
+
+static void GetOpts(struct option *opts, char *argstr)
+{
+	cvar_t *out;
+	int m = 0;
+	int j = 0;
+	int n;
+
+	opterr = 0;
+	while (m >= 0) {
+		m = getopt_long(vargc, vargv, argstr, opts, &j);
 		if (m == '?' || m == ':')
 			Error(E_ARGVAL);
 
@@ -104,17 +138,15 @@ void CFG_ParseArgs(int argc, char **argv)
 	}
 }
 
-int CFG_Next(cvar_t *out)
+static int GetFile(const char *path, char *out)
 {
-	cvar_t *head;
+	int fd;
 
-	Assert(out != NULL);
-	out->type = T_CFG_END;
+	if ((fd = open(path, O_RDONLY)) < 0)
+		return -1;
 
-	if (index < varnum) {
-		head = &varbuf[index++];
-		*out = *head; // memcpy
-	}
-
-	return out->type;
+	// TODO
+	UNUSED(fd);
+	UNUSED(out);
+	return 0;
 }
