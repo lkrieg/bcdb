@@ -39,27 +39,21 @@ int CFG_ParseFile(const char *path)
 	char *head = buf;
 	char *key, *val;
 	int id, len;
-	bool found;
 
-	if (GetFile(path, buf) < 0) {
-		Warning(E_NOREAD " '%s'", path);
-		return -1;
-	}
+	if (GetFile(path, buf) < 0)
+		Error(E_NOREAD " '%s'", path);
 
 	while (SkipWhitespace(&head)) {
-		if (!ReadKey(&head, &key))
+		if ((len = ReadKey(&head, &key)) < 1)
 			Error(E_GETKEY);
 
-		found = false;
 		for (id = 0; id < NUM_VARDEFS; id++) {
-			if (!strcmp(vardefs[id].key, key)) {
-				found = true;
-				break;
-			}
+			if (!strncmp(vardefs[id].key, key, len))
+				break; // Matching vardef
 		}
 
-		if (!found) // No matching vardef
-			Error(E_GETKEY": '%s'", key);
+		if (id >= NUM_VARDEFS)
+			Error(E_GETKEY ": '%.*s'", len, key);
 
 		if ((len = ReadVal(&head, &val)) < 1)
 			Error(E_GETVAL);
@@ -216,35 +210,36 @@ static void Store(int id, const char *val, int len)
 
 static int ReadKey(char **buf, char **key)
 {
-	// TODO
-	UNUSED(buf);
-	UNUSED(key);
-	return 0;
-#if 0
-	spaces = 0;
+	int spaces = 0;
+	char *head, c;
+	char *tail;
+	int len;
+
+	head = *buf;
 	tail = head;
-	while (*tail != '=') {
-		if (*tail <= ' ')
+	c = *tail;
+
+	do {
+		if (c <= ' ')
 			spaces++;
 
-		// Expect OP_ASSIGN
-		if ((*tail == '#')
-		|| ((*tail == '\0'))
-		|| ((*tail == '\n')))
+		if ((c == '#') // Need OP_ASSIGN
+		|| ((c == '\0') || (c == '\n')))
 			Error(E_EXPECT " '='");
 
-		// Non-trailing whitespace
-		if (spaces && *tail > ' ')
+		// Illegal whitespace
+		if (spaces && (c > ' '))
 			Error(E_SPACES);
 
-		tail++;
-	}
+	} while ((c = *tail++) != '=');
+	len = tail - head - spaces - 1;
+	*buf = tail;
+	*key = head;
 
-	found = false;
-	klen = tail - head - spaces;
-	if (klen >= MAX_CFG_KEY)
-		Error(E_KEYLEN);
-#endif
+	if (len >= MAX_CFG_KEY)
+		return 0;
+
+	return len;
 }
 
 static int ReadVal(char **buf, char **val)
@@ -280,20 +275,26 @@ static int ReadVal(char **buf, char **val)
 
 static int SkipWhitespace(char **buf)
 {
-	// TODO
-	UNUSED(buf);
-	return 0;
-#if 0
-	if (*head <= ' ') {
-		head++;
-		continue;
+	char *head = *buf;
+	int len;
+
+	while (*head != '\0') {
+		if (*head <= ' ') {
+			head++;
+		} else if (*head == '#') {
+			while (*head != '\n') {
+				if (*head == '\0')
+					break;
+				head++;
+			}
+			continue;
+		} else {
+			break;
+		}
 	}
 
-	if (*head == '#') {
-		while ((*head != '\0')
-		   && ((*head != '\n')))
-			head++;
-		continue;
-	}
-#endif
+	len = head - *buf;
+	*buf = head;
+
+	return len;
 }
