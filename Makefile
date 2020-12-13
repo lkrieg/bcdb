@@ -38,16 +38,10 @@ TESTOBJ := $(TESTSRC:%.c=$(TMPDIR)/%.o)
 TESTDEP := $(TESTSRC:%.c=$(TMPDIR)/%.d)
 
 .PHONY: all
-all: $(TARGET)
-
-.PHONY: run
-run: $(TARGET)
-	$(E) "[RUN] $<"
-	$(Q) ./$<
+all: $(TARGET) $(CHECKS)
 
 .PHONY: check
 check: $(CHECKS)
-	$(E) "[RUN] $<"
 	$(Q) ./$<
 
 $(TARGET): $(OBJECTS) $(DEPENDS)
