@@ -17,8 +17,7 @@ change in the course of development when implementation details are more clear.
 ## Requirements
 
 Barkeeper runs on most POSIX-conforming systems and both IPv4 and IPv6 networks.
-Multi-threading is optionally supported through pthreads. The HTTP/S interface
-requires a webserver with CGI support like Apache or NGINX. While gcc is used by
+Multi-threading is optionally supported through pthreads. While gcc is used by
 default as both compiler and linker, other compilers like Clang should work too.
 Unit testing function registration requires gcc variables for section addresses.
 Windows support would require wrappers for socket and thread handling, which is
