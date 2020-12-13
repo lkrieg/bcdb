@@ -6,10 +6,11 @@ static void    Import(const char *filename);
 static int     Run(void);
 static void    Shutdown(void);
 
-static bool    do_fork;
-static bool    do_kill;
-static char *  file;
-static int     port;
+static bool    do_fork;  // Daemon mode
+static bool    do_kill;  // Shutdown active
+static char *  file;     // Data file path
+static int     ptel;     // Telnet port
+static int     pweb;     // HTTP port
 
 static void Usage(void)
 {
@@ -17,14 +18,14 @@ static void Usage(void)
 	"Usage: barkeeper [ -d | -k | -v | -h ] [ -f filename ] [ -p port ] \n"
 	"See 'man barkeeper' for more details about command-line options    \n"
 	"                                                                   \n"
-	"  -d, --daemon   run in daemon mode                                \n"
-	"  -k, --kill     stop active daemon                                \n"
+	"  -d, --daemon   run process in background                         \n"
+	"  -k, --kill     stop active background process                    \n"
 	"  -r, --restart  restart active daemon, same as --kill --daemon    \n"
-	"  -f, --file     load additional barcode data, can be done while   \n"
-	"                 the daemon process is running in the background   \n"
-	"  -p, --port     set telnet port, this option has priority over    \n"
-	"                 settings found in /etc/barkeeper.cfg              \n"
-	"  -v, --verbose  output verbose log messages                       \n"
+	"  -f, --file     import csv data from file, can be done while the  \n"
+	"                 daemon process is running in the background       \n"
+	"  -p, --port     set external telnet port                          \n"
+	"  -w, --http     set external http port                            \n"
+	"  -v, --verbose  enable verbose logging                            \n"
 	"  -h, --help     print this help text                              ");
 }
 
@@ -32,8 +33,9 @@ static void Configure(int argc, char **argv)
 {
 	cvar_t cvar;
 
-	port = DEFAULT_PORT;
-	file = DEFAULT_FILE;
+	ptel = BASE_TEL_PORT;
+	pweb = BASE_WEB_PORT;
+	file = BASE_FILE;
 
 	if (CFG_ParseFile(CONFPATH) < 0)
 		Error(E_GETCFG);
@@ -45,23 +47,25 @@ static void Configure(int argc, char **argv)
 		switch (cvar.id) {
 
 		// -v, --verbose
-		// verbose = true
+		// verbose = <cbool>
 		case T_CFG_VERBOSE:
 			verbose = CBOOL(cvar);
 			break;
 
 		// -d, --daemon
-		// daemon = true
+		// daemon = <cbool>
 		case T_CFG_DAEMON:
 			do_fork = CBOOL(cvar);
 			break;
 
 		// -k, --kill
+		// kill = <cbool>
 		case T_CFG_KILL:
 			do_kill = CBOOL(cvar);
 			break;
 
 		// -r, --restart
+		// restart = <cbool>
 		case T_CFG_RESTART:
 			if (CBOOL(cvar) == true) {
 				do_kill = true;
@@ -70,18 +74,25 @@ static void Configure(int argc, char **argv)
 			break;
 
 		// -f, --file
-		// file = foo.csv
+		// file = <cstr>
 		case T_CFG_FILE:
 			file = CSTR(cvar);
 			break;
 
 		// -p, --port
-		// port = 2323
+		// port = <cnum>
 		case T_CFG_PORT:
-			port = CNUM(cvar);
+			ptel = CNUM(cvar);
+			break;
+
+		// -w, --http
+		// http = <cnum>
+		case T_CFG_HTTP:
+			pweb = CNUM(cvar);
 			break;
 
 		// -h, --help
+		// help = <cbool>
 		case T_CFG_HELP:
 			Usage();
 			exit(0);
@@ -97,7 +108,7 @@ static int Run(void)
 	if (file != NULL)
 		Import(file);
 
-	if (NET_Init(port) < 0)
+	if (NET_Init(ptel, pweb) < 0)
 		Error(E_NOSOCK);
 
 	return 0;

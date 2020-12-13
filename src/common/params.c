@@ -33,7 +33,8 @@ static const cvar_t vardefs[NUM_VARDEFS] = {
 	{T_CFG_KILL,    T_VAR_BOOL, 'k', "kill",    {0}, {.bol = false}},
 	{T_CFG_HELP,    T_VAR_BOOL, 'h', "help",    {0}, {.bol = false}},
 	{T_CFG_FILE,    T_VAR_STR,  'f', "file",    {0}, {.str = NULL}},
-	{T_CFG_PORT,    T_VAR_NUM,  'p', "port",    {0}, {.num = 0}}};
+	{T_CFG_PORT,    T_VAR_NUM,  'p', "port",    {0}, {.num = 0}},
+	{T_CFG_HTTP,    T_VAR_NUM,  'w', "http",    {0}, {.num = 0}}};
 
 int CFG_ParseFile(const char *path)
 {

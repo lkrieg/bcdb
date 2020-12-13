@@ -23,8 +23,9 @@ typedef  unsigned char  byte;
 #define  MAX_TTYPE      48
 #define  MIN_ROWS       14
 #define  MIN_COLS       24
-#define  DEFAULT_PORT   23
-#define  DEFAULT_FILE   NULL
+#define  BASE_TEL_PORT  23
+#define  BASE_WEB_PORT  80
+#define  BASE_FILE      NULL
 
 #define  CONFPATH       "/etc/barkeeper.conf"
 #define  LOGPATH        "/var/log/barkeeper.log"

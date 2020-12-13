@@ -38,6 +38,7 @@ enum cvar_ids
 	T_CFG_HELP,
 	T_CFG_FILE,
 	T_CFG_PORT,
+	T_CFG_HTTP,
 
 	NUM_CVAR_IDS,
 	T_CFG_END = 0

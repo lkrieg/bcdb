@@ -21,19 +21,22 @@ in the web browser.
 
 .SH OPTIONS
 .IP "-d, --daemon"
-Run in daemon mode.
+Run process in background.
 .IP "-k, --kill"
-Stop active daemon.
+Stop active background process.
 .IP "-r, --restart"
-Restart active daemon. Shorthand for -kill --daemon.
+Restart active daemon. Same as -kill --daemon.
 .IP "-f, --file \fIfilename\fR"
-Load additional barcode data from CSV file. Can be done
-while the daemon is running in the background.
+Import additional barcode data from CSV file. Can be
+done while the daemon is running in the background.
 .IP "-p, --port \fIport\fR"
-Set telnet port. This option has priority over settings
+Set external telnet port. This option has priority over settings
+found in /etc/barkeeper.cfg.
+.IP "-w, --http \fIport\fR"
+Set external http port. This option has priority over settings
 found in /etc/barkeeper.cfg.
 .IP "-v, --verbose"
-Output verbose log messages.
+Enable verbose logging.
 .IP "-h, --help"
 Print help text.
 .SH FILES

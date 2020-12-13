@@ -1,9 +1,10 @@
 #include "common.h"
 #include "socket.h"
 
-int NET_Init(int port)
+int NET_Init(int tel, int web)
 {
-	Info("Binding to socket 0.0.0.0:%d...", port);
+	Info("Binding telnet to 0.0.0.0:%d...", tel);
+	Info("Binding webapi to 0.0.0.0:%d...", web);
 
 	// TODO
 	return -1;
