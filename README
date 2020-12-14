@@ -86,9 +86,6 @@ expected. Check for any failures and then install using these command:
     $ make check
     $ sudo make install
 
-TODO: Here should propably later be a paragraph about setting up the webserver,
-if we're not rolling our own. Which we propably should not?!
-
 ## Documentation
 
 The Barkeeper manpages can be generated from their source files in the doc/man/
