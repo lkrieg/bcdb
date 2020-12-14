@@ -71,7 +71,6 @@ int ForkProcess(void)
 	// with the intermediate process exiting after
 	// forking the grandchild. This has the effect of
 	// orphaning the grandchild process.
-	// TODO: Use syslog() interface
 
 	// First fork
 	pid = fork();
@@ -124,7 +123,6 @@ void KillProcess(void)
 		return;
 	}
 
-	// TODO: Wait for status change
 	Info("Shutting down daemon...");
 	kill(pid, SIGTERM);
 	while (access(PIDPATH, F_OK) == 0)
