@@ -15,7 +15,7 @@ static char *  file;     // Data file path
 static void Usage(void)
 {
 	Print( // Output usage information for command-line arguments
-	"Usage: barkeeper [ -d | -k | -v | -h ] [ -f filename ] [ -p port ] \n"
+	"Usage: [ -d | -k | -r | -v | -h ] [ -f filename ] [ -p | -w port ] \n"
 	"See 'man barkeeper' for more details about command-line options    \n"
 	"                                                                   \n"
 	"  -d, --daemon   run process in background                         \n"
@@ -122,12 +122,12 @@ static void Import(const char *filename)
 static void Shutdown(int signal)
 {
 	Info("Shutting down...");
-	UNUSED(signal);
 
-	if (do_fork)
+	if (GetActivePid())
 		SetPidLock(false);
 
 	exit(EXIT_SUCCESS);
+	UNUSED(signal);
 }
 
 int main(int argc, char **argv)
