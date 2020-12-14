@@ -31,7 +31,7 @@ void SetPidLock(bool locked)
 
 bool IsAlreadyActive(void)
 {
-	return false;
+	return true;
 }
 
 static void Log(int level, const char *fmt, va_list arg)
