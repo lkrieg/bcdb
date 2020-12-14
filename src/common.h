@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <signal.h>
 #include <errno.h>
 
 #include "config.h"
@@ -57,9 +58,12 @@ void     Verbose(const char *fmt, ...);
 void     Warning(const char *fmt, ...);
 void     Error(const char *fmt, ...);
 void     Print(const char *fmt, ...);
+
+int      GetActivePid(void);
 void     SetPidLock(bool locked);
-bool     IsAlreadyActive(void);
 bool     IsPrivileged(void);
+int      ForkProcess(void);
+void     KillProcess(void);
 
 // Internal helper functions - do not use these directly.
 // Use the macros without prefixed underscore instead.

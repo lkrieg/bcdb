@@ -28,6 +28,21 @@ enum log_levels
 static int GetPid(void);
 static int SetPid(bool active);
 
+int GetActivePid(void)
+{
+	int pid;
+
+	pid = GetPid();
+	if ((!pid) || (pid == getpid()))
+		return 0;
+
+	errno = 0; // PID inactive?
+	if (kill(pid, 0) && errno == ESRCH)
+		return 0;
+
+	return pid;
+}
+
 void SetPidLock(bool active)
 {
 	// Ensure that only one instance of the daemon is
@@ -40,24 +55,57 @@ void SetPidLock(bool active)
 		Error(E_SETPID);
 }
 
-bool IsAlreadyActive(void)
-{
-	int pid;
-
-	pid = GetPid();
-	if ((!pid) || (pid == getpid()))
-		return false;
-
-	errno = 0; // PID inactive?
-	if (kill(pid, 0) && errno == ESRCH)
-		return false;
-
-	return true;
-}
-
 bool IsPrivileged(void)
 {
 	return geteuid() == 0;
+}
+
+int ForkProcess(void)
+{
+	int pid;
+	int logfd;
+	int flags;
+
+	pid = fork();
+
+	if (pid < 0)
+		return -1;
+	if (pid != 0)
+		exit(0);
+
+	if ((setsid() < 0)
+	|| ((chdir("/") < 0)))
+		return -2;
+
+	umask(0);
+	close(STDIN_FILENO);
+	if (open("/dev/null", O_RDONLY) < 0)
+		return -3;
+
+	flags = O_RDWR | O_CREAT | O_APPEND;
+	logfd = open(LOGPATH, flags, 0644);
+
+	if (logfd < 0)
+		return -3;
+
+	dup2(logfd, STDOUT_FILENO);
+	dup2(logfd, STDERR_FILENO);
+	close(logfd);
+
+	return 0;
+}
+
+void KillProcess(void)
+{
+	int pid;
+
+	if ((pid = GetActivePid()) <= 0) {
+		Info("Daemon is inactive");
+		return;
+	}
+
+	Info("Shutting down daemon...");
+	kill(pid, SIGTERM);
 }
 
 static void Log(int level, const char *fmt, va_list arg)
@@ -197,8 +245,10 @@ static int SetPid(bool active)
 	FILE *fp;
 	int pid;
 
-	if (active == false)
-		return unlink(PIDPATH);
+	if (active == false) {
+		unlink(PIDPATH);
+		return 0;
+	}
 
 	fd = open(PIDPATH, O_RDWR | O_CREAT, 0644);
 

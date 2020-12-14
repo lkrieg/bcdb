@@ -3,8 +3,9 @@
 static void    Usage(void);
 static void    Configure(int argc, char **argv);
 static void    Import(const char *filename);
+static void    Shutdown(int signal);
 static int     Run(void);
-static void    Shutdown(void);
+
 
 static bool    do_fork;  // Run in daemon mode
 static bool    do_kill;  // Kill active daemons
@@ -102,13 +103,15 @@ static void Configure(int argc, char **argv)
 
 static int Run(void)
 {
-	Info("Running in %s mode...", (do_fork)
-	     ? "daemon" : "interactive");
+	if (file != NULL)
+		Import(file);
 
-	SetPidLock(true);
 	if (NET_Init(telport, webport) < 0)
-		Error(E_NOSOCK);
+		Warning(E_NOSOCK);
 
+	// TODO
+	Info("Waiting...");
+	while (1);
 	return 0;
 }
 
@@ -117,10 +120,15 @@ static void Import(const char *filename)
 	Info("Importing '%s'...", filename);
 }
 
-static void Shutdown(void)
+static void Shutdown(int signal)
 {
 	Info("Shutting down...");
-	SetPidLock(false);
+	UNUSED(signal);
+
+	if (do_fork)
+		SetPidLock(false);
+
+	exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char **argv)
@@ -132,19 +140,25 @@ int main(int argc, char **argv)
 		Error(E_NOROOT);
 
 	if (do_kill) {
-		Shutdown();
+		KillProcess();
 		if (!do_fork)
 			return 0;
 	}
 
-	if (IsAlreadyActive())
+	if (GetActivePid())
 		Error(E_ACTIVE);
 
 	// TODO: File import should be possible while
 	// the daemon is running in the background
 
-	if (file != NULL)
-		Import(file);
+	signal(SIGTERM, Shutdown);
+	Info("Running in %s mode...", (do_fork)
+	     ? "daemon" : "interactive");
 
+	if ((do_fork)
+	&& ((ForkProcess() < 0)))
+		Error(E_NOFORK);
+
+	SetPidLock(true);
 	return Run();
 }
