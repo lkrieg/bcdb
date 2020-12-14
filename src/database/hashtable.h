@@ -6,6 +6,7 @@ typedef struct table_s table_t;
 struct table_s
 {
 	int         hashsize;
+	int         capacity;
 	int         numentries;
 	entry_t **  entries;
 	entry_t  *  data;

@@ -2,40 +2,48 @@
 #include "database.h"
 #include "hashtable.h"
 #include <string.h>
+#include <limits.h>
 
 #define FNV_32_BASIS 0x811c9dc5
 #define FNV_32_PRIME 0x01000193
 
 static int Hash(const char *key)
 {
+	unsigned long hash;
+
 	Assert(key != NULL);
+	hash = FNV_32_BASIS;
 
-	UNUSED(key);
+	while (*key) {
+		hash ^= *key++;
+		hash *= FNV_32_PRIME;
+	}
 
-	return 0;
+	return hash % INT_MAX;
 }
 
 int Table_Init(table_t *tab, int hashsize)
 {
 	int n, ndat, nent;
 	entry_t ** entries;
-	entry_t *  data;
+	entry_t * data;
 
 	Assert(tab != NULL);
 
-	n    = hashsize;
-	ndat = n * sizeof(*data);
-	nent = n * sizeof(*entries);
+	n     = hashsize;
+	ndat  = n * sizeof(*data);
+	nent  = n * sizeof(*entries);
 
 	data     = Allocate(ndat);
 	entries  = Allocate(nent);
 
-	if (!data  || !entries)
-		return -1;
+	if (!data || !entries)
+		return -1; // Free?
 
 	memset(data, 0, ndat);
 
 	tab->hashsize    = n;
+	tab->capacity    = n;
 	tab->numentries  = 0;
 	tab->entries     = entries;
 	tab->data        = data;
@@ -50,9 +58,13 @@ long Table_Insert(table_t *tab, const entry_t *ent)
 	Assert(ent != NULL);
 	Assert(ent->key != NULL);
 
+	if (tab->numentries == tab->capacity) {
+		Verbose("Resizing hashtable...");
+		return -1; // TODO
+	}
+
 	hash = Hash(ent->key);
 
-	UNUSED(tab);
 	UNUSED(ent);
 	UNUSED(hash);
 

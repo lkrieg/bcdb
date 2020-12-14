@@ -218,8 +218,8 @@ void *_Allocate(int size)
 
 	ptr = malloc(size);
 
-	if (ptr == NULL)
-		Error(E_ENOMEM);
+	// if (ptr == NULL)
+	//	Error(E_ENOMEM);
 
 	return ptr;
 }
