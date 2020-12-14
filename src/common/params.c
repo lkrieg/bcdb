@@ -184,6 +184,7 @@ static int GetArgs(const struct option *opts, const char *argstr)
 	int id = 0;
 	int opt = 0;
 	int len, n;
+	const char *cp;
 
 	Assert(opts != NULL);
 	Assert(argstr && *argstr);
@@ -192,7 +193,9 @@ static int GetArgs(const struct option *opts, const char *argstr)
 	while (opt >= 0) {
 		opt = getopt_long(vargc, vargv, argstr, opts, &n);
 		if (opt == '?' || opt == ':') {
-			Warning(E_ENOVAL);
+			// Check if option is unknown or missing value
+			for (cp = argstr; *cp && *cp != optopt; cp++);
+			Warning((*cp && *cp != ':') ? E_OPTVAL : E_OPTYPE);
 			return -1;
 		}
 

@@ -21,6 +21,8 @@
 #define E_GETVAL  "Invalid config value"
 #define E_CFGNUM  "Too many config values"
 #define E_CFGLEN  "Config value too long"
+#define E_OPTYPE  "Unknown command-line option"
+#define E_OPTVAL  "Required argument value missing"
 #define E_ENOVAL  "Required config value missing"
 #define E_GETCFG  "Check the config file for errors"
 #define E_GETARG  "See --help for more information"
