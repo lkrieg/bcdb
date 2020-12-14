@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 
 bool verbose = false;
@@ -104,6 +105,7 @@ void KillProcess(void)
 		return;
 	}
 
+	// TODO: Wait for status change
 	Info("Shutting down daemon...");
 	kill(pid, SIGTERM);
 }
