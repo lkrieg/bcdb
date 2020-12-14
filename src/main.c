@@ -2,7 +2,6 @@
 
 static void    Usage(void);
 static void    Configure(int argc, char **argv);
-static void    Import(const char *filename);
 static void    Shutdown(int signal);
 static int     Run(void);
 
@@ -102,8 +101,6 @@ static void Configure(int argc, char **argv)
 
 static int Run(void)
 {
-	entry_t ent, out;
-
 	if (!IsPrivileged())
 		Error(E_NOROOT);
 
@@ -130,18 +127,15 @@ static int Run(void)
 	|| ((signal(SIGINT,  Shutdown) == SIG_ERR)))
 		Error(E_SIGNAL);
 
-	// Initialize
 	SetPidLock(true);
 	if (DAT_Init() < 0)
 		Error(E_DBINIT);
 
-	ent.value = 0xDEAD;
-	DAT_Insert("_FOO", &ent);
-	if (DAT_Query("_FOO", &out))
-		Info("0x%04X", out.value);
-
-	if (file != NULL)
-		Import(file);
+	// Import files
+	if (file != NULL) {
+		if (DAT_Import(file) < 0)
+			Error(E_IMPORT);
+	}
 
 	if (NET_Init(telport, webport) < 0)
 		Warning(E_NOSOCK);
@@ -151,11 +145,6 @@ static int Run(void)
 	for (;;) Sleep(1);
 
 	return 0;
-}
-
-static void Import(const char *filename)
-{
-	Info("Importing data file '%s'...", filename);
 }
 
 static void Shutdown(int signal)

@@ -4,6 +4,7 @@
 #define E_ASSERT  "Assertion failure"
 #define E_ENOMEM  "Memory allocation failure"
 #define E_DBINIT  "Cannot initialize database"
+#define E_IMPORT  "Cannot import data file"
 #define E_NOROOT  "Root privileges required"
 #define E_SIGNAL  "Cannot register signal handlers"
 #define E_FDOPEN  "Cannot get file handle"

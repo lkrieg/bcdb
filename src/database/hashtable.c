@@ -131,6 +131,6 @@ void Table_Serialize(const table_t *tab, int fd)
 
 void Table_Free(table_t *tab)
 {
-	// free(tab->data);
-	UNUSED(tab);
+	free(tab->data);
+	free(tab->entries);
 }

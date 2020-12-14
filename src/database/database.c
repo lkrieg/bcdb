@@ -3,6 +3,11 @@
 #include "filesystem.h"
 #include "hashtable.h"
 
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 static table_t tab;
 static bool active;
 
@@ -13,6 +18,24 @@ int DAT_Init(void)
 		return -1;
 
 	active = true;
+	return 0;
+}
+
+int DAT_Import(const char *path)
+{
+	int fd;
+
+	Assert(active);
+	Assert(path != NULL);
+
+	Info("Importing data file '%s'...", path);
+	fd = open(path, O_RDONLY);
+
+	if (fd < 0)
+		return -1;
+
+	// TODO
+	close(fd);
 	return 0;
 }
 
