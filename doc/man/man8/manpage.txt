@@ -1,36 +1,39 @@
-BARKEEPER(8)                System Manager's Manual               BARKEEPER(8)
+BARKEEPER(8)               System Manager's Manual              BARKEEPER(8)
 
 NAME
        barkeeper - barcode database
 
 SYNOPSIS
-       barkeeper [ -d | -k | -r | -v | -h ] [ -f filename ] [ -p port ]
+       barkeeper [ -d | -k | -r | -v | -h ] [ -f filename ] [ -p | -w port ]
 
 DESCRIPTION
-       barcode  database  with  both Telnet and HTTP/S interface.  It displays
+       barcode  database with both Telnet and HTTP/S interface.  It displays
        real-time updates from connected scanners in the web browser.
 
 OPTIONS
        -d, --daemon
-              Run process in background.
+              Run process in background.  Any  output  will  be  written  to
+              /var/log/barkeeper.log. See FILES section for more info.
 
        -k, --kill
-              Stop active background process.
+              Stop  active  background  process.  Ensures  that all database
+              state information is preserved for the next execution.
 
        -r, --restart
               Restart active daemon. Same as -kill --daemon.
 
        -f, --file filename
-              Import additional barcode data from CSV file. Can be done  while
-              the daemon is running in the background.
+              Import additional barcode data from  CSV  file.  Can  be  done
+              while  the  daemon  is running in the background.  This option
+              has priority over settings found in /etc/barkeeper.cfg.
 
        -p, --port port
-              Set external telnet port. This option has priority over settings
-              found in /etc/barkeeper.cfg.
+              Set external telnet server port. This option has priority over
+              settings found in /etc/barkeeper.cfg.
 
        -w, --http port
-              Set external http port. This option has priority  over  settings
-              found in /etc/barkeeper.cfg.
+              Set  external  http server port. This option has priority over
+              settings found in /etc/barkeeper.cfg.
 
        -v, --verbose
               Enable verbose logging.
@@ -46,7 +49,7 @@ FILES
               Console output generated while running in daemon mode.
 
        /var/run/barkeeper.pid
-              Active  daemons  store  their process id here. This allows us to
+              Active daemons store their process id here. This allows us  to
               stop and restart running barkeeper instances.
 
        /var/lib/barkeeper/

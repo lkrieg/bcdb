@@ -98,6 +98,53 @@ All previously mentioned RFCs, as well as the ANSI/ISO standard documents can be
 found in the doc/ directory. ISO sadly do not release plain text versions so
 you'll need a PDF viewer.
 
+## Options
+
+    -d, --daemon
+           Run process in background. Any output will be written to
+           /var/log/barkeeper.log. See section 'Files' for more info.
+
+    -k, --kill
+           Stop active background process. Ensures that all database
+           state information is preserved for the next execution.
+
+    -r, --restart
+           Restart active daemon. Same as -kill --daemon.
+
+    -f, --file filename
+           Import additional barcode data from CSV file. Can be done
+           while the daemon is running in the background. This option
+           has priority over settings found in /etc/barkeeper.cfg.
+
+    -p, --port port
+           Set external telnet server port. This option has priority over
+           settings found in /etc/barkeeper.cfg.
+
+    -w, --http port
+           Set external http server port. This option has priority over
+           settings found in /etc/barkeeper.cfg.
+
+    -v, --verbose
+           Enable verbose logging.
+
+    -h, --help
+           Print help text.
+
+## Files
+
+       /etc/barkeeper.cfg
+              System wide configuration file.
+
+       /var/log/barkeeper.log
+              Console output generated while running in daemon mode.
+
+       /var/run/barkeeper.pid
+              Active daemons store their process id here. This allows us  to
+              stop and restart running barkeeper instances.
+
+       /var/lib/barkeeper/
+              Variable state information like the local database.
+
 ## Why Telnet and not SSH?
 
 - Widest device support among barcode scanners
