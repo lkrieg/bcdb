@@ -56,6 +56,8 @@ void     Verbose(const char *fmt, ...);
 void     Warning(const char *fmt, ...);
 void     Error(const char *fmt, ...);
 void     Print(const char *fmt, ...);
+void     SetPidLock(bool locked);
+bool     IsAlreadyActive(void);
 
 // Internal helper functions - do not use these directly.
 // Use the macros without prefixed underscore instead.

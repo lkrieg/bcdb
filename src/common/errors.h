@@ -4,6 +4,7 @@
 #define E_ASSERT  "Assertion failure"
 #define E_NOMEM   "Memory allocation failure"
 #define E_FSIZE   "File size is too large"
+#define E_ACTIVE  "Daemon is already running"
 #define E_EXPECT  "Expected character"
 #define E_NOREAD  "Unable to read file"
 #define E_NOTNUM  "Invalid numeric value"

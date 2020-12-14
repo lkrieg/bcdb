@@ -17,6 +17,22 @@ static const char *prefixes[] = {
 	""
 };
 
+void SetPidLock(bool locked)
+{
+	// Ensure that only one instance of the daemon
+	// is active at the same time by creating and
+	// locking a pid file. This file must be deleted
+	// when the process terminates by setting locked
+	// to false.
+
+	UNUSED(locked);
+}
+
+bool IsAlreadyActive(void)
+{
+	return false;
+}
+
 static void Log(int level, const char *fmt, va_list arg)
 {
 	char msg[MAX_LINEBUF];

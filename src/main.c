@@ -6,8 +6,8 @@ static void    Import(const char *filename);
 static int     Run(void);
 static void    Shutdown(void);
 
-static bool    do_fork;  // Daemon mode
-static bool    do_kill;  // Shutdown active
+static bool    do_fork;  // Run in daemon mode
+static bool    do_kill;  // Kill active daemons
 static int     telport;  // External telnet port
 static int     webport;  // External http port
 static char *  file;     // Data file path
@@ -105,9 +105,7 @@ static int Run(void)
 	Info("Running in %s mode...", (do_fork)
 	     ? "daemon" : "interactive");
 
-	if (file != NULL)
-		Import(file);
-
+	SetPidLock(true);
 	if (NET_Init(telport, webport) < 0)
 		Error(E_NOSOCK);
 
@@ -122,6 +120,7 @@ static void Import(const char *filename)
 static void Shutdown(void)
 {
 	Info("Shutting down...");
+	SetPidLock(false);
 }
 
 int main(int argc, char **argv)
@@ -134,6 +133,15 @@ int main(int argc, char **argv)
 		if (!do_fork)
 			return 0;
 	}
+
+	if (IsAlreadyActive())
+		Error(E_ACTIVE);
+
+	// TODO: File import should be possible while
+	// the daemon is running in the background
+
+	if (file != NULL)
+		Import(file);
 
 	return Run();
 }
