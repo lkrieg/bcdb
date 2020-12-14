@@ -26,14 +26,14 @@ enum log_levels
 	T_LOG_NONE
 };
 
-static int GetPid(void);
-static int SetPid(bool active);
+static int GetMainPid(void);
+static int SetMainPid(bool active);
 
 int GetActivePid(void)
 {
 	int pid;
 
-	pid = GetPid();
+	pid = GetMainPid();
 	if ((!pid) || (pid == getpid()))
 		return 0;
 
@@ -52,7 +52,7 @@ void SetPidLock(bool active)
 	// process terminates by passing false when calling
 	// this function again.
 
-	if (SetPid(active) < 0)
+	if (SetMainPid(active) < 0)
 		Error(E_SETPID);
 }
 
@@ -119,7 +119,7 @@ void KillProcess(void)
 {
 	int pid;
 
-	if ((pid = GetActivePid()) <= 0) {
+	if ((pid = GetActivePid()) == 0) {
 		Info("Daemon is inactive");
 		return;
 	}
@@ -245,7 +245,7 @@ void _Memcheck(void)
 	return;
 }
 
-static int GetPid(void)
+static int GetMainPid(void)
 {
 	FILE *fp;
 	int pid;
@@ -263,7 +263,7 @@ static int GetPid(void)
 	return pid;
 }
 
-static int SetPid(bool active)
+static int SetMainPid(bool active)
 {
 	int fd;
 	FILE *fp;
