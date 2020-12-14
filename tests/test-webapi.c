@@ -1,5 +1,5 @@
 #include "util.h"
-#include "common/telnet.c"
+#include "networking/telnet.c"
 
 TEST_SETUP(WEBAPI)
 {

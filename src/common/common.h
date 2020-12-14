@@ -80,12 +80,11 @@ void     _Memcheck(void);
 
 #include "common/errors.h"
 #include "common/params.h"
-#include "common/socket.h"
-#include "common/telnet.h"
-#include "common/webapi.h"
-
-#include "renderer/renderer.h"
+#include "networking/socket.h"
+#include "networking/telnet.h"
+#include "networking/webapi.h"
 #include "database/database.h"
+#include "renderer/renderer.h"
 
 extern bool verbose;
 

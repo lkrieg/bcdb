@@ -1,5 +1,5 @@
 #include "util.h"
-#include "common/socket.c"
+#include "networking/socket.c"
 
 TEST_SETUP(SOCKET)
 {

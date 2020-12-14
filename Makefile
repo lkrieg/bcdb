@@ -11,7 +11,7 @@ MKDIR    = mkdir -p
 GZIP     = gzip -f
 
 VERBOSE  = false
-CPPFLAGS = -Isrc -Ilib -pthread
+CPPFLAGS = -Isrc -Isrc/common -Ilib -pthread
 CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Werror
 CFLAGS  += -D_POSIX_C_SOURCE=200809L
 MDFLAGS  = -MM -MT $(@:.d=.o)
