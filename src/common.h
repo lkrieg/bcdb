@@ -29,6 +29,7 @@ typedef  unsigned char  byte;
 
 #define  CONFPATH       "/etc/barkeeper.conf"
 #define  LOGPATH        "/var/log/barkeeper.log"
+#define  PIDPATH        "/var/run/barkeeper.pid"
 #define  VARDIR         "/var/lib/barkeeper"
 
 #define  BIT(n)         (1UL << (n))

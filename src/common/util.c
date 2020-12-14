@@ -25,6 +25,7 @@ void SetPidLock(bool locked)
 	// when the process terminates by setting locked
 	// to false.
 
+	// PIDPATH
 	UNUSED(locked);
 }
 

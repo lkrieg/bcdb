@@ -45,6 +45,10 @@ FILES
        /var/log/barkeeper.log
               Console output generated while running in daemon mode.
 
+       /var/run/barkeeper.pid
+              Active  daemons  store  their process id here. This allows us to
+              stop and restart running barkeeper instances.
+
        /var/lib/barkeeper/
               Variable state information like the local database.
 

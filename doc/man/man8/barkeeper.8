@@ -51,6 +51,12 @@ System wide configuration file. See README for details.
 Console output generated while running in daemon mode.
 .RE
 
+.I /var/run/barkeeper.pid
+.RS
+Active daemons store their process id here. This allows
+us to stop and restart running barkeeper instances.
+.RE
+
 .I /var/lib/barkeeper/
 .RS
 Variable state information like the local database.
