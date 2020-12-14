@@ -123,7 +123,7 @@ static void Shutdown(int signal)
 {
 	Info("Shutting down...");
 
-	if (GetActivePid())
+	if (do_fork)
 		SetPidLock(false);
 
 	exit(EXIT_SUCCESS);

@@ -127,6 +127,8 @@ void KillProcess(void)
 	// TODO: Wait for status change
 	Info("Shutting down daemon...");
 	kill(pid, SIGTERM);
+	while (access(PIDPATH, F_OK) == 0)
+		sleep(1);
 }
 
 static void Log(int level, const char *fmt, va_list arg)
@@ -270,10 +272,16 @@ static int SetMainPid(bool active)
 	int pid;
 
 	if (active == false) {
+		if ((pid = GetMainPid()) == 0)
+			return 0;
+
+		Verbose("Disabling lock for pid %d...", pid);
 		unlink(PIDPATH);
 		return 0;
 	}
 
+	pid = getpid();
+	Verbose("Enabling lock for pid %d...", pid);
 	fd = open(PIDPATH, O_RDWR | O_CREAT, 0644);
 
 	if ((fd < 0)
@@ -282,15 +290,13 @@ static int SetMainPid(bool active)
 		return -1;
 	}
 
-	pid = getpid();
-	Verbose("Setting active pid to %d", pid);
 	if (!fprintf(fp, "%d\n", pid)) {
-		Warning(E_SETPID ": %s",
-		        strerror(errno));
-		return -3;
+		Warning(E_SETPID ": %s", strerror(errno));
+		return -2;
 	}
 
 	fflush(fp);
 	close(fd);
+
 	return pid;
 }
