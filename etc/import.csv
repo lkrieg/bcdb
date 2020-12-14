@@ -1,0 +1,20 @@
+# This file is just here to
+# test database file import
+
+   0000, OK ;    1111, OK ;
+100    , AB ; 200    , CD ;
+10, FOO; 20, BAR; 30, BAZ;#
+40, ;50,;60,;70,;80,;90 ,;#
+
+1        , A FOOO 1; # FOOO
+22       , B BAAR 2; # BAAR
+303      , C BAAZ 3; # BAAZ
+4004     , D MEEP 4; # MEEP
+50005    , E OINK 5; # OINK
+600006   , F MOOO 6; # MOOO
+7000007  , G WUUB 7; # WUUB
+80000008 , H BOOB 8; # BOOB
+900000009, I SWUF 9; # SWUF
+
+# And this is just trailing
+# whitespace, moo-ove along
