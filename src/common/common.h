@@ -15,12 +15,13 @@ typedef  uint16_t       u16;
 typedef  unsigned char  byte;
 
 #define  MAX_PATH       4096
-#define  MAX_FILEBUF    4096
+#define  MAX_FILEBUF    8192
 #define  MAX_LINEBUF    2048
 #define  MAX_BACKLOG    10
+#define  MAX_KEY_LEN    32
 #define  MAX_CFG_NUM    64
 #define  MAX_CFG_KEY    16
-#define  MAX_CFG_VAL    256
+#define  MAX_CFG_VAL    128
 #define  MAX_TTYPE      48
 #define  MIN_ROWS       14
 #define  MIN_COLS       24
@@ -28,7 +29,7 @@ typedef  unsigned char  byte;
 #define  BASE_WEB_PORT  80
 #define  BASE_FILE      NULL
 
-#define  CONFPATH       "/etc/barkeeper.conf"
+#define  CFGPATH        "/etc/barkeeper.conf"
 #define  LOGPATH        "/var/log/barkeeper.log"
 #define  PIDPATH        "/var/run/barkeeper.pid"
 #define  VARDIR         "/var/lib/barkeeper"
@@ -84,6 +85,8 @@ void     _Memcheck(void);
 #include "networking/telnet.h"
 #include "networking/webapi.h"
 #include "database/database.h"
+#include "database/filesystem.h"
+#include "database/hashtable.h"
 #include "renderer/renderer.h"
 
 extern bool verbose;

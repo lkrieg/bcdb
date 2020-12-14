@@ -3,6 +3,7 @@
 
 #define E_ASSERT  "Assertion failure"
 #define E_ENOMEM  "Memory allocation failure"
+#define E_DBINIT  "Cannot initialize database"
 #define E_NOROOT  "Root privileges required"
 #define E_FDOPEN  "Cannot get file handle"
 #define E_EFSIZE  "File size is too large"

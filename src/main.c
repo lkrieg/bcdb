@@ -37,7 +37,7 @@ static void Configure(int argc, char **argv)
 	webport  = BASE_WEB_PORT;
 	file     = BASE_FILE;
 
-	if (CFG_ParseFile(CONFPATH) < 0)
+	if (CFG_ParseFile(CFGPATH) < 0)
 		Error(E_GETCFG);
 
 	if (CFG_ParseArgs(argc, argv) < 0)
@@ -102,9 +102,6 @@ static void Configure(int argc, char **argv)
 
 static int Run(void)
 {
-	if (file != NULL)
-		Import(file);
-
 	if (NET_Init(telport, webport) < 0)
 		Warning(E_NOSOCK);
 
@@ -116,7 +113,7 @@ static int Run(void)
 
 static void Import(const char *filename)
 {
-	Info("Importing '%s'...", filename);
+	Info("Importing data file '%s'...", filename);
 }
 
 static void Shutdown(int signal)
@@ -147,12 +144,18 @@ int main(int argc, char **argv)
 	if (GetActivePid())
 		Error(E_ACTIVE);
 
-	// TODO: File import should be possible while
-	// the daemon is running in the background
-
 	signal(SIGTERM, Shutdown);
 	Info("Running in %s mode...", (do_fork)
 	     ? "daemon" : "interactive");
+
+	if (DB_Init() < 0)
+		Error(E_DBINIT);
+
+	// TODO: File import should be possible while
+	// the daemon is running in the background
+
+	if (file != NULL)
+		Import(file);
 
 	if ((do_fork)
 	&& ((ForkProcess() < 0)))
