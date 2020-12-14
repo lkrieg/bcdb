@@ -42,8 +42,12 @@ doc/RFC/ for all mentioned RFC documents including the FNV03 draft.
 ## Build Prerequisites
 
 Before building make sure you have GNU make, gcc and optionally zlib installed
-if you want server-sided data compression for clients that support it. On Ubuntu
-and other Debian based distribution you can run these commands:
+(if you want server-sided data compression for clients that support it). The
+configure script requires ldconfig to be available, which could be located in
+/sbin/ and therefore not be usable by non-root users.
+
+On Ubuntu and other Debian based distribution you can run these commands to
+install the required build tools and optional zlib compression library:
 
     $ sudo apt update
     $ sudo apt install build-essential zlib1g-dev
