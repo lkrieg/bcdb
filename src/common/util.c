@@ -72,8 +72,6 @@ int ForkProcess(void)
 	// forking the grandchild. This has the effect of
 	// orphaning the grandchild process.
 
-	Info("Forking to background...");
-
 	// First fork
 	pid = fork();
 	if (pid < 0)
