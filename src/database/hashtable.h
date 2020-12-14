@@ -5,9 +5,10 @@ typedef struct table_s table_t;
 
 struct table_s
 {
-	entry_t **  entries;
 	int         hashsize;
-	int         count;
+	int         numentries;
+	entry_t **  entries;
+	entry_t  *  data;
 };
 
 int   Table_Init(table_t *tab, int hashsize);

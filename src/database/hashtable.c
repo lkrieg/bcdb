@@ -3,6 +3,9 @@
 #include "hashtable.h"
 #include <string.h>
 
+#define FNV_32_BASIS 0x811c9dc5
+#define FNV_32_PRIME 0x01000193
+
 static int Hash(const char *key)
 {
 	Assert(key != NULL);
@@ -14,21 +17,28 @@ static int Hash(const char *key)
 
 int Table_Init(table_t *tab, int hashsize)
 {
-	int size;
-	entry_t **data;
+	int n, ndat, nent;
+	entry_t ** entries;
+	entry_t *  data;
 
 	Assert(tab != NULL);
 
-	size = hashsize * (sizeof(*data));
-	data = Allocate(size);
+	n    = hashsize;
+	ndat = n * sizeof(*data);
+	nent = n * sizeof(*entries);
 
-	if (data == NULL)
+	data     = Allocate(ndat);
+	entries  = Allocate(nent);
+
+	if (!data  || !entries)
 		return -1;
 
-	memset(data, 0, size);
-	tab->entries   = data;
-	tab->hashsize  = hashsize;
-	tab->count     = 0;
+	memset(data, 0, ndat);
+
+	tab->hashsize    = n;
+	tab->numentries  = 0;
+	tab->entries     = entries;
+	tab->data        = data;
 
 	return 0;
 }
