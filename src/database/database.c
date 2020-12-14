@@ -9,7 +9,7 @@ static bool active;
 int DAT_Init(void)
 {
 	Info("Initializing barcode database...");
-	if (Table_Init(&tab) < 0)
+	if (Table_Init(&tab, MAX_HASH) < 0)
 		return -1;
 
 	active = true;

@@ -15,6 +15,7 @@ typedef  uint16_t       u16;
 typedef  unsigned char  byte;
 
 #define  MAX_PATH       4096
+#define  MAX_HASH       4096
 #define  MAX_FILEBUF    8192
 #define  MAX_LINEBUF    2048
 #define  MAX_BACKLOG    10
