@@ -143,7 +143,7 @@ you'll need a PDF viewer.
            Console output generated while running in daemon mode.
 
     /var/run/barkeeper.pid
-           Active daemons store their process id here. This allows us  to
+           Active daemons store their process id here. This allows us to
            stop and restart running barkeeper instances.
 
     /var/lib/barkeeper/
