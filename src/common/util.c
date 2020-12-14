@@ -250,6 +250,9 @@ static int GetPid(void)
 	FILE *fp;
 	int pid;
 
+	if (access(PIDPATH, F_OK) != 0)
+		return 0;
+
 	if (!(fp = fopen(PIDPATH, "r")))
 		return 0;
 
