@@ -26,13 +26,13 @@ int DAT_Query(const char *key, entry_t *out)
 	return Table_Lookup(&tab, key, out);
 }
 
-int DAT_Insert(const entry_t *ent)
+int DAT_Insert(const char *key, const entry_t *ent)
 {
 	Assert(active);
 	Assert(ent != NULL);
 
-	Verbose("Inserting entry '%s'", ent->key);
-	return Table_Insert(&tab, ent);
+	Verbose("Inserting entry '%s'", key);
+	return Table_Insert(&tab, key, ent);
 }
 
 int DAT_Delete(const char *key)
