@@ -64,25 +64,44 @@ bool IsPrivileged(void)
 int ForkProcess(void)
 {
 	int pid;
-	int logfd;
 	int flags;
+	int logfd;
 
+	// Daemons are typically created by forking twice
+	// with the intermediate process exiting after
+	// forking the grandchild. This has the effect of
+	// orphaning the grandchild process.
+	// TODO: Use syslog() interface
+
+	// First fork
 	pid = fork();
-
 	if (pid < 0)
 		return -1;
-	if (pid != 0)
+	if (pid > 0)
 		exit(0);
 
-	if ((setsid() < 0)
-	|| ((chdir("/") < 0)))
+	// Detach from CTTY
+	if (setsid() < 0)
 		return -2;
 
+	signal(SIGCHLD, SIG_IGN);
+	signal(SIGHUP, SIG_IGN);
+
+	// Second fork
+	pid = fork();
+	if (pid < 0)
+		return -1;
+	if (pid > 0)
+		exit(0);
+
 	umask(0);
+	chdir("/");
+
 	close(STDIN_FILENO);
 	if (open("/dev/null", O_RDONLY) < 0)
 		return -3;
 
+	// Redirect output streams to logfile
 	flags = O_RDWR | O_CREAT | O_APPEND;
 	logfd = open(LOGPATH, flags, 0644);
 
