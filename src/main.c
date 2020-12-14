@@ -1,5 +1,5 @@
 #include "common.h"
-#include "render.h"
+#include "renderer.h"
 
 static void    Usage(void);
 static void    Configure(int argc, char **argv);
