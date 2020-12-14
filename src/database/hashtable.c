@@ -41,7 +41,7 @@ int Table_Init(table_t *tab, int hashsize)
 	if (!data || !entries)
 		return -1; // Free?
 
-	memset(data, 0, ndat);
+	memset(entries, 0, nent);
 
 	tab->hashsize    = n;
 	tab->capacity    = n;
@@ -54,21 +54,36 @@ int Table_Init(table_t *tab, int hashsize)
 
 long Table_Insert(table_t *tab, const char *key, const entry_t *ent)
 {
-	int hash;
+	int hash, max;
+	entry_t *node;
+	entry_t *tmp;
 
 	Assert(tab != NULL);
 	Assert(ent != NULL);
 	Assert(key != NULL);
 
+	if (strlen(key) > MAX_KEY_LEN)
+		return -1;
+
 	if (tab->numentries == tab->capacity) {
+		max = tab->capacity * 2;
+		tmp = Reallocate(tab->data, max);
 		Verbose("Resizing hashtable...");
-		return -1; // TODO
+
+		if (tmp == NULL)
+			return -2;
+
+		tab->data      = tmp;
+		tab->capacity  = max;
 	}
 
 	hash = Hash(key) % tab->hashsize;
+	node = tab->data + tab->numentries;
 
-	UNUSED(ent);
-	UNUSED(hash);
+	*node = *ent;
+	strcpy(node->key, key);
+	tab->entries[hash] = node;
+	tab->numentries++;
 
 	return 0;
 }
@@ -85,9 +100,9 @@ int Table_Lookup(const table_t *tab, const char *key, entry_t *out)
 	hash = Hash(key) % tab->hashsize;
 	head = tab->entries[hash];
 
-	for (; head != NULL; head++) {
+	for (; head; head = head->next) {
 		if (!strcmp(key, head->key)) {
-			memcpy(out, head, sizeof(*out));
+			*out = *head;
 			return 1;
 		}
 	}

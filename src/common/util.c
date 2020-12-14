@@ -89,23 +89,24 @@ int ForkProcess(void)
 	// Second fork
 	pid = fork();
 	if (pid < 0)
-		return -1;
+		return -3;
 	if (pid > 0)
 		exit(0);
 
-	umask(0);
-	chdir("/");
+	if (umask(0)
+	|| (chdir("/")))
+		return -4;
 
 	close(STDIN_FILENO);
 	if (open("/dev/null", O_RDONLY) < 0)
-		return -3;
+		return -5;
 
 	// Redirect output streams to logfile
 	flags = O_RDWR | O_CREAT | O_APPEND;
 	logfd = open(LOGPATH, flags, 0644);
 
 	if (logfd < 0)
-		return -3;
+		return -6;
 
 	dup2(logfd, STDOUT_FILENO);
 	dup2(logfd, STDERR_FILENO);
@@ -226,11 +227,23 @@ void *_Allocate(int size)
 
 void *_AllocateDebug(int size, const char *file, int line)
 {
-	// TODO
 	UNUSED(file);
 	UNUSED(line);
 
 	return _Allocate(size);
+}
+
+void *_Reallocate(void *ptr, int size)
+{
+	return realloc(ptr, size);
+}
+
+void *_ReallocateDebug(void *ptr, int size, const char *file, int line)
+{
+	UNUSED(file);
+	UNUSED(line);
+
+	return _Reallocate(ptr, size);
 }
 
 void _Free(void *ptr)
@@ -238,15 +251,16 @@ void _Free(void *ptr)
 	free(ptr);
 }
 
-void _FreeDebug(void *ptr)
+void _FreeDebug(void *ptr, const char *file, int line)
 {
-	// TODO
+	UNUSED(file);
+	UNUSED(line);
+
 	_Free(ptr);
 }
 
 void _Memcheck(void)
 {
-	// TODO
 	return;
 }
 

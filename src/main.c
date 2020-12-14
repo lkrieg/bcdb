@@ -102,6 +102,8 @@ static void Configure(int argc, char **argv)
 
 static int Run(void)
 {
+	entry_t ent, out;
+
 	if (!IsPrivileged())
 		Error(E_NOROOT);
 
@@ -132,6 +134,11 @@ static int Run(void)
 	SetPidLock(true);
 	if (DAT_Init() < 0)
 		Error(E_DBINIT);
+
+	ent.value = 0xDEAD;
+	DAT_Insert("_FOO", &ent);
+	if (DAT_Query("_FOO", &out))
+		Info("0x%04X", out.value);
 
 	if (file != NULL)
 		Import(file);

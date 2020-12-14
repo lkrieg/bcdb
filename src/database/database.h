@@ -11,7 +11,8 @@ void  DAT_Shutdown(void);
 
 struct entry_s
 {
-	const char    key[MAX_KEY_LEN];
+	char          key[MAX_KEY_LEN];
+	long          value;
 	entry_t    *  next;
 };
 
