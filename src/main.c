@@ -102,36 +102,6 @@ static void Configure(int argc, char **argv)
 
 static int Run(void)
 {
-	if (NET_Init(telport, webport) < 0)
-		Warning(E_NOSOCK);
-
-	// TODO
-	Info("Waiting...");
-	while (1);
-	return 0;
-}
-
-static void Import(const char *filename)
-{
-	Info("Importing data file '%s'...", filename);
-}
-
-static void Shutdown(int signal)
-{
-	Info("Shutting down...");
-
-	if (do_fork)
-		SetPidLock(false);
-
-	exit(EXIT_SUCCESS);
-	UNUSED(signal);
-}
-
-int main(int argc, char **argv)
-{
-	Configure(argc, argv);
-	Verbose("Setting log level to verbose...");
-
 	if (!IsPrivileged())
 		Error(E_NOROOT);
 
@@ -144,23 +114,49 @@ int main(int argc, char **argv)
 	if (GetActivePid())
 		Error(E_ACTIVE);
 
-	signal(SIGTERM, Shutdown);
 	Info("Running in %s mode...", (do_fork)
 	     ? "daemon" : "interactive");
-
-	if (DB_Init() < 0)
-		Error(E_DBINIT);
-
-	// TODO: File import should be possible while
-	// the daemon is running in the background
-
-	if (file != NULL)
-		Import(file);
 
 	if ((do_fork)
 	&& ((ForkProcess() < 0)))
 		Error(E_NOFORK);
 
 	SetPidLock(true);
+	signal(SIGTERM, Shutdown);
+
+	if (DB_Init() < 0)
+		Error(E_DBINIT);
+
+	if (file != NULL)
+		Import(file);
+
+	if (NET_Init(telport, webport) < 0)
+		Warning(E_NOSOCK);
+
+	Info("Waiting...");
+	while (1); // TODO
+
+	return 0;
+}
+
+static void Import(const char *filename)
+{
+	Info("Importing data file '%s'...", filename);
+}
+
+static void Shutdown(int signal)
+{
+	Info("Shutting down...");
+
+	SetPidLock(false);
+	exit(EXIT_SUCCESS);
+	UNUSED(signal);
+}
+
+int main(int argc, char **argv)
+{
+	Configure(argc, argv);
+	Verbose("Setting log level to verbose...");
+
 	return Run();
 }
