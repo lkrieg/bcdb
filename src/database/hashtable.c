@@ -2,14 +2,6 @@
 #include "database.h"
 #include "hashtable.h"
 
-typedef struct table_s table_t;
-
-struct table_s
-{
-	long     hashsize;
-	entry_t  **data;
-};
-
 static long Hash(const char *key)
 {
 	Assert(key != NULL);
@@ -44,6 +36,15 @@ long Table_Insert(table_t *tab, const entry_t *ent)
 	return 0;
 }
 
+int Table_Lookup(const table_t *tab, const char *key, entry_t *ent)
+{
+	Assert(tab != NULL);
+	Assert(key != NULL);
+	Assert(ent != NULL);
+
+	return 0;
+}
+
 int Table_Delete(table_t *tab, const char *key)
 {
 	Assert(tab != NULL);
@@ -55,9 +56,15 @@ int Table_Delete(table_t *tab, const char *key)
 	return 0;
 }
 
-void Table_Serialize(const table_t *tab)
+void Table_Serialize(const table_t *tab, int fd)
 {
 	Assert(tab != NULL);
 
+	UNUSED(tab);
+	UNUSED(fd);
+}
+
+void Table_Free(table_t *tab)
+{
 	UNUSED(tab);
 }

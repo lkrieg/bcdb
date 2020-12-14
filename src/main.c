@@ -111,22 +111,25 @@ static int Run(void)
 			return 0;
 	}
 
+	// Already running?
 	if (GetActivePid())
 		Error(E_ACTIVE);
 
 	Info("Running in %s mode...", (do_fork)
 	     ? "daemon" : "interactive");
 
+	// Daemonize
 	if ((do_fork)
 	&& ((ForkProcess() < 0)))
 		Error(E_NOFORK);
 
-	SetPidLock(true);
-	signal(SIGTERM, Shutdown);
-	signal(SIGABRT, Shutdown);
-	signal(SIGKILL, Shutdown);
-	signal(SIGINT, Shutdown);
+	// Register signal handlers
+	if ((signal(SIGTERM, Shutdown) == SIG_ERR)
+	|| ((signal(SIGINT,  Shutdown) == SIG_ERR)))
+		Error(E_SIGNAL);
 
+	// Initialize
+	SetPidLock(true);
 	if (DAT_Init() < 0)
 		Error(E_DBINIT);
 
@@ -136,6 +139,7 @@ static int Run(void)
 	if (NET_Init(telport, webport) < 0)
 		Warning(E_NOSOCK);
 
+	// Handle events
 	Info("Waiting...");
 	for (;;) Sleep(1);
 
@@ -150,6 +154,9 @@ static void Import(const char *filename)
 static void Shutdown(int signal)
 {
 	Info("Shutting down...");
+
+	NET_Shutdown();
+	DAT_Shutdown();
 
 	SetPidLock(false);
 	exit(EXIT_SUCCESS);

@@ -3,27 +3,52 @@
 #include "filesystem.h"
 #include "hashtable.h"
 
+static table_t tab;
+static bool active;
+
 int DAT_Init(void)
 {
 	Info("Initializing barcode database...");
+	if (Table_Init(&tab) < 0)
+		return -1;
+
+	active = true;
 	return 0;
 }
 
 int DAT_Query(const char *key, entry_t *out)
 {
-	UNUSED(key);
-	UNUSED(out);
-	return -1;
+	Assert(active);
+	Assert(key != NULL);
+	Assert(out != NULL);
+
+	Verbose("Querying entry '%s'", key);
+	return Table_Lookup(&tab, key, out);
 }
 
 int DAT_Insert(const entry_t *ent)
 {
-	UNUSED(ent);
-	return -1;
+	Assert(active);
+	Assert(ent != NULL);
+
+	Verbose("Inserting entry '%s'", ent->key);
+	return Table_Insert(&tab, ent);
 }
 
-int DAT_Delete(int index)
+int DAT_Delete(const char *key)
 {
-	UNUSED(index);
-	return -1;
+	Assert(active);
+	Assert(key != NULL);
+
+	Verbose("Deleting entry '%s'", key);
+	return Table_Delete(&tab, key);
+}
+
+void DAT_Shutdown(void)
+{
+	Assert(active);
+
+	Info("Shutting down database...");
+	Table_Serialize(&tab, -1);
+	Table_Free(&tab);
 }
