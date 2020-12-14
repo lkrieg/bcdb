@@ -6,7 +6,6 @@ static void    Import(const char *filename);
 static void    Shutdown(int signal);
 static int     Run(void);
 
-
 static bool    do_fork;  // Run in daemon mode
 static bool    do_kill;  // Kill active daemons
 static int     telport;  // External telnet port
