@@ -123,8 +123,11 @@ static int Run(void)
 
 	SetPidLock(true);
 	signal(SIGTERM, Shutdown);
+	signal(SIGABRT, Shutdown);
+	signal(SIGKILL, Shutdown);
+	signal(SIGINT, Shutdown);
 
-	if (DB_Init() < 0)
+	if (DAT_Init() < 0)
 		Error(E_DBINIT);
 
 	if (file != NULL)
@@ -134,7 +137,7 @@ static int Run(void)
 		Warning(E_NOSOCK);
 
 	Info("Waiting...");
-	while (1); // TODO
+	for (;;) Sleep(1);
 
 	return 0;
 }

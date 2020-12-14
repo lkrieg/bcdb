@@ -65,6 +65,7 @@ void     SetPidLock(bool locked);
 bool     IsPrivileged(void);
 int      ForkProcess(void);
 void     KillProcess(void);
+void     Sleep(int n);
 
 // Internal helper functions - do not use these directly.
 // Use the macros without prefixed underscore instead.

@@ -129,6 +129,11 @@ void KillProcess(void)
 		sleep(1);
 }
 
+void Sleep(int n)
+{
+	sleep(n);
+}
+
 static void Log(int level, const char *fmt, va_list arg)
 {
 	char msg[MAX_LINEBUF];

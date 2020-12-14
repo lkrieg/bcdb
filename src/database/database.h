@@ -3,10 +3,10 @@
 
 typedef struct entry_s entry_t;
 
-int DB_Init(void);
-int DB_Query(const char *key, entry_t *out);
-int DB_Insert(const entry_t *ent);
-int DB_Delete(int index);
+int DAT_Init(void);
+int DAT_Query(const char *key, entry_t *out);
+int DAT_Insert(const entry_t *ent);
+int DAT_Delete(int index);
 
 struct entry_s
 {
