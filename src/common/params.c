@@ -192,7 +192,7 @@ static int GetArgs(const struct option *opts, const char *argstr)
 	while (opt >= 0) {
 		opt = getopt_long(vargc, vargv, argstr, opts, &n);
 		if (opt == '?' || opt == ':') {
-			Warning(E_NOVAL);
+			Warning(E_ENOVAL);
 			return -1;
 		}
 
@@ -272,7 +272,7 @@ static int ReadVal(char **buf, char **val)
 	for (;; head++) {
 		if ((*head == '#') // Missing token value
 		|| ((*head == '\0' || *head == '\n'))) {
-			Warning(E_NOVAL);
+			Warning(E_ENOVAL);
 			return -1;
 		}
 

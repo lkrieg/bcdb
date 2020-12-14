@@ -128,6 +128,9 @@ int main(int argc, char **argv)
 	Configure(argc, argv);
 	Verbose("Setting log level to verbose...");
 
+	if (!IsPrivileged())
+		Error(E_NOROOT);
+
 	if (do_kill) {
 		Shutdown();
 		if (!do_fork)

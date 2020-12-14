@@ -59,6 +59,7 @@ void     Error(const char *fmt, ...);
 void     Print(const char *fmt, ...);
 void     SetPidLock(bool locked);
 bool     IsAlreadyActive(void);
+bool     IsPrivileged(void);
 
 // Internal helper functions - do not use these directly.
 // Use the macros without prefixed underscore instead.

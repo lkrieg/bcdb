@@ -1,14 +1,13 @@
 #include "common.h"
+
 #include <stdlib.h>
 #include <stdio.h>
-
-enum log_levels {
-	T_LOG_INFO,
-	T_LOG_VERBOSE,
-	T_LOG_WARNING,
-	T_LOG_ERROR,
-	T_LOG_NONE
-};
+#include <string.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
 bool verbose = false;
 static const char *prefixes[] = {
@@ -17,21 +16,48 @@ static const char *prefixes[] = {
 	""
 };
 
-void SetPidLock(bool locked)
+enum log_levels
 {
-	// Ensure that only one instance of the daemon
-	// is active at the same time by creating and
-	// locking a pid file. This file must be deleted
-	// when the process terminates by setting locked
-	// to false.
+	T_LOG_INFO,
+	T_LOG_VERBOSE,
+	T_LOG_WARNING,
+	T_LOG_ERROR,
+	T_LOG_NONE
+};
 
-	// PIDPATH
-	UNUSED(locked);
+static int GetPid(void);
+static int SetPid(bool active);
+
+void SetPidLock(bool active)
+{
+	// Ensure that only one instance of the daemon is
+	// active at the same time by creating and locking
+	// the pid file. This file must be deleted when the
+	// process terminates by passing false when calling
+	// this function again.
+
+	if (SetPid(active) < 0)
+		Error(E_SETPID);
 }
 
 bool IsAlreadyActive(void)
 {
+	int pid;
+
+	pid = GetPid();
+	if ((!pid) || (pid == getpid()))
+		return false;
+
+	errno = 0; // PID inactive?
+	if (kill(pid, 0) && errno == ESRCH)
+		return false;
+
 	return true;
+}
+
+bool IsPrivileged(void)
+{
+	return geteuid() == 0;
 }
 
 static void Log(int level, const char *fmt, va_list arg)
@@ -113,12 +139,13 @@ void *_Allocate(int size)
 	// There is no way of safely recovering from out of memory
 	// errors, but things have to go total haywire for that. The
 	// Linux kernel will do things like disk swapping to prevent
-	// the worst case from ever happening.
+	// the worst case from ever happening. And maybe we can do
+	// the most stuff with memory from the stack.
 
 	ptr = malloc(size);
 
 	if (ptr == NULL)
-		Error(E_NOMEM);
+		Error(E_ENOMEM);
 
 	return ptr;
 }
@@ -147,4 +174,49 @@ void _Memcheck(void)
 {
 	// TODO
 	return;
+}
+
+static int GetPid(void)
+{
+	FILE *fp;
+	int pid;
+
+	if (!(fp = fopen(PIDPATH, "r")))
+		return 0;
+
+	if (!fscanf(fp, "%d", &pid))
+		return 0;
+
+	fclose(fp);
+	return pid;
+}
+
+static int SetPid(bool active)
+{
+	int fd;
+	FILE *fp;
+	int pid;
+
+	if (active == false)
+		return unlink(PIDPATH);
+
+	fd = open(PIDPATH, O_RDWR | O_CREAT, 0644);
+
+	if ((fd < 0)
+	|| (!(fp = fdopen(fd, "r+")))) {
+		Warning(E_FDOPEN " for '%s'", PIDPATH);
+		return -1;
+	}
+
+	pid = getpid();
+	Verbose("Setting active pid to %d", pid);
+	if (!fprintf(fp, "%d\n", pid)) {
+		Warning(E_SETPID ": %s",
+		        strerror(errno));
+		return -3;
+	}
+
+	fflush(fp);
+	close(fd);
+	return pid;
 }
