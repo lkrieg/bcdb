@@ -75,7 +75,7 @@ void     _Free(void *ptr);
 void     _FreeDebug(void *ptr);
 void     _Memcheck(void);
 
-// Common submodule headers - see the respective files for
+// Submodule headers - see the respective files for
 // details about interface and implementation.
 
 #include "common/errors.h"
@@ -83,6 +83,9 @@ void     _Memcheck(void);
 #include "common/socket.h"
 #include "common/telnet.h"
 #include "common/webapi.h"
+
+#include "renderer/renderer.h"
+#include "database/database.h"
 
 extern bool verbose;
 
