@@ -82,8 +82,12 @@ long Table_Insert(table_t *tab, const char *key, const entry_t *ent)
 
 	*node = *ent;
 	strcpy(node->key, key);
+	node->next = tab->entries[hash];
 	tab->entries[hash] = node;
 	tab->numentries++;
+
+	if (node->next != NULL)
+		Verbose("Hash collision on 0x%4X", hash);
 
 	return 0;
 }

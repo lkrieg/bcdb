@@ -1,6 +1,7 @@
 #include "common.h"
 #include "filesystem.h"
 
+#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -37,18 +38,28 @@ int FS_ReadRAM(const char *path, char *out, int n)
 	return total;
 }
 
-int FS_LoadCSV(const char *path, csv_t *out)
+csv_row_t *FS_LoadCSV(const char *path)
 {
-	bool quoted;
-	int n, len;
+	int n, i, j, len;
 	char buf[MAX_FILEBUF + 1];
 	char *tail, *head = buf;
+	csv_row_t *rows, *row;
+	csv_row_t tmp;
+	bool quoted;
 
-	if ((n = FS_ReadRAM(path, buf, MAX_FILEBUF)) < 0)
-		return -1;
+	// TODO: Split into multiple functions
+	// TODO: Further testing and clean up
+	// TODO: Free memory on non-fatal error
+	// TODO: Remove trailing whitespace
+
+	n = FS_ReadRAM(path, buf, MAX_FILEBUF);
+	if (n < 0)
+		return NULL;
 
 	buf[n] = '\0';
 	quoted = false;
+	rows = NULL;
+	i = j = 0;
 
 	while (SkipWhitespace(&head)) {
 		for (tail = head;; tail++) {
@@ -58,29 +69,51 @@ int FS_LoadCSV(const char *path, csv_t *out)
 			if (*tail == '"')
 				quoted = !quoted;
 
-			if (quoted)
-				continue;
-
-			if ((*tail == ',')
+			if ((*tail == ',') || (*tail == '#')
 			|| ((*tail == ';') || (*tail == '\n'))) {
-				tail++;
-				break;
+				if (quoted == false)
+					break;
 			}
+
+			if (i >= MAX_CSV_DATA) {
+				Warning(E_ROWLEN);
+				return NULL;
+			}
+
+			tmp.data[i++] = *tail;
 		}
 
-		if ((len = tail - head - 1) > 0)
-			Verbose("Found value '%.*s'", len, head);
+		if ((len = tail - head) > 0) {
+			if (j > MAX_CSV_COLS) {
+				Warning(E_NUMCOL);
+				return NULL;
+			}
+			tmp.data[i++] = '\0';
+			tmp.cols[j++] = i - len - 1;
+		}
+
+		if ((*tail == ',')
+		|| ((*tail == ';' || *tail == '\n'))) {
+			if (j && *tail != ',') {
+				row = Allocate(sizeof(*row));
+				memcpy(row, &tmp, sizeof(*row));
+				row->size = j;
+				row->next = rows;
+				rows = row;
+				i = j = 0;
+			}
+			tail++;
+		}
 
 		head = tail;
-		UNUSED(out);
 	}
 
 	if (quoted) {
 		Warning(E_NQUOTE);
-		return -1;
+		return NULL;
 	}
 
-	return 0;
+	return rows;
 }
 
 // FIXME: Duplication with params.c

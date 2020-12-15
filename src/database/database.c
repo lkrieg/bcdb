@@ -23,16 +23,22 @@ int DAT_Init(void)
 
 int DAT_Import(const char *path)
 {
-	csv_t csv;
+	int col;
+	csv_row_t *rows, *row;
 
 	Assert(active);
 	Assert(path != NULL);
 
+	// TODO: Make sure that col[0] is numeric
 	Info("Importing data file '%s'...", path);
-	if (FS_LoadCSV(path, &csv) < 0)
-		return -1;
+	row = rows = FS_LoadCSV(path);
 
-	// TODO
+	for (; row; row = row->next) {
+		col = row->cols[0];
+		Verbose("Importing key %s%s",
+		        row->data + col, "...");
+	}
+
 	return 0;
 }
 

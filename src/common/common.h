@@ -24,6 +24,8 @@ typedef  unsigned char    byte;
 #define  MAX_CFG_NUM      64
 #define  MAX_CFG_KEY      16
 #define  MAX_CFG_VAL      128
+#define  MAX_CSV_DATA     128
+#define  MAX_CSV_COLS     16
 #define  MAX_TTYPE        48
 #define  MIN_ROWS         14
 #define  MIN_COLS         24
