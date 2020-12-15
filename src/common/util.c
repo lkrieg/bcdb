@@ -93,8 +93,8 @@ int ForkProcess(void)
 	if (pid > 0)
 		exit(0);
 
-	if (umask(0)
-	|| (chdir("/")))
+	umask(0);
+	if (chdir("/") < 0)
 		return -4;
 
 	close(STDIN_FILENO);
