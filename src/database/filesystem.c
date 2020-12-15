@@ -50,7 +50,6 @@ csv_row_t *FS_LoadCSV(const char *path)
 	// TODO: Split into multiple functions
 	// TODO: Further testing and clean up
 	// TODO: Free memory on non-fatal error
-	// TODO: Remove trailing whitespace
 
 	n = FS_ReadRAM(path, buf, MAX_FILEBUF);
 	if (n < 0)
@@ -88,8 +87,12 @@ csv_row_t *FS_LoadCSV(const char *path)
 				Warning(E_NUMCOL);
 				return NULL;
 			}
+
+			while (tmp.data[i - 1] <= ' ')
+				len--, i--;
+
+			tmp.cols[j++] = i - len;
 			tmp.data[i++] = '\0';
-			tmp.cols[j++] = i - len - 1;
 		}
 
 		if ((*tail == ',')
