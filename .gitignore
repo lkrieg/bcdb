@@ -1,4 +1,5 @@
 src/config.h
+etc/config.mk
 bin/barkeeper
 bin/unit-test
 bin/.build/
