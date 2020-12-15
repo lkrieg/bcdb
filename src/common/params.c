@@ -37,7 +37,7 @@ static const cvar_t vardefs[NUM_VARDEFS] = {
 
 int CFG_ParseFile(const char *path)
 {
-	char buf[MAX_FILEBUF];
+	char buf[MAX_FILEBUF + 1];
 	char *head = buf;
 	char *key, *val;
 	int id, len, n;
