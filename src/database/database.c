@@ -3,6 +3,7 @@
 #include "filesystem.h"
 #include "hashtable.h"
 
+#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -23,20 +24,14 @@ int DAT_Init(void)
 
 int DAT_Import(const char *path)
 {
-	int col;
-	csv_row_t *rows, *row;
-
 	Assert(active);
 	Assert(path != NULL);
 
-	// TODO: Make sure that col[0] is numeric
 	Info("Importing data file '%s'...", path);
-	row = rows = FS_LoadCSV(path);
 
-	for (; row; row = row->next) {
-		col = row->cols[0];
-		Verbose("Importing key %s%s",
-		        row->data + col, "...");
+	if (FS_LoadCSV(path) < 0) {
+		Warning(E_GETCSV);
+		return -1;
 	}
 
 	return 0;
@@ -57,7 +52,8 @@ int DAT_Insert(const char *key, const entry_t *ent)
 	Assert(active);
 	Assert(ent != NULL);
 
-	Verbose("Inserting entry '%s'", key);
+	Verbose("Loading %s (%s)...", ent->bar, ent->com);
+
 	return Table_Insert(&tab, key, ent);
 }
 

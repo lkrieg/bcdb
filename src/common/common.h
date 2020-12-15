@@ -24,7 +24,7 @@ typedef  unsigned char    byte;
 #define  MAX_CFG_NUM      64
 #define  MAX_CFG_KEY      16
 #define  MAX_CFG_VAL      128
-#define  MAX_CSV_DATA     128
+#define  MAX_CSV_DATA     256
 #define  MAX_CSV_COLS     16
 #define  MAX_TTYPE        48
 #define  MIN_ROWS         14
@@ -32,6 +32,10 @@ typedef  unsigned char    byte;
 #define  BASE_TEL_PORT    23
 #define  BASE_WEB_PORT    80
 #define  BASE_FILE        NULL
+
+#define  MAX_CATEGORY     16
+#define  MAX_BARCODE      32
+#define  MAX_COMPANY      64
 
 #define  CFGPATH          "/etc/barkeeper.conf"
 #define  LOGPATH          "/var/log/barkeeper.log"
