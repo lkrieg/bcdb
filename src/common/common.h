@@ -89,7 +89,6 @@ void     _Memcheck(void);
 
 #include "common/errors.h"
 #include "common/params.h"
-#include "common/parser.h"
 #include "database/database.h"
 #include "database/filesystem.h"
 #include "database/hashtable.h"

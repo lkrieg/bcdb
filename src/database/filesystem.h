@@ -8,8 +8,7 @@ int FS_LoadCSV(const char *path, csv_t *out);
 
 struct csv_s
 {
-	int foo;
-	int bar;
+	int     size;
 };
 
 #endif // FILESYSTEM_H

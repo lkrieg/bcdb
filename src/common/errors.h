@@ -14,6 +14,7 @@
 #define E_UNLOCK  "Unable to unlock pid file"
 #define E_ACTIVE  "Daemon is already running"
 #define E_NOFORK  "Unable to fork process"
+#define E_NQUOTE  "Missing terminating quote"
 #define E_EXPECT  "Expected character"
 #define E_NOREAD  "Unable to read file"
 #define E_NOTNUM  "Invalid numeric value"

@@ -6,5 +6,4 @@
 
 // TODO: Compile test seperatly
 #include "database/filesystem.c"
-#include "parser.c"
 #include "util.c"

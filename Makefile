@@ -37,6 +37,10 @@ DEPENDS := $(SOURCES:%.c=$(TMPDIR)/%.d)
 TESTOBJ := $(TESTSRC:%.c=$(TMPDIR)/%.o)
 TESTDEP := $(TESTSRC:%.c=$(TMPDIR)/%.d)
 
+.PHONY: run
+run: $(TARGET)
+	$(Q) sudo ./$< -v
+
 .PHONY: all
 all: $(TARGET) $(CHECKS)
 
