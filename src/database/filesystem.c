@@ -1,4 +1,5 @@
 #include "common.h"
+#include "parser.h"
 #include "filesystem.h"
 
 #include <unistd.h>
@@ -35,10 +36,23 @@ int FS_ReadRAM(const char *path, char *out, int n)
 	return total;
 }
 
-int FS_ParseCSV(const char *path, csv_t *out)
+int FS_LoadCSV(const char *path, csv_t *out)
 {
-	UNUSED(path);
+	char buf[MAX_FILEBUF + 1];
+	char *tail, *head = buf;
+	int len;
+
+	len = FS_ReadRAM(path, buf, MAX_FILEBUF);
+
+	if (len < 0)
+		return -1;
+
+	head = buf;
+	tail = head + len;
+
 	UNUSED(out);
+	UNUSED(head);
+	UNUSED(tail);
 
 	return -1;
 }

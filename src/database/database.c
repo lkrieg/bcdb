@@ -29,7 +29,7 @@ int DAT_Import(const char *path)
 	Assert(path != NULL);
 
 	Info("Importing data file '%s'...", path);
-	if (FS_ParseCSV(path, &csv) < 0)
+	if (FS_LoadCSV(path, &csv) < 0)
 		return -1;
 
 	// TODO
