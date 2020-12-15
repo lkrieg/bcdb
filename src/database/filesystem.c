@@ -55,11 +55,11 @@ int FS_LoadCSV(const char *path, csv_t *out)
 			if (*tail == '\0')
 				break;
 
-			if (quoted)
-				continue;
-
 			if (*tail == '"')
 				quoted = !quoted;
+
+			if (quoted)
+				continue;
 
 			if ((*tail == ',')
 			|| ((*tail == ';') || (*tail == '\n'))) {
