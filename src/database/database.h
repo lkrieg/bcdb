@@ -12,9 +12,9 @@ void  DAT_Shutdown(void);
 
 struct entry_s
 {
-	char          key[MAX_KEY_LEN];
-	long          value;
-	entry_t    *  next;
+	char       key[MAX_KEY_LEN];
+	char       value[MAX_VAL_LEN];
+	entry_t *  next;
 };
 
 #endif // DATABASE_H

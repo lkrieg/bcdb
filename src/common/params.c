@@ -19,7 +19,6 @@ static int      vargc;
 static char **  vargv;
 
 static int    GetCvar(const char *key, int len);
-static int    GetFile(const char *path, char *out);
 static int    GetArgs(const struct option *opts, const char *argstr);
 static int    Store(int id, const char *val, int len);
 static int    ReadKey(char **buf, char **key);
@@ -41,16 +40,16 @@ int CFG_ParseFile(const char *path)
 	char buf[MAX_FILEBUF];
 	char *head = buf;
 	char *key, *val;
-	int id, len;
+	int id, len, n;
 
 	Assert(path != NULL);
 
-	if (GetFile(path, buf) < 0) {
+	if ((n = FS_ReadRAM(path, buf, MAX_FILEBUF)) < 0) {
 		Warning(E_NOREAD " '%s'", path);
 		return -1;
 	}
 
-	// TODO: Report FILE and LINENO
+	buf[n] = '\0';
 	while (SkipWhitespace(&head)) {
 		if ((len = ReadKey(&head, &key)) < 1)
 			return -2; // Missing key
@@ -153,30 +152,6 @@ static int GetCvar(const char *key, int len)
 	}
 
 	return id;
-}
-
-static int GetFile(const char *path, char *out)
-{
-	int fd, n;
-	int total = 0;
-
-	Assert(path != NULL);
-	Assert(out != NULL);
-
-	if ((fd = open(path, O_RDONLY)) < 0)
-		return -1;
-	do {
-		if ((total == MAX_FILEBUF)
-		|| ((n = read(fd, out + total, MAX_FILEBUF - total)) < 0))
-			return -2;
-
-		total += n;
-	} while (n);
-
-	out[total] = '\0';
-	close(fd);
-
-	return total;
 }
 
 static int GetArgs(const struct option *opts, const char *argstr)

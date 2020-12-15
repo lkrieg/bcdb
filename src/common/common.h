@@ -19,7 +19,8 @@ typedef  unsigned char    byte;
 #define  MAX_FILEBUF      8192
 #define  MAX_LINEBUF      2048
 #define  MAX_BACKLOG      10
-#define  MAX_KEY_LEN      32
+#define  MAX_KEY_LEN      24
+#define  MAX_VAL_LEN      40
 #define  MAX_CFG_NUM      64
 #define  MAX_CFG_KEY      16
 #define  MAX_CFG_VAL      128
@@ -88,12 +89,12 @@ void     _Memcheck(void);
 
 #include "common/errors.h"
 #include "common/params.h"
-#include "networking/socket.h"
-#include "networking/telnet.h"
-#include "networking/webapi.h"
 #include "database/database.h"
 #include "database/filesystem.h"
 #include "database/hashtable.h"
+#include "networking/socket.h"
+#include "networking/telnet.h"
+#include "networking/webapi.h"
 #include "renderer/renderer.h"
 
 extern bool verbose;

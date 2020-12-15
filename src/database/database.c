@@ -23,19 +23,16 @@ int DAT_Init(void)
 
 int DAT_Import(const char *path)
 {
-	int fd;
+	csv_t csv;
 
 	Assert(active);
 	Assert(path != NULL);
 
 	Info("Importing data file '%s'...", path);
-	fd = open(path, O_RDONLY);
-
-	if (fd < 0)
+	if (FS_ParseCSV(path, &csv) < 0)
 		return -1;
 
 	// TODO
-	close(fd);
 	return 0;
 }
 
