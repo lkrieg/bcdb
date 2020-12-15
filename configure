@@ -13,7 +13,10 @@ usage()
 cat << EOF
 Usage: ./configure [--no-debug] [--no-pthread] [--no-zlib]
 
-  --no-debug      Disables all runtime debugging features
+  --debug         Enables runtime debugging features
+  --autorun       Sets default target to build and run
+                  This works nicely together with the vim
+                  key binding 'nnoremap m :make!<CR>'
   --no-pthread    Disables multi-threading support
   --no-zlib       Disables optional data compression
 EOF
@@ -21,26 +24,27 @@ EOF
 
 main()
 {
-	local use_debug="yes"
+	local debug="no"
+	local autorun="no"
 	local use_pthread="no"
 	local use_zlib="no"
 
 	# Make sure the source file and ldconfig are available
-	test -f "${SRC}"    || error "Header '${SRC}' missing."
-	prereq "ldconfig"   || error "ldconfig not installed."
-
+	test -f "${SRC}"   || error "Header '${SRC}' missing."
+	prereq "ldconfig"  || error "ldconfig not installed."
 
 	# Check linker searchpaths for libraries
-	exists "libpthread" && use_pthread="yes"
-	exists "libz"       && use_zlib="yes"
+	exists "libpthread"  && use_pthread="yes"
+	exists "libz"        && use_zlib="yes"
 
 	# Command-line arguments
 	while test ${#} -gt 0; do
 		case "${1}" in
-		--no-debug)   use_debug="no"   ;;
-		--no-pthread) use_pthread="no" ;;
-		--no-zlib)    use_zlib="no"    ;;
-		*)            usage; exit 0    ;;
+		--debug)       debug="yes"      ;;
+		--autorun)     autorun="yes"    ;;
+		--no-zlib)     use_zlib="no"    ;;
+		--no-pthread)  use_pthread="no" ;;
+		*)             usage; exit 0    ;;
 		esac
 		shift
 	done
@@ -48,16 +52,23 @@ main()
 	# The prompt interferes with automated unit testing
 	# prompt "Enable debug mode?" && use_debug="yes"
 
-	info "[CFG] Checking for debug...${use_debug}"
+	info "[CFG] Checking for debug...${debug}"
+	info "[CFG] Checking for autorun...${autorun}"
 	info "[CFG] Checking for pthread...${use_pthread}"
 	info "[CFG] Checking for zlib...${use_zlib}"
 
-	# Process input file
+	# Generate output files
 	cp "${SRC}" "${DST}"
+	rm -f etc/config.mk
 
-	define "DEBUG"         "${use_debug}"
+	define "DEBUG"         "${debug}"
 	define "HAVE_PTHREAD"  "${use_pthread}"
 	define "HAVE_ZLIB"     "${use_zlib}"
+
+	case "${autorun}" in
+	yes) makevar "DEFAULT" "run" ;;
+	*)   makevar "DEFAULT" "all" ;;
+	esac
 
 	return 0
 }
@@ -80,6 +91,11 @@ define()
 	yes) sed -i "s/undef ${1}/define ${1}/g" "${DST}" ;;
 	*)   sed -i "s/define ${1}/undef ${1}/g" "${DST}" ;;
 	esac
+}
+
+makevar()
+{
+	printf "$1=$2\n" >> etc/config.mk
 }
 
 prompt()

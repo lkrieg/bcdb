@@ -37,8 +37,18 @@ DEPENDS := $(SOURCES:%.c=$(TMPDIR)/%.d)
 TESTOBJ := $(TESTSRC:%.c=$(TMPDIR)/%.o)
 TESTDEP := $(TESTSRC:%.c=$(TMPDIR)/%.d)
 
+# Config script variables
+-include etc/config.mk
+
+.PHONY: default
+default: $(DEFAULT)
+
 .PHONY: all
 all: $(TARGET) $(CHECKS)
+
+.PHONY: run
+run: $(TARGET)
+	$(Q) sudo ./$< -v
 
 .PHONY: check
 check: $(CHECKS)
@@ -94,9 +104,11 @@ clean: # Highwaaay to the danger zone
 	$(Q) $(RM) -r $(TMPDIR)
 	$(E) "[RM] src/config.h"
 	$(Q) $(RM) src/config.h
+	$(E) "[RM] etc/config.mk"
+	$(Q) $(RM) etc/config.mk
 
-# Require processed config header
-ifeq (,$(wildcard src/config.h))
+# Require processed config file
+ifeq (,$(wildcard etc/config.mk))
 $(error Please run ./configure before make)
 endif
 
