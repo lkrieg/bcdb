@@ -11,30 +11,35 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-static int Bind(int port);
-static int Listen(int fd);
+static int telport, telsock = -1;
+static int webport, websock = -1;
+static char teladdr[MAX_IPADDR];
+static char webaddr[MAX_IPADDR];
+
+enum type {
+	T_NET_TEL,
+	T_NET_WEB
+};
+
+static int Bind(int handle, int port);
+static int Listen(int handle);
 static int SetOpt(int fd, int opt, int val);
 static const char *GetAddrStr(struct sockaddr *addr);
 
 int NET_Init(int tel, int web)
 {
-	int telsock;
-	int websock;
-
-	telsock = Bind(tel);
-	websock = Bind(web);
-
-	if (telsock < 0 || websock < 0) {
+	Info("Initializing networking module...");
+	if (((Bind(T_NET_TEL, tel)) < 0)
+	|| (((Bind(T_NET_WEB, web)) < 0))) {
 		if (telsock >= 0)
 			close(telsock);
 		if (websock >= 0)
 			close(websock);
-
 		return -1;
 	}
 
-	if ((Listen(telsock) < 0)
-	|| ((Listen(websock) < 0))) {
+	if ((Listen(T_NET_TEL) < 0)
+	|| ((Listen(T_NET_WEB) < 0))) {
 		close(telsock);
 		close(websock);
 		return -2;
@@ -43,12 +48,18 @@ int NET_Init(int tel, int web)
 	return 0;
 }
 
+int NET_Accept(net_cln_t *out)
+{
+	UNUSED(out);
+	return 0;
+}
+
 void NET_Shutdown(void)
 {
 	Info("Shutting down networking...");
 }
 
-static int Bind(int port)
+static int Bind(int handle, int port)
 {
 	char portstr[16];
 	struct addrinfo hints;
@@ -57,6 +68,9 @@ static int Bind(int port)
 	int rc, fd;
 
 	memset(&hints, 0, sizeof(hints));
+
+	Assert(port >= 0 && port < 65536);
+	Assert(handle == T_NET_TEL || handle == T_NET_WEB);
 
 	hints.ai_family    = AF_UNSPEC;    // IPv4, IPv6
 	hints.ai_socktype  = SOCK_STREAM;  // TCP stream
@@ -68,7 +82,7 @@ static int Bind(int port)
 
 	for (it = addr; it; it = it->ai_next) {
 		addrstr = GetAddrStr(it->ai_addr);
-		Info("Getting socket descriptor %s:%d...", addrstr, port);
+		Verbose("Requesting socket descriptor %s:%d...", addrstr, port);
 		fd = socket(it->ai_family, it->ai_socktype,
 		            it->ai_protocol);
 
@@ -89,6 +103,20 @@ static int Bind(int port)
 
 		}
 
+		if (handle == T_NET_TEL) {
+			telsock = fd;
+			telport = port;
+			snprintf(teladdr, MAX_IPADDR,
+			         "%s:%d", addrstr, port);
+		}
+
+		if (handle == T_NET_WEB) {
+			websock = fd;
+			webport = port;
+			snprintf(webaddr, MAX_IPADDR,
+			         "%s:%d", addrstr, port);
+		}
+
 		break;
 	}
 
@@ -99,9 +127,20 @@ static int Bind(int port)
 	return fd;
 }
 
-static int Listen(int fd)
+static int Listen(int handle)
 {
-	Info("Listening on socket...");
+	int fd;
+	char *addr;
+	const char *type;
+
+	Assert(telsock >= 0 && websock >= 0);
+	Assert(handle == T_NET_TEL || handle == T_NET_WEB);
+
+	fd    = (handle == T_NET_TEL) ? telsock : websock;
+	addr  = (handle == T_NET_TEL) ? teladdr : webaddr;
+	type  = (handle == T_NET_TEL) ? "telnet" : "webapi";
+
+	Info("Listening with %s from %s...", type, addr);
 	if (listen(fd, MAX_BACKLOG) < 0) {
 		Warning(E_LISTEN ": %s", strerror(errno));
 		return -1;

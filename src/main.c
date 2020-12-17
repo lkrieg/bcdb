@@ -101,6 +101,8 @@ static void Configure(int argc, char **argv)
 
 static int Run(void)
 {
+	net_cln_t cln;
+
 	if (!IsPrivileged())
 		Error(E_NOROOT);
 
@@ -140,9 +142,10 @@ static int Run(void)
 	if (NET_Init(telport, webport) < 0)
 		Warning(E_IPINIT);
 
-	// Handle events
-	Info("Waiting...");
-	for (;;) Sleep(1);
+	for (;;) { // Accept new clients
+		if (NET_Accept(&cln) < 0)
+			Warning(E_ACCEPT);
+	}
 
 	return 0;
 }

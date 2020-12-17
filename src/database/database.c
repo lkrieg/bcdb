@@ -14,7 +14,7 @@ static bool active;
 
 int DAT_Init(void)
 {
-	Info("Initializing barcode database...");
+	Info("Initializing database module...");
 	if (Table_Init(&tab, MAX_HASH) < 0)
 		return -1;
 
