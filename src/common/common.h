@@ -16,9 +16,13 @@ typedef  unsigned char    byte;
 
 #define  MAX_PATH         4096
 #define  MAX_HASH         4096
+#define  MAX_CHUNK        2048
 #define  MAX_FILEBUF      8192
 #define  MAX_LINEBUF      2048
 #define  MAX_BACKLOG      10
+#define  MAX_CATEGORY     16
+#define  MAX_BARCODE      32
+#define  MAX_DEST         64
 #define  MAX_KEY_LEN      24
 #define  MAX_VAL_LEN      40
 #define  MAX_CFG_NUM      64
@@ -32,10 +36,6 @@ typedef  unsigned char    byte;
 #define  BASE_TEL_PORT    23
 #define  BASE_WEB_PORT    80
 #define  BASE_FILE        NULL
-
-#define  MAX_CATEGORY     16
-#define  MAX_BARCODE      32
-#define  MAX_COMPANY      64
 
 #define  CFGPATH          "/etc/barkeeper.conf"
 #define  LOGPATH          "/var/log/barkeeper.log"

@@ -1,13 +1,12 @@
 #include "common.h"
 #include "filesystem.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-static int SkipWhitespace(char **buf);
 
 int FS_ReadRAM(const char *path, char *out, int n)
 {
@@ -37,6 +36,122 @@ int FS_ReadRAM(const char *path, char *out, int n)
 	close(fd);
 	return total;
 }
+
+int FS_LoadCSV(const char *path)
+{
+	int fd, n;
+	char chunk[MAX_CHUNK + 1];
+	char *head, *tail, c;
+	char *cat, *bar, *dst;
+	bool comment = false;
+	bool quoted = false;
+
+	if ((fd = open(path, O_RDONLY)) < 0) {
+		Warning(E_FDOPEN " '%s': %s", path,
+		        strerror(errno));
+		return -1;
+	}
+
+	for (;;) {
+		if ((n = read(fd, chunk, MAX_CHUNK)) < 0) {
+			Warning(E_FDREAD " '%s': %s", path,
+			        strerror(errno));
+			return -1;
+		}
+
+		if (n == 0)
+			break;
+
+		head = chunk;
+		tail = head + n;
+
+		while (head < tail) {
+			c = *head++;
+
+			// Single line comments
+			if (c == '#' && !quoted)
+				comment = true;
+
+			if (comment) {
+				if (c == '\r' || c == '\n')
+					comment = !comment;
+				continue;
+			}
+
+			// Quoted values
+			// Escaped quotes are currently not
+			// supported since the syntax sucks
+
+			if (c == '"') {
+				quoted = !quoted;
+				continue;
+			}
+
+			if (!quoted) {
+				if (c == ',') {
+					continue; // TODO
+				}
+				if (c == ';') {
+					continue; // TODO
+				}
+			}
+
+			// TODO
+			printf("%c", c);
+			UNUSED(cat);
+			UNUSED(bar);
+			UNUSED(dst);
+		}
+	}
+
+	close(fd);
+	return -1;
+}
+
+#if 0
+
+/*
+if (c == '\r' || c == '\n' || c == ';') {
+	head += (c == '\r' && *head == '\n');
+	if (quoted) {
+		Warning(E_QUOTED);
+		return -1;
+	}
+	continue;
+}
+*/
+
+/*
+if (c == '"') {
+	if (!quoted || *head != '"') {
+		quoted = !quoted;
+		continue;
+	}
+	// Escaped
+	head++;
+}
+*/
+
+if (!quoted) {
+	if (c == ',') {
+	}
+	if (c == ';') {
+	}
+			}
+
+//if (c <= ' ')
+//	continue;
+
+
+FILE *fp;
+char line[MAX_LINEBUF + 1];
+
+if ((fp = fopen(path, "r")) == NULL) {
+	Warning(E_FDOPEN " '%s'", path);
+	return -1;
+}
+
+while ((n = getline(&line)) // ...
 
 int FS_LoadCSV(const char *path)
 {
@@ -114,6 +229,7 @@ int FS_LoadCSV(const char *path)
 	} while (1);
 	return 0;
 }
+#endif
 
 #if 0
 csv_row_t *FS_LoadCSV(const char *path)
@@ -206,31 +322,3 @@ csv_row_t *FS_LoadCSV(const char *path)
 	return rows;
 }
 #endif
-
-// FIXME: Duplication with params.c
-static int SkipWhitespace(char **buf)
-{
-	char *head = *buf;
-
-	Assert(buf && *buf);
-
-	while (*head != '\0') {
-		if (*head <= ' ') {
-			head++;
-			continue;
-		}
-
-		if (*head != '#')
-			break; // Done
-
-		// Comment
-		while (*head != '\n') {
-			if (*head == '\0')
-				break;
-			head++;
-		}
-	}
-
-	*buf = head;
-	return (*head != '\0');
-}

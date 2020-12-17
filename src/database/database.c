@@ -52,7 +52,7 @@ int DAT_Insert(const char *key, const entry_t *ent)
 	Assert(active);
 	Assert(ent != NULL);
 
-	Verbose("Loading %s (%s)...", ent->bar, ent->com);
+	Verbose("Loading %s (%s)...", ent->bar, ent->dst);
 
 	return Table_Insert(&tab, key, ent);
 }

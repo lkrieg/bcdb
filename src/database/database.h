@@ -15,7 +15,7 @@ struct entry_s
 	char    *  key;
 	char       cat[MAX_CATEGORY];
 	char       bar[MAX_BARCODE];
-	char       com[MAX_COMPANY];
+	char       dst[MAX_DEST];
 	entry_t *  next;
 };
 
