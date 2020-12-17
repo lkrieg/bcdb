@@ -28,7 +28,6 @@ int DAT_Import(const char *path)
 	Assert(path != NULL);
 
 	Info("Importing data file '%s'...", path);
-
 	if (FS_LoadCSV(path) < 0) {
 		Warning(E_GETCSV);
 		return -1;
@@ -53,7 +52,6 @@ int DAT_Insert(const char *key, const entry_t *ent)
 	Assert(ent != NULL);
 
 	Verbose("Loading %s (%s)...", ent->bar, ent->dst);
-
 	return Table_Insert(&tab, key, ent);
 }
 

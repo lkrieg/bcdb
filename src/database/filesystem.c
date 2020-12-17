@@ -3,10 +3,12 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 
 int FS_ReadRAM(const char *path, char *out, int n)
 {
@@ -97,6 +99,11 @@ int FS_LoadCSV(const char *path)
 						return -1;
 					}
 
+					// Remove trailing whitespace
+					while (isspace(ent.cat[ncat-1])) ncat--;
+					while (isspace(ent.bar[nbar-1])) nbar--;
+					while (isspace(ent.dst[ndst-1])) ndst--;
+
 					ent.cat[ncat] = '\0';
 					ent.bar[nbar] = '\0';
 					ent.dst[ndst] = '\0';
@@ -150,7 +157,7 @@ int FS_LoadCSV(const char *path)
 	}
 
 	close(fd);
-	return -1;
+	return 0;
 }
 
 #if 0
