@@ -39,13 +39,19 @@ int FS_ReadRAM(const char *path, char *out, int n)
 
 int FS_LoadCSV(const char *path)
 {
-	int fd, n;
+	int fd, n, nval;
+	int ncat, nbar, ndst;
 	char chunk[MAX_CHUNK + 1];
 	char *head, *tail, c;
-	char *cat, *bar, *dst;
 	bool comment = false;
 	bool quoted = false;
+	entry_t ent;
 
+	// TODO: Split into multiple functions
+	// TODO: Clean up and check for problems
+	// TODO: Handle escaped quotes
+
+	ncat = nbar = ndst = nval = 0;
 	if ((fd = open(path, O_RDONLY)) < 0) {
 		Warning(E_FDOPEN " '%s': %s", path,
 		        strerror(errno));
@@ -68,13 +74,40 @@ int FS_LoadCSV(const char *path)
 		while (head < tail) {
 			c = *head++;
 
-			// Single line comments
-			if (c == '#' && !quoted)
-				comment = true;
-
+			// Skip comment
 			if (comment) {
 				if (c == '\r' || c == '\n')
 					comment = !comment;
+				continue;
+			}
+
+			// Logical line terminator
+			if ((c =='\r' || c == '\n')
+			|| ((!quoted && ((c == ';') || c == '#')))) {
+				if (ncat) { // Any values to insert?
+					if (!nbar || !ndst) {
+						Warning(E_FIELDS);
+						close(fd);
+						return -1;
+					}
+
+					if (quoted) {
+						Warning(E_QUOTED);
+						close(fd);
+						return -1;
+					}
+
+					ent.cat[ncat] = '\0';
+					ent.bar[nbar] = '\0';
+					ent.dst[ndst] = '\0';
+					nval = ncat = nbar = ndst = 0;
+
+					// Insert value into database
+					DAT_Insert(ent.cat, &ent);
+				}
+
+				if (c == '#') // Comment
+					comment = true;
 				continue;
 			}
 
@@ -87,20 +120,32 @@ int FS_LoadCSV(const char *path)
 				continue;
 			}
 
-			if (!quoted) {
-				if (c == ',') {
-					continue; // TODO
+			if (c == ',' && !quoted) {
+				if ((nval == 0 && !ncat)
+				|| ((nval == 1 && !nbar))
+				|| ((nval == 2 && !ndst))) {
+					Warning(E_FIELDS);
+					close(fd);
+					return -1;
 				}
-				if (c == ';') {
-					continue; // TODO
-				}
+				nval++;
+				continue;
 			}
 
-			// TODO
-			printf("%c", c);
-			UNUSED(cat);
-			UNUSED(bar);
-			UNUSED(dst);
+			if ((ncat >= MAX_CATEGORY)
+			|| ((nbar >= MAX_BARCODE)
+			|| ((ndst >= MAX_DEST)))) {
+				Warning(E_MAXVAL);
+				close(fd);
+				return -1;
+			}
+
+			if (nval == 0 && (ncat || c > ' '))
+				ent.cat[ncat++] = c;
+			if (nval == 1 && (nbar || c > ' '))
+				ent.bar[nbar++] = c;
+			if (nval == 2 && (ndst || c > ' '))
+				ent.dst[ndst++] = c;
 		}
 	}
 
