@@ -68,7 +68,7 @@ void DAT_Shutdown(void)
 {
 	Assert(active);
 
-	Info("Shutting down database...");
+	Info("Shutting down database module...");
 	Table_Serialize(&tab, -1);
 	Table_Free(&tab);
 }

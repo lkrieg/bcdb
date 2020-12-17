@@ -16,7 +16,8 @@ static int webport, websock = -1;
 static char teladdr[MAX_IPADDR];
 static char webaddr[MAX_IPADDR];
 
-enum type {
+enum handle
+{
 	T_NET_TEL,
 	T_NET_WEB
 };
@@ -29,6 +30,7 @@ static const char *GetAddrStr(struct sockaddr *addr);
 int NET_Init(int tel, int web)
 {
 	Info("Initializing networking module...");
+
 	if (((Bind(T_NET_TEL, tel)) < 0)
 	|| (((Bind(T_NET_WEB, web)) < 0))) {
 		if (telsock >= 0)
@@ -56,7 +58,7 @@ int NET_Accept(net_cln_t *out)
 
 void NET_Shutdown(void)
 {
-	Info("Shutting down networking...");
+	Info("Shutting down networking module...");
 }
 
 static int Bind(int handle, int port)
@@ -100,7 +102,6 @@ static int Bind(int handle, int port)
 			Warning(E_NOBIND ": %s", strerror(errno));
 			close(fd);
 			continue;
-
 		}
 
 		if (handle == T_NET_TEL) {
@@ -108,9 +109,7 @@ static int Bind(int handle, int port)
 			telport = port;
 			snprintf(teladdr, MAX_IPADDR,
 			         "%s:%d", addrstr, port);
-		}
-
-		if (handle == T_NET_WEB) {
+		} else {
 			websock = fd;
 			webport = port;
 			snprintf(webaddr, MAX_IPADDR,
@@ -138,9 +137,9 @@ static int Listen(int handle)
 
 	fd    = (handle == T_NET_TEL) ? telsock : websock;
 	addr  = (handle == T_NET_TEL) ? teladdr : webaddr;
-	type  = (handle == T_NET_TEL) ? "telnet" : "webapi";
+	type  = (handle == T_NET_TEL) ? "telnet" : "http";
 
-	Info("Listening with %s from %s...", type, addr);
+	Info("Listening for %s from %s...", type, addr);
 	if (listen(fd, MAX_BACKLOG) < 0) {
 		Warning(E_LISTEN ": %s", strerror(errno));
 		return -1;
