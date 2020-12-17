@@ -22,6 +22,7 @@ typedef  unsigned char    byte;
 #define  MAX_BACKLOG      10
 #define  MAX_CATEGORY     16
 #define  MAX_BARCODE      32
+#define  MAX_IPADDR       46
 #define  MAX_DEST         64
 #define  MAX_KEY_LEN      24
 #define  MAX_VAL_LEN      40

@@ -138,7 +138,7 @@ static int Run(void)
 	}
 
 	if (NET_Init(telport, webport) < 0)
-		Warning(E_NOSOCK);
+		Warning(E_IPINIT);
 
 	// Handle events
 	Info("Waiting...");

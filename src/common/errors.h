@@ -35,6 +35,11 @@
 #define E_ENOVAL  "Required config value missing"
 #define E_GETCFG  "Check the config file for errors"
 #define E_GETARG  "See --help for more information"
+#define E_IPINIT  "Failed to initialize networking"
 #define E_NOSOCK  "Unable to bind to socket"
+#define E_GETADR  "Unable to get socket address"
+#define E_SETOPT  "Unable to set socket option"
+#define E_NOBIND  "Unable to bind to socket"
+#define E_LISTEN  "Cannot listen from socket"
 
 #endif // ERRORS_H
