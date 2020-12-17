@@ -1,8 +1,11 @@
-# 41000001                          # Skipped
-# 41000002 , TEST_INVALID_NO_NAME   # Skipped
-# ;;;;;;;; , ,,,,,,,,,,,,,,,,,,,, , # Skipped
+#TEST_INVALID_NO_CATEGORY          # Error
+#41000002 , TEST_INVALID_NO_NAME   # Error
+#a,b,c,d,e,f,g,h,i,j,,,,,,,,,,,,;  # Okay
+#a,b,"#;,c,;#"                     # Okay
+#",;#a", ",;#b", "c#;,"            # Okay
+#a,b,c,d,e,f,g,h,i,j,k             # Okay
 
-41125768 , 00340382974412057168 , "Owl,;#Security"
+41125768 , 00340382974412057168 , Owl Security
 41679891 , 00308102208528397277 , Ecstaticorps
 41917241 , 00301900846904747957 , Brisk Systems
 41291580 , 00305280753937191540 , Labyrintelligence
