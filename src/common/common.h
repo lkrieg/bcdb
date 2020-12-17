@@ -16,15 +16,19 @@ typedef  unsigned char    byte;
 
 #define  MAX_PATH         4096
 #define  MAX_HASH         4096
+#define  MAX_CHUNK        2048
 #define  MAX_FILEBUF      8192
 #define  MAX_LINEBUF      2048
 #define  MAX_BACKLOG      10
+#define  MAX_CATEGORY     16
+#define  MAX_BARCODE      32
+#define  MAX_DEST         64
 #define  MAX_KEY_LEN      24
 #define  MAX_VAL_LEN      40
 #define  MAX_CFG_NUM      64
 #define  MAX_CFG_KEY      16
 #define  MAX_CFG_VAL      128
-#define  MAX_CSV_DATA     128
+#define  MAX_CSV_DATA     256
 #define  MAX_CSV_COLS     16
 #define  MAX_TTYPE        48
 #define  MIN_ROWS         14

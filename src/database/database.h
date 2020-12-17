@@ -12,8 +12,10 @@ void  DAT_Shutdown(void);
 
 struct entry_s
 {
-	char       key[MAX_KEY_LEN];
-	char       value[MAX_VAL_LEN];
+	char    *  key;
+	char       cat[MAX_CATEGORY];
+	char       bar[MAX_BARCODE];
+	char       dst[MAX_DEST];
 	entry_t *  next;
 };
 

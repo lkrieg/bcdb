@@ -1,13 +1,12 @@
 #include "common.h"
 #include "filesystem.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-static int SkipWhitespace(char **buf);
 
 int FS_ReadRAM(const char *path, char *out, int n)
 {
@@ -38,6 +37,201 @@ int FS_ReadRAM(const char *path, char *out, int n)
 	return total;
 }
 
+int FS_LoadCSV(const char *path)
+{
+	int fd, n;
+	char chunk[MAX_CHUNK + 1];
+	char *head, *tail, c;
+	char *cat, *bar, *dst;
+	bool comment = false;
+	bool quoted = false;
+
+	if ((fd = open(path, O_RDONLY)) < 0) {
+		Warning(E_FDOPEN " '%s': %s", path,
+		        strerror(errno));
+		return -1;
+	}
+
+	for (;;) {
+		if ((n = read(fd, chunk, MAX_CHUNK)) < 0) {
+			Warning(E_FDREAD " '%s': %s", path,
+			        strerror(errno));
+			return -1;
+		}
+
+		if (n == 0)
+			break;
+
+		head = chunk;
+		tail = head + n;
+
+		while (head < tail) {
+			c = *head++;
+
+			// Single line comments
+			if (c == '#' && !quoted)
+				comment = true;
+
+			if (comment) {
+				if (c == '\r' || c == '\n')
+					comment = !comment;
+				continue;
+			}
+
+			// Quoted values
+			// Escaped quotes are currently not
+			// supported since the syntax sucks
+
+			if (c == '"') {
+				quoted = !quoted;
+				continue;
+			}
+
+			if (!quoted) {
+				if (c == ',') {
+					continue; // TODO
+				}
+				if (c == ';') {
+					continue; // TODO
+				}
+			}
+
+			// TODO
+			printf("%c", c);
+			UNUSED(cat);
+			UNUSED(bar);
+			UNUSED(dst);
+		}
+	}
+
+	close(fd);
+	return -1;
+}
+
+#if 0
+
+/*
+if (c == '\r' || c == '\n' || c == ';') {
+	head += (c == '\r' && *head == '\n');
+	if (quoted) {
+		Warning(E_QUOTED);
+		return -1;
+	}
+	continue;
+}
+*/
+
+/*
+if (c == '"') {
+	if (!quoted || *head != '"') {
+		quoted = !quoted;
+		continue;
+	}
+	// Escaped
+	head++;
+}
+*/
+
+if (!quoted) {
+	if (c == ',') {
+	}
+	if (c == ';') {
+	}
+			}
+
+//if (c <= ' ')
+//	continue;
+
+
+FILE *fp;
+char line[MAX_LINEBUF + 1];
+
+if ((fp = fopen(path, "r")) == NULL) {
+	Warning(E_FDOPEN " '%s'", path);
+	return -1;
+}
+
+while ((n = getline(&line)) // ...
+
+int FS_LoadCSV(const char *path)
+{
+
+	int cols;
+	int n, max = MAX_FILEBUF;
+	char buf[MAX_FILEBUF + 1];
+	char *cat, *bar, *com;
+	char *head = buf;
+	bool quoted;
+	entry_t ent;
+
+	n = FS_ReadRAM(path, buf, max);
+
+	if (n < 0)
+		return -1;
+
+	buf[n]  = '\0';
+	quoted  = false;
+	cols    = 0;
+
+	do {
+		if (!SkipWhitespace(&head))
+			break;
+
+		cat = head;
+		bar = NULL;
+		com = NULL;
+
+		for (;; head++) {
+			if (*head == '\n' || *head == '\0') {
+				if (quoted) {
+					Warning(E_QUOTED);
+					return -2;
+				}
+				break;
+			}
+
+			if (*head == '"')
+				quoted = !quoted;
+
+			if (quoted)
+				continue;
+
+			if (*head == ',') {
+				*head = '\0';
+				switch (cols++) {
+				case 0: bar = head + 1; break;
+				case 1: com = head + 1; break;
+				}
+				continue;
+			}
+
+			if (*head == ';' || *head == '#')
+				break;
+		}
+
+		if (!cat || !bar)
+			return -1;
+
+		if (*cat == 0 || *bar == 0)
+			return -1;
+
+		if (*head != '\0')
+			*head++ = '\0';
+
+		Info("|%s|%s|%s|", cat, bar, com);
+		UNUSED(ent);
+
+		// if (DAT_Insert(bar, &ent) < 0)
+		//	return -3;
+
+		cols = 0;
+
+	} while (1);
+	return 0;
+}
+#endif
+
+#if 0
 csv_row_t *FS_LoadCSV(const char *path)
 {
 	int n, i, j, len;
@@ -82,8 +276,8 @@ csv_row_t *FS_LoadCSV(const char *path)
 			tmp.data[i++] = *tail;
 		}
 
-		if ((len = tail - head) > 0) {
-			if (j > MAX_CSV_COLS) {
+		if ((len = tail - head) >= 0) {
+			if (j >= MAX_CSV_COLS) {
 				Warning(E_NUMCOL);
 				return NULL;
 			}
@@ -95,12 +289,21 @@ csv_row_t *FS_LoadCSV(const char *path)
 			tmp.data[i++] = '\0';
 		}
 
-		if ((*tail == ',')
+		if (*tail == '#') {
+			Info("SKIP_COMMENT ???");
+			while (*tail && *tail != '\n')
+				tail++;
+		}
+
+		if ((*tail == ',' || *tail == '\0')
 		|| ((*tail == ';' || *tail == '\n'))) {
 			if (j && *tail != ',') {
 				row = Allocate(sizeof(*row));
 				memcpy(row, &tmp, sizeof(*row));
 				row->size = j;
+				while (j < MAX_CSV_COLS)
+					row->cols[j++] = 0;
+
 				row->next = rows;
 				rows = row;
 				i = j = 0;
@@ -118,31 +321,4 @@ csv_row_t *FS_LoadCSV(const char *path)
 
 	return rows;
 }
-
-// FIXME: Duplication with params.c
-static int SkipWhitespace(char **buf)
-{
-	char *head = *buf;
-
-	Assert(buf && *buf);
-
-	while (*head != '\0') {
-		if (*head <= ' ') {
-			head++;
-			continue;
-		}
-
-		if (*head != '#')
-			break; // Done
-
-		// Comment
-		while (*head != '\n') {
-			if (*head == '\0')
-				break;
-			head++;
-		}
-	}
-
-	*buf = head;
-	return (*head != '\0');
-}
+#endif

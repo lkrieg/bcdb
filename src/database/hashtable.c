@@ -80,9 +80,10 @@ long Table_Insert(table_t *tab, const char *key, const entry_t *ent)
 	hash = Hash(key) % tab->hashsize;
 	node = tab->data + tab->numentries;
 
-	*node = *ent;
-	strcpy(node->key, key);
+	*node      = *ent;
+	node->key  = node->bar;
 	node->next = tab->entries[hash];
+
 	tab->entries[hash] = node;
 	tab->numentries++;
 
