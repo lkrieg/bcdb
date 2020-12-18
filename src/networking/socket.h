@@ -12,9 +12,9 @@ void  NET_Shutdown(void);
 
 struct net_cln_s
 {
-	int          id;
 	int          type;
 	int          socket;
+	bool         active;
 	char         addr[MAX_IPADDR];
 	net_cln_t *  _next; // Free node
 };

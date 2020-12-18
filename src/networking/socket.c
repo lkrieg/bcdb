@@ -12,16 +12,16 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-static int sockets[MAX_SOCKETS];
-static net_cln_t clients[MAX_CLIENTS];
-static net_cln_t *free_clients;
+static net_cln_t *  free_clients;
+static net_cln_t *  sockets[MAX_SOCKETS];
+static net_cln_t    clients[MAX_CLIENTS];
 
 static net_fun_t handler;
 static fd_set masterset;
 static int maxfd;
 
-static int telport, telsock = -1;
-static int webport, websock = -1;
+static int  telport, telsock = -1;
+static int  webport, websock = -1;
 static char teladdr[MAX_IPADDR];
 static char webaddr[MAX_IPADDR];
 
@@ -83,7 +83,7 @@ int NET_Update(void)
 	byte buf[MAX_LINEBUF];
 	static fd_set set;
 	net_evt_t evt;
-	int fd, n;
+	int fd, newfd, n;
 	int type;
 
 	Assert(telsock >= 0);
@@ -103,8 +103,8 @@ int NET_Update(void)
 				type = (fd == telsock) ? T_CLN_TEL : T_CLN_WEB;
 
 				// Accept new client
-				if ((AddClient(fd, type) < 0)
-				|| ((GetClient(fd, &evt.client) < 0))) {
+				if (((newfd = AddClient(fd, type)) < 0)
+				|| ((GetClient(newfd, &evt.client) < 0))) {
 					Warning(E_ADDCLN);
 					continue;
 				}
@@ -113,14 +113,14 @@ int NET_Update(void)
 				handler(&evt);
 
 			} else {
+				if (GetClient(fd, &evt.client) < 0) {
+					Warning(E_GETCLN);
+					continue;
+				}
+
 				// Receive data from client
 				n = recv(fd, buf, sizeof(buf), 0);
 				if (n > 0) {
-					if (GetClient(fd, &evt.client) < 0) {
-						Warning(E_GETCLN);
-						continue;
-					}
-
 					evt.type = T_EVT_RECEIVED;
 					evt.length = n;
 					evt.data = buf;
@@ -131,9 +131,11 @@ int NET_Update(void)
 					if (n < 0)
 						Warning(E_RXDATA);
 
-					DeleteClient(fd);
+					// Fire event before client
+					// information gets deleted
 					evt.type = T_EVT_CLOSED;
 					handler(&evt);
+					DeleteClient(fd);
 				}
 			}
 		}
@@ -246,75 +248,89 @@ static int AddClient(int socket, int type)
 {
 	struct sockaddr_storage remote;
 	struct sockaddr *addr;
+	const char *addrstr;
 	socklen_t socklen;
 	net_cln_t *cln;
 	int fd;
+
+	socklen  = sizeof(remote);
+	addr     = (struct sockaddr *) &remote;
 
 	if (free_clients == NULL) {
 		Warning(E_MAXCLN);
 		return -1;
 	}
 
-	socklen  = sizeof(remote);
-	addr     = (struct sockaddr *) &remote;
-
 	if ((fd = accept(socket, addr, &socklen)) < 0) {
 		Warning(E_ACCEPT ": %s", strerror(errno));
-		return -1;
+		return -2;
 	}
 
 	if (fd > MAX_SOCKETS) {
 		Warning(E_MAXFDS);
 		close(fd);
-		return -2;
+		return -3;
 	}
 
-	// TODO: Add new client to client list
-	// TODO: Constant time find by socket descriptor
+	// Get free node
+	cln = free_clients;
+	free_clients = cln->_next;
 
-	// sockets[fd] = CLIENT_INDEX
-	UNUSED(sockets);
-	UNUSED(clients);
-	UNUSED(type);
-	UNUSED(cln);
+	cln->type    = type;
+	cln->socket  = fd;
+	cln->_next   = NULL;
+	cln->active  = true;
+
+	addrstr = GetAddrStr(addr);
+	strncpy(cln->addr, addrstr, MAX_IPADDR);
+
+	// Index by descriptor
+	sockets[fd] = cln;
 
 	FD_SET(fd, &masterset);
 	if (fd > maxfd)
 		maxfd = fd;
 
-	return 0;
+	return fd;
 }
 
 static int GetClient(int socket, net_cln_t **out)
 {
-	// TODO: Get client struct from socket descriptor
+	net_cln_t *cln;
 
+	Assert(socket > 0);
 	Assert(socket < MAX_SOCKETS);
-	Warning("Not implemented");
+	Assert(out != NULL);
 
-	// sockets[socket]
-	UNUSED(socket);
-	UNUSED(out);
+	cln = sockets[socket];
+	if (!cln || !cln->active) {
+		Warning(E_GETCLN);
+		return -1;
+	}
 
-	return -1;
+	*out = cln;
+	return 0;
 }
 
 static void DeleteClient(int socket)
 {
 	net_cln_t *cln;
 
+	Assert(socket > 0);
 	Assert(socket < MAX_SOCKETS);
+
+	// Link back into free list
+	if (GetClient(socket, &cln) == 0) {
+		cln->socket   = -1;
+		cln->active   = false;
+		cln->_next    = free_clients;
+		free_clients  = cln;
+	}
 
 	// Remove from fdset and close
 	// TODO: Perhaps update maxfd?
 	FD_CLR(socket, &masterset);
 	close(socket);
-
-	// Link back into free list
-	if (GetClient(socket, &cln) == 0) {
-		cln->_next = free_clients;
-		free_clients = cln;
-	}
 }
 
 static int SetOpt(int fd, int opt, int val)

@@ -157,16 +157,19 @@ static void Event(net_evt_t *e)
 	switch (e->type) {
 	case T_EVT_CONNECTED:
 		type = e->client->type;
-		Info("Accepting new %s client...",
+		Info("Accepting new %s client %s...",
 		     (type == T_CLN_TEL) ? "telnet" :
-		     (type == T_CLN_WEB) ? "webapi" : "");
-
+		     (type == T_CLN_WEB) ? "webapi" :
+		     "", e->client->addr);
 		break;
 	case T_EVT_RECEIVED:
-		Info("Receiving data: '%.*s'", e->length, e->data);
+		Info("Receiving data from %s...",
+		     e->client->addr);
 		break;
 	case T_EVT_CLOSED:
-		Info("Client disconnected");
+		Info("Client %s disconnected",
+		     e->client->addr);
+		break;
 	}
 }
 
