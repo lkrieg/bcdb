@@ -43,5 +43,6 @@
 #define E_LISTEN  "Cannot listen from socket"
 #define E_ACCEPT  "Cannot accept new client"
 #define E_SELECT  "Cannot select new client"
+#define E_RXDATA  "Cannot receive data"
 
 #endif // ERRORS_H

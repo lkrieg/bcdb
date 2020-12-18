@@ -159,8 +159,10 @@ static void Event(net_evt_t *e)
 		Info("Accepting new WEBAPI client...");
 		break;
 	case T_EVT_DATA:
-		Info("Receiving data...");
+		Info("Receiving data: '%.*s'", e->length, e->data);
 		break;
+	case T_EVT_QUIT:
+		Info("Client disconnected");
 	}
 }
 

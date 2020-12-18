@@ -59,9 +59,10 @@ int NET_Init(int tel, int web, net_func_t handler)
 
 int NET_Update(void)
 {
+	byte buf[MAX_LINEBUF];
 	static fd_set set;
 	net_evt_t evt;
-	int fd, newfd;
+	int fd, newfd, n;
 
 	Assert(telsock >= 0);
 	Assert(websock >= 0);
@@ -73,22 +74,33 @@ int NET_Update(void)
 
 	for (fd = 0; fd <= maxfd; fd++) {
 		if (FD_ISSET(fd, &set)) {
+			memset(&evt, 0, sizeof(evt));
 			if (fd == telsock || fd == websock) {
 				evt.type = (fd == telsock)
 				         ? T_EVT_CLIENT_TEL
 				         : T_EVT_CLIENT_WEB;
 
-				// Accept new telnet or http client
+				// Accept telnet or http client
 				if ((newfd = NET_Accept(fd)) >= 0) {
 					evt.handle = newfd;
 					evtfunc(&evt);
 				}
 			} else {
-				// TODO: Receive data
-				FD_CLR(fd, &masterset);
-				evt.type = T_EVT_DATA;
-				evt.handle = fd;
-				evtfunc(&evt);
+				if ((n = recv(fd, buf, sizeof(buf), 0)) <= 0) {
+					if (n < 0)
+						Warning(E_RXDATA);
+					evt.type = T_EVT_QUIT;
+					evt.handle = fd;
+					FD_CLR(fd, &masterset);
+					close(fd);
+					evtfunc(&evt);
+				} else {
+					evt.type = T_EVT_DATA;
+					evt.handle = fd;
+					evt.length = n;
+					evt.data = buf;
+					evtfunc(&evt);
+				}
 			}
 		}
 	}
