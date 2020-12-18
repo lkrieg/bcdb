@@ -154,17 +154,21 @@ static void Event(net_evt_t *e)
 {
 	int type;
 
+	type = e->client->type;
+
 	switch (e->type) {
 	case T_EVT_CONNECTED:
-		type = e->client->type;
 		Info("Accepting new %s client %s...",
 		     (type == T_CLN_TEL) ? "telnet" :
 		     (type == T_CLN_WEB) ? "webapi" :
 		     "", e->client->addr);
 		break;
 	case T_EVT_RECEIVED:
-		Info("Receiving data from %s...",
-		     e->client->addr);
+		Verbose("Receiving data from %s...", e->client->addr);
+		if (type == T_CLN_TEL)
+			TEL_Parse(e->client, e->data, e->length);
+		if (type == T_CLN_WEB)
+			WEB_Parse(e->client, e->data, e->length);
 		break;
 	case T_EVT_CLOSED:
 		Info("Client %s disconnected",
