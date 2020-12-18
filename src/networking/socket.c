@@ -61,7 +61,7 @@ int NET_Update(void)
 {
 	static fd_set set;
 	net_evt_t evt;
-	int i;
+	int fd, newfd;
 
 	Assert(telsock >= 0);
 	Assert(websock >= 0);
@@ -71,25 +71,49 @@ int NET_Update(void)
 	if (select(maxfd + 1, &set, NULL, NULL, NULL) < 0)
 		Warning(E_SELECT ": %s", strerror(errno));
 
-	for (i = 0; i <= maxfd; i++) {
-		if (FD_ISSET(i, &set)) {
-			if (i == telsock) {
-				evt.type = T_EVT_CLIENT_TEL;
-				FD_CLR(i, &masterset); // DELETE
-				evtfunc(&evt);
-			} else if (i == websock) {
-				evt.type = T_EVT_CLIENT_WEB;
-				FD_CLR(i, &masterset); // DELETE
-				evtfunc(&evt);
+	for (fd = 0; fd <= maxfd; fd++) {
+		if (FD_ISSET(fd, &set)) {
+			if (fd == telsock || fd == websock) {
+				evt.type = (fd == telsock)
+				         ? T_EVT_CLIENT_TEL
+				         : T_EVT_CLIENT_WEB;
+
+				// Accept new telnet or http client
+				if ((newfd = NET_Accept(fd)) >= 0) {
+					evt.handle = newfd;
+					evtfunc(&evt);
+				}
 			} else {
+				// TODO: Receive data
+				FD_CLR(fd, &masterset);
 				evt.type = T_EVT_DATA;
-				Info("Data received");
-				FD_CLR(i, &masterset);
+				evt.handle = fd;
 				evtfunc(&evt);
-				break;
 			}
 		}
 	}
+
+	return 0;
+}
+
+int NET_Accept(int socket)
+{
+	struct sockaddr *addr;
+	struct sockaddr_storage remote;
+	socklen_t socklen;
+	int fd;
+
+	socklen  = sizeof(remote);
+	addr     = (struct sockaddr *) &remote;
+
+	if ((fd = accept(socket, addr, &socklen)) < 0) {
+		Warning(E_ACCEPT ": %s", strerror(errno));
+		return -1;
+	}
+
+	FD_SET(fd, &masterset);
+	if (fd > maxfd)
+		maxfd = fd;
 
 	return 0;
 }
