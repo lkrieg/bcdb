@@ -3,6 +3,7 @@
 static void    Usage(void);
 static void    Configure(int argc, char **argv);
 static void    Shutdown(int signal);
+static void    Event(net_evt_t *e);
 static int     Run(void);
 
 static bool    do_fork;  // Run in daemon mode
@@ -101,8 +102,6 @@ static void Configure(int argc, char **argv)
 
 static int Run(void)
 {
-	net_cln_t cln;
-
 	if (!IsPrivileged())
 		Error(E_NOROOT);
 
@@ -125,11 +124,12 @@ static int Run(void)
 		Error(E_NOFORK);
 
 	// Register signal handlers
+	SetPidLock(true); // Lock active process
 	if ((signal(SIGTERM, Shutdown) == SIG_ERR)
 	|| ((signal(SIGINT,  Shutdown) == SIG_ERR)))
 		Error(E_SIGNAL);
 
-	SetPidLock(true);
+	// Initialize database
 	if (DAT_Init() < 0)
 		Error(E_DBINIT);
 
@@ -139,15 +139,29 @@ static int Run(void)
 			Error(E_IMPORT);
 	}
 
-	if (NET_Init(telport, webport) < 0)
-		Warning(E_IPINIT);
+	// Initialize networking
+	if (NET_Init(telport, webport, &Event) < 0)
+		Error(E_IPINIT);
 
-	for (;;) { // Accept new clients
-		if (NET_Accept(&cln) < 0)
-			Warning(E_ACCEPT);
-	}
+	for (;;) // Poll events
+		NET_Update();
 
 	return 0;
+}
+
+static void Event(net_evt_t *e)
+{
+	switch (e->type) {
+	case T_EVT_CLIENT_TEL:
+		Info("Accepting new TELNET client...");
+		break;
+	case T_EVT_CLIENT_WEB:
+		Info("Accepting new WEBAPI client...");
+		break;
+	case T_EVT_DATA:
+		Info("Receiving data...");
+		break;
+	}
 }
 
 static void Shutdown(int signal)

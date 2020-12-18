@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -15,6 +16,9 @@ static int telport, telsock = -1;
 static int webport, websock = -1;
 static char teladdr[MAX_IPADDR];
 static char webaddr[MAX_IPADDR];
+static net_func_t evtfunc;
+static fd_set masterset;
+static int maxfd;
 
 enum handle
 {
@@ -27,9 +31,12 @@ static int Listen(int handle);
 static int SetOpt(int fd, int opt, int val);
 static const char *GetAddrStr(struct sockaddr *addr);
 
-int NET_Init(int tel, int web)
+int NET_Init(int tel, int web, net_func_t handler)
 {
 	Info("Initializing networking module...");
+
+	evtfunc = handler;
+	FD_ZERO(&masterset);
 
 	if (((Bind(T_NET_TEL, tel)) < 0)
 	|| (((Bind(T_NET_WEB, web)) < 0))) {
@@ -50,9 +57,40 @@ int NET_Init(int tel, int web)
 	return 0;
 }
 
-int NET_Accept(net_cln_t *out)
+int NET_Update(void)
 {
-	UNUSED(out);
+	static fd_set set;
+	net_evt_t evt;
+	int i;
+
+	Assert(telsock >= 0);
+	Assert(websock >= 0);
+	Assert(evtfunc != NULL);
+
+	set = masterset;
+	if (select(maxfd + 1, &set, NULL, NULL, NULL) < 0)
+		Warning(E_SELECT ": %s", strerror(errno));
+
+	for (i = 0; i <= maxfd; i++) {
+		if (FD_ISSET(i, &set)) {
+			if (i == telsock) {
+				evt.type = T_EVT_CLIENT_TEL;
+				FD_CLR(i, &masterset); // DELETE
+				evtfunc(&evt);
+			} else if (i == websock) {
+				evt.type = T_EVT_CLIENT_WEB;
+				FD_CLR(i, &masterset); // DELETE
+				evtfunc(&evt);
+			} else {
+				evt.type = T_EVT_DATA;
+				Info("Data received");
+				FD_CLR(i, &masterset);
+				evtfunc(&evt);
+				break;
+			}
+		}
+	}
+
 	return 0;
 }
 
@@ -116,6 +154,9 @@ static int Bind(int handle, int port)
 			         "%s:%d", addrstr, port);
 		}
 
+		if (fd > maxfd)
+			maxfd = fd;
+
 		break;
 	}
 
@@ -145,6 +186,7 @@ static int Listen(int handle)
 		return -1;
 	}
 
+	FD_SET(fd, &masterset);
 	return 0;
 }
 

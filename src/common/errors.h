@@ -42,5 +42,6 @@
 #define E_NOBIND  "Unable to bind to socket"
 #define E_LISTEN  "Cannot listen from socket"
 #define E_ACCEPT  "Cannot accept new client"
+#define E_SELECT  "Cannot select new client"
 
 #endif // ERRORS_H

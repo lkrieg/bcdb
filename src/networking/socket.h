@@ -1,15 +1,23 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-typedef struct net_cln_s net_cln_t;
+typedef struct net_evt_s net_evt_t;
+typedef void (*net_func_t)(net_evt_t*);
 
-int   NET_Init(int tel, int web);
-int   NET_Accept(net_cln_t *out);
+int   NET_Init(int tel, int web, net_func_t handler);
+int   NET_Update(void);
 void  NET_Shutdown(void);
 
-struct net_cln_s
+struct net_evt_s
 {
-	char addr[MAX_IPADDR];
+	int type;
+};
+
+enum net_evt_type
+{
+	T_EVT_CLIENT_TEL,
+	T_EVT_CLIENT_WEB,
+	T_EVT_DATA
 };
 
 #endif // SOCKET_H
