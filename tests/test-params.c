@@ -1,5 +1,4 @@
 #include "util.h"
-#include "common/params.c"
 
 TEST_SETUP(PARAMS)
 {
