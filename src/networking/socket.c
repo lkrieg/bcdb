@@ -45,6 +45,10 @@ int NET_Init(int tel, int web)
 
 	Info("Initializing networking module...");
 
+	if ((WEB_Init() < 0)
+	|| ((TEL_Init() < 0)))
+		return -1;
+
 	// Initialize list of free clients
 	for (n = 0; n < MAX_CLIENTS; n++) {
 		clients[n]._next = free_clients;
@@ -59,7 +63,7 @@ int NET_Init(int tel, int web)
 			close(telsock);
 		if (websock >= 0)
 			close(websock);
-		return -1;
+		return -2;
 	}
 
 	// Listen for client requests
@@ -67,7 +71,7 @@ int NET_Init(int tel, int web)
 	|| ((Listen(T_NET_WEB) < 0))) {
 		close(telsock);
 		close(websock);
-		return -2;
+		return -3;
 	}
 
 	return 0;
@@ -142,6 +146,25 @@ int NET_Update(void)
 	}
 
 	return 0;
+}
+
+int NET_Send(const net_cln_t *cln, const byte *data, int size)
+{
+	int n, nsent = 0;
+	const byte *head;
+
+	while (nsent < size) {
+		head = data + nsent;
+		//Info("SEND(%d)='%.*s'", size, size, head);
+		if ((n = send(cln->socket, head, size - nsent, 0)) < 0) {
+			Warning(E_TXDATA " to %s: %s", cln->addr,
+				strerror(errno));
+			return -1;
+		}
+		nsent += n;
+	}
+
+	return nsent;
 }
 
 void NET_Shutdown(void)

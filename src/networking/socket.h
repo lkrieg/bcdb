@@ -7,6 +7,7 @@ typedef void (*net_fun_t)(net_evt_t*);
 
 int   NET_Init(int tel, int web);
 void  NET_SetHandler(net_fun_t func);
+int   NET_Send(const net_cln_t *cln, const byte *data, int size);
 int   NET_Update(void);
 void  NET_Shutdown(void);
 

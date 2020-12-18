@@ -46,7 +46,11 @@
 #define E_MAXCLN  "Client limit exceeded"
 #define E_SELECT  "Cannot select new client"
 #define E_RXDATA  "Cannot receive data"
+#define E_TXDATA  "Cannot transmit data"
+#define E_CACHED  "Cannot cache file"
 #define E_ADDCLN  "Cannot add client"
 #define E_GETCLN  "Unknown client"
+
+
 
 #endif // ERRORS_H
