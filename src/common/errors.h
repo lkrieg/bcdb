@@ -42,9 +42,10 @@
 #define E_NOBIND  "Unable to bind to socket"
 #define E_LISTEN  "Cannot listen from socket"
 #define E_ACCEPT  "Cannot accept new client"
+#define E_MAXFDS  "Socket descriptor limit exceeded"
+#define E_MAXCLN  "Client limit exceeded"
 #define E_SELECT  "Cannot select new client"
 #define E_RXDATA  "Cannot receive data"
-#define E_MAXCLN  "Client limit exceeded"
 #define E_ADDCLN  "Cannot add client"
 #define E_GETCLN  "Unknown client"
 

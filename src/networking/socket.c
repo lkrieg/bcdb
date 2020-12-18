@@ -12,10 +12,11 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-static int numclients;
+static int sockets[MAX_SOCKETS];
 static net_cln_t clients[MAX_CLIENTS];
-// static int sockets[MAX_CLIENTS];
-static net_func_t handler;
+static net_cln_t *free_clients;
+
+static net_fun_t handler;
 static fd_set masterset;
 static int maxfd;
 
@@ -40,8 +41,17 @@ static const char *GetAddrStr(struct sockaddr *addr);
 
 int NET_Init(int tel, int web)
 {
+	int n;
+
 	Info("Initializing networking module...");
 
+	// Initialize list of free clients
+	for (n = 0; n < MAX_CLIENTS; n++) {
+		clients[n]._next = free_clients;
+		free_clients = clients + n;
+	}
+
+	// Bind to IP socket
 	FD_ZERO(&masterset);
 	if (((Bind(T_NET_TEL, tel)) < 0)
 	|| (((Bind(T_NET_WEB, web)) < 0))) {
@@ -52,6 +62,7 @@ int NET_Init(int tel, int web)
 		return -1;
 	}
 
+	// Listen for client requests
 	if ((Listen(T_NET_TEL) < 0)
 	|| ((Listen(T_NET_WEB) < 0))) {
 		close(telsock);
@@ -62,7 +73,7 @@ int NET_Init(int tel, int web)
 	return 0;
 }
 
-void NET_SetHandler(net_func_t func)
+void NET_SetHandler(net_fun_t func)
 {
 	handler = func;
 }
@@ -227,6 +238,7 @@ static int Listen(int type)
 	}
 
 	FD_SET(fd, &masterset);
+
 	return 0;
 }
 
@@ -238,7 +250,7 @@ static int AddClient(int socket, int type)
 	net_cln_t *cln;
 	int fd;
 
-	if (numclients > MAX_CLIENTS) {
+	if (free_clients == NULL) {
 		Warning(E_MAXCLN);
 		return -1;
 	}
@@ -251,9 +263,17 @@ static int AddClient(int socket, int type)
 		return -1;
 	}
 
+	if (fd > MAX_SOCKETS) {
+		Warning(E_MAXFDS);
+		close(fd);
+		return -2;
+	}
+
 	// TODO: Add new client to client list
 	// TODO: Constant time find by socket descriptor
 
+	// sockets[fd] = CLIENT_INDEX
+	UNUSED(sockets);
 	UNUSED(clients);
 	UNUSED(type);
 	UNUSED(cln);
@@ -269,19 +289,32 @@ static int GetClient(int socket, net_cln_t **out)
 {
 	// TODO: Get client struct from socket descriptor
 
+	Assert(socket < MAX_SOCKETS);
 	Warning("Not implemented");
+
+	// sockets[socket]
 	UNUSED(socket);
 	UNUSED(out);
+
 	return -1;
 }
 
 static void DeleteClient(int socket)
 {
-	// TODO: Add client struct to free list
-	// TODO: Perhaps update maxfd if necessary?
+	net_cln_t *cln;
 
+	Assert(socket < MAX_SOCKETS);
+
+	// Remove from fdset and close
+	// TODO: Perhaps update maxfd?
 	FD_CLR(socket, &masterset);
 	close(socket);
+
+	// Link back into free list
+	if (GetClient(socket, &cln) == 0) {
+		cln->_next = free_clients;
+		free_clients = cln;
+	}
 }
 
 static int SetOpt(int fd, int opt, int val)

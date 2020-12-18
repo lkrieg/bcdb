@@ -19,6 +19,7 @@ typedef  unsigned char    byte;
 #define  MAX_CHUNK        2048
 #define  MAX_FILEBUF      8192
 #define  MAX_LINEBUF      2048
+#define  MAX_SOCKETS      1024
 #define  MAX_CLIENTS      64
 #define  MAX_BACKLOG      10
 #define  MAX_CATEGORY     16
