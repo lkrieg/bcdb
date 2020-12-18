@@ -30,7 +30,6 @@ function insert(entry)
 	tr.classList.add((entry.status == 0) ? "status-ok"   :
 	                 (entry.status == 1) ? "status-warn" :
 	                                       "status-error");
-
 	for (var key in entry) {
 		if (!entry.hasOwnProperty(key))
 			continue;
@@ -48,7 +47,6 @@ function insert(entry)
 
 function clear()
 {
-	var th
 	tbody.innerHTML = "";
 }
 
