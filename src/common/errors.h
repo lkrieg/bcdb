@@ -51,6 +51,4 @@
 #define E_ADDCLN  "Cannot add client"
 #define E_GETCLN  "Unknown client"
 
-
-
 #endif // ERRORS_H

@@ -164,7 +164,6 @@ static void Event(net_evt_t *e)
 		     "", e->client->addr);
 		break;
 	case T_EVT_RECEIVED:
-		Verbose("Receiving data from %s...", e->client->addr);
 		if (type == T_CLN_TEL)
 			TEL_Parse(e->client, e->data, e->length);
 		if (type == T_CLN_WEB)
