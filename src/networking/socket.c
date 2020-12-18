@@ -12,32 +12,37 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+static int numclients;
+static net_cln_t clients[MAX_CLIENTS];
+// static int sockets[MAX_CLIENTS];
+static net_func_t handler;
+static fd_set masterset;
+static int maxfd;
+
 static int telport, telsock = -1;
 static int webport, websock = -1;
 static char teladdr[MAX_IPADDR];
 static char webaddr[MAX_IPADDR];
-static net_func_t evtfunc;
-static fd_set masterset;
-static int maxfd;
 
-enum handle
+enum socktype
 {
 	T_NET_TEL,
 	T_NET_WEB
 };
 
-static int Bind(int handle, int port);
-static int Listen(int handle);
+static int Bind(int type, int port);
+static int Listen(int type);
+static int AddClient(int socket, int type);
+static int GetClient(int socket, net_cln_t **out);
+static void DeleteClient(int socket);
 static int SetOpt(int fd, int opt, int val);
 static const char *GetAddrStr(struct sockaddr *addr);
 
-int NET_Init(int tel, int web, net_func_t handler)
+int NET_Init(int tel, int web)
 {
 	Info("Initializing networking module...");
 
-	evtfunc = handler;
 	FD_ZERO(&masterset);
-
 	if (((Bind(T_NET_TEL, tel)) < 0)
 	|| (((Bind(T_NET_WEB, web)) < 0))) {
 		if (telsock >= 0)
@@ -57,75 +62,71 @@ int NET_Init(int tel, int web, net_func_t handler)
 	return 0;
 }
 
+void NET_SetHandler(net_func_t func)
+{
+	handler = func;
+}
+
 int NET_Update(void)
 {
 	byte buf[MAX_LINEBUF];
 	static fd_set set;
 	net_evt_t evt;
-	int fd, newfd, n;
+	int fd, n;
+	int type;
 
 	Assert(telsock >= 0);
 	Assert(websock >= 0);
-	Assert(evtfunc != NULL);
+	Assert(handler != NULL);
 
 	set = masterset;
-	if (select(maxfd + 1, &set, NULL, NULL, NULL) < 0)
+	if (select(maxfd + 1, &set, NULL, NULL, NULL) < 0) {
 		Warning(E_SELECT ": %s", strerror(errno));
+		return -1;
+	}
 
 	for (fd = 0; fd <= maxfd; fd++) {
 		if (FD_ISSET(fd, &set)) {
 			memset(&evt, 0, sizeof(evt));
 			if (fd == telsock || fd == websock) {
-				evt.type = (fd == telsock)
-				         ? T_EVT_CLIENT_TEL
-				         : T_EVT_CLIENT_WEB;
+				type = (fd == telsock) ? T_CLN_TEL : T_CLN_WEB;
 
-				// Accept telnet or http client
-				if ((newfd = NET_Accept(fd)) >= 0) {
-					evt.handle = newfd;
-					evtfunc(&evt);
+				// Accept new client
+				if ((AddClient(fd, type) < 0)
+				|| ((GetClient(fd, &evt.client) < 0))) {
+					Warning(E_ADDCLN);
+					continue;
 				}
+
+				evt.type = T_EVT_CONNECTED;
+				handler(&evt);
+
 			} else {
-				if ((n = recv(fd, buf, sizeof(buf), 0)) <= 0) {
-					if (n < 0)
-						Warning(E_RXDATA);
-					evt.type = T_EVT_QUIT;
-					evt.handle = fd;
-					FD_CLR(fd, &masterset);
-					close(fd);
-					evtfunc(&evt);
-				} else {
-					evt.type = T_EVT_DATA;
-					evt.handle = fd;
+				// Receive data from client
+				n = recv(fd, buf, sizeof(buf), 0);
+				if (n > 0) {
+					if (GetClient(fd, &evt.client) < 0) {
+						Warning(E_GETCLN);
+						continue;
+					}
+
+					evt.type = T_EVT_RECEIVED;
 					evt.length = n;
 					evt.data = buf;
-					evtfunc(&evt);
+					handler(&evt);
+
+				// Closed
+				} else {
+					if (n < 0)
+						Warning(E_RXDATA);
+
+					DeleteClient(fd);
+					evt.type = T_EVT_CLOSED;
+					handler(&evt);
 				}
 			}
 		}
 	}
-
-	return 0;
-}
-
-int NET_Accept(int socket)
-{
-	struct sockaddr *addr;
-	struct sockaddr_storage remote;
-	socklen_t socklen;
-	int fd;
-
-	socklen  = sizeof(remote);
-	addr     = (struct sockaddr *) &remote;
-
-	if ((fd = accept(socket, addr, &socklen)) < 0) {
-		Warning(E_ACCEPT ": %s", strerror(errno));
-		return -1;
-	}
-
-	FD_SET(fd, &masterset);
-	if (fd > maxfd)
-		maxfd = fd;
 
 	return 0;
 }
@@ -135,7 +136,7 @@ void NET_Shutdown(void)
 	Info("Shutting down networking module...");
 }
 
-static int Bind(int handle, int port)
+static int Bind(int type, int port)
 {
 	char portstr[16];
 	struct addrinfo hints;
@@ -146,7 +147,7 @@ static int Bind(int handle, int port)
 	memset(&hints, 0, sizeof(hints));
 
 	Assert(port >= 0 && port < 65536);
-	Assert(handle == T_NET_TEL || handle == T_NET_WEB);
+	Assert(type == T_NET_TEL || type == T_NET_WEB);
 
 	hints.ai_family    = AF_UNSPEC;    // IPv4, IPv6
 	hints.ai_socktype  = SOCK_STREAM;  // TCP stream
@@ -178,16 +179,19 @@ static int Bind(int handle, int port)
 			continue;
 		}
 
-		if (handle == T_NET_TEL) {
+		// The type argument is a kind of convoluted hack
+		// for giving better debug output in Listen()
+		// Not sure if this is worth it...
+
+		snprintf((type == T_NET_TEL) ? teladdr : webaddr,
+		         MAX_IPADDR, "%s:%d", addrstr, port);
+
+		if (type == T_NET_TEL) {
 			telsock = fd;
 			telport = port;
-			snprintf(teladdr, MAX_IPADDR,
-			         "%s:%d", addrstr, port);
 		} else {
 			websock = fd;
 			webport = port;
-			snprintf(webaddr, MAX_IPADDR,
-			         "%s:%d", addrstr, port);
 		}
 
 		if (fd > maxfd)
@@ -203,20 +207,20 @@ static int Bind(int handle, int port)
 	return fd;
 }
 
-static int Listen(int handle)
+static int Listen(int type)
 {
 	int fd;
-	char *addr;
-	const char *type;
+	const char *addr;
+	const char *name;
 
 	Assert(telsock >= 0 && websock >= 0);
-	Assert(handle == T_NET_TEL || handle == T_NET_WEB);
+	Assert(type == T_NET_TEL || type == T_NET_WEB);
 
-	fd    = (handle == T_NET_TEL) ? telsock : websock;
-	addr  = (handle == T_NET_TEL) ? teladdr : webaddr;
-	type  = (handle == T_NET_TEL) ? "telnet" : "http";
+	fd    = (type == T_NET_TEL) ? telsock : websock;
+	addr  = (type == T_NET_TEL) ? teladdr : webaddr;
+	name  = (type == T_NET_TEL) ? "telnet" : "http";
 
-	Info("Listening for %s from %s...", type, addr);
+	Info("Listening for %s from %s...", name, addr);
 	if (listen(fd, MAX_BACKLOG) < 0) {
 		Warning(E_LISTEN ": %s", strerror(errno));
 		return -1;
@@ -224,6 +228,60 @@ static int Listen(int handle)
 
 	FD_SET(fd, &masterset);
 	return 0;
+}
+
+static int AddClient(int socket, int type)
+{
+	struct sockaddr_storage remote;
+	struct sockaddr *addr;
+	socklen_t socklen;
+	net_cln_t *cln;
+	int fd;
+
+	if (numclients > MAX_CLIENTS) {
+		Warning(E_MAXCLN);
+		return -1;
+	}
+
+	socklen  = sizeof(remote);
+	addr     = (struct sockaddr *) &remote;
+
+	if ((fd = accept(socket, addr, &socklen)) < 0) {
+		Warning(E_ACCEPT ": %s", strerror(errno));
+		return -1;
+	}
+
+	// TODO: Add new client to client list
+	// TODO: Constant time find by socket descriptor
+
+	UNUSED(clients);
+	UNUSED(type);
+	UNUSED(cln);
+
+	FD_SET(fd, &masterset);
+	if (fd > maxfd)
+		maxfd = fd;
+
+	return 0;
+}
+
+static int GetClient(int socket, net_cln_t **out)
+{
+	// TODO: Get client struct from socket descriptor
+
+	Warning("Not implemented");
+	UNUSED(socket);
+	UNUSED(out);
+	return -1;
+}
+
+static void DeleteClient(int socket)
+{
+	// TODO: Add client struct to free list
+	// TODO: Perhaps update maxfd if necessary?
+
+	FD_CLR(socket, &masterset);
+	close(socket);
 }
 
 static int SetOpt(int fd, int opt, int val)

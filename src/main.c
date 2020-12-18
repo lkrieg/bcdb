@@ -140,9 +140,10 @@ static int Run(void)
 	}
 
 	// Initialize networking
-	if (NET_Init(telport, webport, &Event) < 0)
+	if (NET_Init(telport, webport) < 0)
 		Error(E_IPINIT);
 
+	NET_SetHandler(&Event);
 	for (;;) // Poll events
 		NET_Update();
 
@@ -151,17 +152,20 @@ static int Run(void)
 
 static void Event(net_evt_t *e)
 {
+	int type;
+
 	switch (e->type) {
-	case T_EVT_CLIENT_TEL:
-		Info("Accepting new TELNET client...");
+	case T_EVT_CONNECTED:
+		type = e->client->type;
+		Info("Accepting new %s client...",
+		     (type == T_CLN_TEL) ? "telnet" :
+		     (type == T_CLN_WEB) ? "webapi" : "");
+
 		break;
-	case T_EVT_CLIENT_WEB:
-		Info("Accepting new WEBAPI client...");
-		break;
-	case T_EVT_DATA:
+	case T_EVT_RECEIVED:
 		Info("Receiving data: '%.*s'", e->length, e->data);
 		break;
-	case T_EVT_QUIT:
+	case T_EVT_CLOSED:
 		Info("Client disconnected");
 	}
 }
