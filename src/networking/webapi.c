@@ -107,11 +107,11 @@ static void SendList(net_cln_t *cln)
 	int len;
 
 	len = DAT_GetCache(&out);
+	SendHeader(cln, T_CACHE_JSON, len);
 
-	if (len <= 0)
+	if (len == 0)
 		return;
 
-	SendHeader(cln, T_CACHE_JSON, len);
 	NET_Send(cln, (byte *) out, len);
 }
 

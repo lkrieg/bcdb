@@ -14,7 +14,8 @@ function poll(url, callback)
 
 	xhr.open("GET", url, true);
 	xhr.onload = function (e) {
-		if (xhr.readyState === 4 && xhr.status === 200)
+		if ((xhr.readyState === 4)
+		&& ((xhr.status === 200 && xhr.response.length > 0)))
 			callback(JSON.parse(xhr.responseText));
 	};
 

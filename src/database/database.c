@@ -137,6 +137,9 @@ static int CacheTable(void)
 	// when the status changes. Everything below
 	// is just inefficient
 
+	if (tab.numentries == 0)
+		return 0;
+
 	total = 0;
 	cachesize = 0;
 	cache[total++] = '[';
