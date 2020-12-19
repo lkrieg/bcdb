@@ -142,7 +142,7 @@ static int CacheTable(void)
 	cache[total++] = '[';
 	cache[total++] = '\n';
 
-	Verbose("Database caching is experimental");
+	Warning("Database caching is experimental");
 	for (i = 0; i < tab.numentries; i++) {
 		ent = tab.data + i;
 		n = snprintf(cache + total, MAX_CACHE - total,
