@@ -1,12 +1,4 @@
-var tbody;
-
-function update(data)
-{
-	clear();
-	data.forEach(function(entry) {
-		insert(entry);
-	});
-}
+var time; // last database update
 
 function poll(url, callback)
 {
@@ -16,7 +8,7 @@ function poll(url, callback)
 	xhr.onload = function (e) {
 		if ((xhr.readyState === 4)
 		&& ((xhr.status === 200 && xhr.response.length > 0)))
-			callback(JSON.parse(xhr.responseText));
+			callback(xhr.responseText);
 	};
 
 	xhr.send(null);
@@ -45,6 +37,32 @@ function insert(entry)
 	tbody.appendChild(row);
 }
 
+function getlist()
+{
+	poll("/list", function(data) {
+		list = JSON.parse(data);
+		clear(); // TODO: Efficiency
+		list.forEach(function(entry) {
+			insert(entry);
+		});
+	});
+}
+
+function update()
+{
+	var list;
+
+	poll("/time", function(updated) {
+		setTimeout(update, 500);
+		console.log(updated, time);
+		if (updated > time) {
+			console.log("updating");
+			time = updated;
+			getlist();
+		}
+	});
+}
+
 function column(val)
 {
 	var col, text;
@@ -66,10 +84,9 @@ function clear()
 
 function main()
 {
-	// TODO: Get timestamp from server
-	poll("/list", function(data) {
-		update(data);
-	});
+	time = 0;
+	getlist();
+	setTimeout(update, 500);
 }
 
 window.onload = main;
