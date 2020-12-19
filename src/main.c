@@ -162,6 +162,9 @@ static void Event(net_evt_t *e)
 		     (type == T_CLN_TEL) ? "telnet" :
 		     (type == T_CLN_WEB) ? "webapi" :
 		     "", e->client->addr);
+
+		if (type == T_CLN_TEL)
+			TEL_Negotiate(e->client);
 		break;
 	case T_EVT_RECEIVED:
 		if (type == T_CLN_TEL)

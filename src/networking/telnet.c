@@ -6,6 +6,17 @@ int TEL_Init(void)
 	return 0;
 }
 
+void TEL_Negotiate(net_cln_t *cln)
+{
+	byte data[20];
+
+	data[0] = 0xFF; // IAC
+	data[1] = 0xFB; // WILL
+	data[2] = 0x03; // SGA
+
+	NET_Send(cln, data, 3);
+}
+
 int TEL_Parse(net_cln_t *cln, const byte *data, int size)
 {
 	const byte *head, *tail;

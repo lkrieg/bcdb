@@ -58,9 +58,12 @@ int DAT_Lookup(const char *cat, const char *bar)
 
 	found = false;
 	if (Table_Lookup(&tab, bar, &ent)) {
-		ent->status = T_DAT_SCANNED;
+		if (ent->status != T_DAT_SCANNED) {
+			ent->status = T_DAT_SCANNED;
+			CacheTable();
+		}
+
 		found = true;
-		CacheTable();
 	}
 
 	// TODO: Store invalid and unknown scans
@@ -69,6 +72,7 @@ int DAT_Lookup(const char *cat, const char *bar)
 	Verbose("Looking up '%s' in database...%s", bar,
 	        (found) ? "OK" : "INVALID");
 
+	UNUSED(cat);
 	return 0;
 }
 
