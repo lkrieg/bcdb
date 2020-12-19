@@ -59,6 +59,8 @@ int DAT_Lookup(const char *cat, const char *bar)
 	Assert(cat != NULL);
 	Assert(bar != NULL);
 
+	Verbose("Looking up '%s' in database...", bar);
+
 	// TODO: Reduce memory copy operations
 	if (Table_Lookup(&tab, bar, &ent) < 0) {
 		status = T_DAT_UNKNOWN;
