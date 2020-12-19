@@ -54,9 +54,7 @@ function update()
 
 	poll("/time", function(updated) {
 		setTimeout(update, 500);
-		console.log(updated, time);
 		if (updated > time) {
-			console.log("updating");
 			time = updated;
 			getlist();
 		}
