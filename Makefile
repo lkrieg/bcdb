@@ -76,8 +76,9 @@ install: $(TARGET) check-root install-docs
 	$(Q) $(INSTALL) -m 0755 $(TARGET) $(BINPATH)
 	$(E) "[INSTALL] $(ETCPATH)/barkeeper.conf"
 	$(Q) $(INSTALL) -m 0777 $(CONFIG) $(ETCPATH)
-	$(E) "[INSTALL] $(VARPATH)"
+	$(E) "[INSTALL] $(VARPATH)/http"
 	$(Q) $(INSTALL) -d $(VARPATH)
+	$(Q) $(INSTALL) -m 0777 etc/http/* $(VARPATH)
 
 .PHONY: install-docs
 install-docs: $(MANFILE) check-root
