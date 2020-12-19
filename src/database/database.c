@@ -3,6 +3,7 @@
 #include "filesystem.h"
 #include "hashtable.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -11,6 +12,10 @@
 
 static table_t tab;
 static bool active;
+static char cache[MAX_CACHE];
+static int cachesize;
+
+static int CacheTable(void);
 
 int DAT_Init(void)
 {
@@ -33,7 +38,42 @@ int DAT_Import(const char *path)
 		return -1;
 	}
 
+	if (CacheTable() < 0)
+		return -1;
+
 	return 0;
+}
+
+int DAT_Lookup(const char *cat, const char *bar)
+{
+	entry_t ent;
+	int status;
+	enum {
+		T_DAT_INVALID,
+		T_DAT_UNKNOWN,
+		T_DAT_SCANNED,
+		T_DAT_WAITING
+	};
+
+	Assert(active);
+	Assert(cat != NULL);
+	Assert(bar != NULL);
+
+	// TODO: Reduce memory copy operations
+	if (Table_Lookup(&tab, bar, &ent) < 0) {
+		status = T_DAT_UNKNOWN;
+	} else {
+		if (strcmp(cat, ent.cat) == 0)
+			status = T_DAT_SCANNED;
+		else
+			status = T_DAT_INVALID;
+	}
+
+	// TODO: Change status
+	// TODO: Store invalid scans
+	// TODO: Update cache for web
+
+	return status;
 }
 
 int DAT_Query(const char *key, entry_t *out)
@@ -44,6 +84,12 @@ int DAT_Query(const char *key, entry_t *out)
 
 	Verbose("Querying entry '%s'", key);
 	return Table_Lookup(&tab, key, out);
+}
+
+int DAT_GetCache(const char **out)
+{
+	*out = cache;
+	return cachesize;
 }
 
 int DAT_Insert(const char *key, const entry_t *ent)
@@ -71,4 +117,53 @@ void DAT_Shutdown(void)
 	Info("Shutting down database module...");
 	Table_Serialize(&tab, -1);
 	Table_Free(&tab);
+}
+
+static int CacheTable(void)
+{
+	int i, n, total;
+	entry_t *ent;
+
+	// Placeholder function so that the server
+	// can send some data to the front end
+
+	// TODO: Structure for quick access
+	// by two keys: barcode and category
+
+	// FIXME: Table_Delete does not allow us
+	// to do serial access like below
+
+	// FIXME: Cache must be quickly updatable
+	// when the status changes. Everything below
+	// is just inefficient
+
+	total = 0;
+	cachesize = 0;
+	cache[total++] = '[';
+	cache[total++] = '\n';
+
+	Verbose("Database caching is experimental");
+	for (i = 0; i < tab.numentries; i++) {
+		ent = tab.data + i;
+		n = snprintf(cache + total, MAX_CACHE - total,
+		             "{\n\t\"barcode\" :\"%s\",\n"
+		             "\t\"loadnum\": \"%s\",\n"
+		             "\t\"recipient\": \"%s\",\n"
+		             "\t\"status\": %d\n"
+		             "}%s",
+		             ent->key, ent->cat,
+		             ent->dst, ent->status,
+		             (i+1 == tab.numentries) ? "\n]" : ",\n");
+
+		if (n < 0)
+			return -1;
+
+		if (n >= MAX_CACHE - total)
+			return -2;
+
+		total += n;
+	}
+
+	cachesize = total;
+	return 0;
 }

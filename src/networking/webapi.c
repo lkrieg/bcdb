@@ -103,30 +103,16 @@ int WEB_Parse(net_cln_t *cln, const byte *data, int size)
 
 static void SendList(net_cln_t *cln)
 {
+	const char *out;
 	int len;
 
-	const char *data = "[\r\n\t{\r\n"
-	"\t\t\"category\": \"123123\",       \r\n"
-	"\t\t\"barcode\":  \"9123123123\",   \r\n"
-	"\t\t\"customer\": \"Owl Security\", \r\n"
-	"\t\t\"status\":   1                 \r\n"
-	"\t},                                \r\n"
-	"\t{                                 \r\n"
-	"\t\t\"category\": \"634463\",       \r\n"
-	"\t\t\"barcode\":  \"2276340954\",   \r\n"
-	"\t\t\"customer\": \"Ecstaticorps\", \r\n"
-	"\t\t\"status\":   2                 \r\n"
-	"\t},                                \r\n"
-	"\t{                                 \r\n"
-	"\t\t\"category\": \"823621\",       \r\n"
-	"\t\t\"barcode\":  \"1326020322\",   \r\n"
-	"\t\t\"customer\": \"Cannonbite\",   \r\n"
-	"\t\t\"status\":   0                 \r\n"
-	"\t}\r\n]                            \r\n";
+	len = DAT_GetCache(&out);
 
-	len = strlen(data);
+	if (len <= 0)
+		return;
+
 	SendHeader(cln, T_CACHE_JSON, len);
-	NET_Send(cln, (byte *) data, len);
+	NET_Send(cln, (byte *) out, len);
 }
 
 static void SendHeader(net_cln_t *cln, int type, int length)

@@ -107,6 +107,7 @@ int FS_LoadCSV(const char *path)
 					ent.cat[ncat] = '\0';
 					ent.bar[nbar] = '\0';
 					ent.dst[ndst] = '\0';
+					ent.status = T_DAT_WAITING;
 					nval = ncat = nbar = ndst = 0;
 
 					// Insert value into database

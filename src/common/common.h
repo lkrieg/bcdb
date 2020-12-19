@@ -17,6 +17,7 @@ typedef  unsigned char    byte;
 #define  MAX_PATH         4096
 #define  MAX_HASH         4096
 #define  MAX_CHUNK        2048
+#define  MAX_CACHE        8192
 #define  MAX_FILEBUF      8192
 #define  MAX_LINEBUF      2048
 #define  MAX_SOCKETS      1024
