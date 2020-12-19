@@ -18,10 +18,10 @@ enum web_cache_index
 static int sizes[CACHE_SIZE];
 static char cache[CACHE_SIZE][MAX_FILEBUF];
 const char *paths[CACHE_SIZE] = {
-	"etc/http/index.html",
-	"etc/http/style.css",
-	"etc/http/main.js",
-	"etc/http/favicon.ico"
+	"/var/lib/barkeeper/index.html",
+	"/var/lib/barkeeper/style.css",
+	"/var/lib/barkeeper/main.js",
+	"/var/lib/barkeeper/favicon.ico"
 };
 
 static void SendList(net_cln_t *cln);

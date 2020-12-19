@@ -118,17 +118,6 @@ static int Run(void)
 	Info("Running in %s mode...", (do_fork)
 	     ? "daemon" : "interactive");
 
-	// Daemonize
-	if ((do_fork)
-	&& ((ForkProcess() < 0)))
-		Error(E_NOFORK);
-
-	// Register signal handlers
-	SetPidLock(true); // Lock active process
-	if ((signal(SIGTERM, Shutdown) == SIG_ERR)
-	|| ((signal(SIGINT,  Shutdown) == SIG_ERR)))
-		Error(E_SIGNAL);
-
 	// Initialize database
 	if (DAT_Init() < 0)
 		Error(E_DBINIT);
@@ -142,6 +131,17 @@ static int Run(void)
 	// Initialize networking
 	if (NET_Init(telport, webport) < 0)
 		Error(E_IPINIT);
+
+	// Daemonize
+	if ((do_fork)
+	&& ((ForkProcess() < 0)))
+		Error(E_NOFORK);
+
+	// Register signal handlers
+	SetPidLock(true); // Lock active process
+	if ((signal(SIGTERM, Shutdown) == SIG_ERR)
+	|| ((signal(SIGINT,  Shutdown) == SIG_ERR)))
+		Error(E_SIGNAL);
 
 	NET_SetHandler(&Event);
 	for (;;) // Poll events
