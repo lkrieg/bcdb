@@ -6,6 +6,7 @@ typedef struct entry_s entry_t;
 int   DAT_Init(void);
 int   DAT_Import(const char *path);
 int   DAT_GetCache(const char **out);
+long  DAT_GetTime(void);
 int   DAT_Lookup(const char *cat, const char *bar);
 int   DAT_Insert(const char *key, const entry_t *ent);
 int   DAT_Delete(const char *key);

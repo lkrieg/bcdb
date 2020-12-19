@@ -84,8 +84,6 @@ long Table_Insert(table_t *tab, const char *key, const entry_t *ent)
 	node->key  = node->bar;
 	node->next = tab->entries[hash];
 
-	Info("%s, %d, %d", node->key, hash, strlen(node->key));
-
 	tab->entries[hash] = node;
 	tab->numentries++;
 

@@ -12,7 +12,8 @@ enum web_cache_index
 	T_CACHE_ICON,
 
 	CACHE_SIZE,
-	T_CACHE_JSON
+	T_CACHE_JSON,
+	T_CACHE_TEXT
 };
 
 static int sizes[CACHE_SIZE];
@@ -25,6 +26,7 @@ const char *paths[CACHE_SIZE] = {
 };
 
 static void SendList(net_cln_t *cln);
+static void SendTime(net_cln_t *cln);
 static void SendHeader(net_cln_t *cln, int type, int length);
 static int Cache(int index);
 
@@ -91,6 +93,10 @@ int WEB_Parse(net_cln_t *cln, const byte *data, int size)
 	&& ((!memcmp(head, "GET /list", 9)))) {
 		SendList(cln);
 
+	} else if ((size >= 9)
+	&& ((!memcmp(head, "GET /time", 9)))) {
+		SendTime(cln);
+
 	} else if ((size >= 6)
 	&& ((!memcmp(head, "GET / ", 6)))) {
 		len = sizes[T_CACHE_HTML];
@@ -115,6 +121,18 @@ static void SendList(net_cln_t *cln)
 	NET_Send(cln, (byte *) out, len);
 }
 
+static void SendTime(net_cln_t *cln)
+{
+	long updated;
+	char out[MAX_LINEBUF];
+	int len;
+
+	updated = DAT_GetTime();
+	len = sprintf(out, "%ld", updated);
+	SendHeader(cln, T_CACHE_TEXT, len);
+	NET_Send(cln, (byte *) out, len);
+}
+
 static void SendHeader(net_cln_t *cln, int type, int length)
 {
 	char buf[MAX_LINEBUF];
@@ -126,11 +144,12 @@ static void SendHeader(net_cln_t *cln, int type, int length)
 	n = snprintf(buf, MAX_LINEBUF, "%s%s%s%d%s",
 	            "HTTP/1.1 200 OK\r\nContent-Type: ",
 
-	  	    (type == T_CACHE_HTML)   ? "text/html"       :
-		    (type == T_CACHE_SCRIPT) ? "text/javascript" :
-		    (type == T_CACHE_STYLE)  ? "text/css"        :
-		    (type == T_CACHE_ICON)   ? "image/x-icon"    :
-		                               "application/json",
+	            (type == T_CACHE_HTML)   ? "text/html"        :
+	            (type == T_CACHE_SCRIPT) ? "text/javascript"  :
+	            (type == T_CACHE_STYLE)  ? "text/css"         :
+	            (type == T_CACHE_ICON)   ? "image/x-icon"     :
+	            (type == T_CACHE_JSON)   ? "application/json" :
+	                                       "text/plain"       ,
 
 		    "\r\nContent-Length: ", length,
 		    "\r\nConnection: Closed\r\n\r\n");

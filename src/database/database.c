@@ -4,6 +4,7 @@
 #include "hashtable.h"
 
 #include <stdio.h>
+#include <time.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -14,6 +15,7 @@ static table_t tab;
 static bool active;
 static char cache[MAX_CACHE];
 static int cachesize;
+static time_t t, updated;
 
 static int CacheTable(void);
 
@@ -23,6 +25,7 @@ int DAT_Init(void)
 	if (Table_Init(&tab, MAX_HASH) < 0)
 		return -1;
 
+	t = time(NULL);
 	active = true;
 	return 0;
 }
@@ -73,6 +76,16 @@ int DAT_GetCache(const char **out)
 {
 	*out = cache;
 	return cachesize;
+}
+
+long DAT_GetTime(void)
+{
+	Assert(active);
+
+	if (!updated)
+		return 0;
+
+	return (long) updated - t;
 }
 
 int DAT_Insert(const char *key, const entry_t *ent)
@@ -128,6 +141,7 @@ static int CacheTable(void)
 	cache[total++] = '[';
 	cache[total++] = '\n';
 
+	updated = time(NULL);
 	Verbose("Rebuilding database cache...");
 	for (i = 0; i < tab.numentries; i++) {
 		ent = tab.data + i;
