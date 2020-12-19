@@ -51,9 +51,12 @@ function getlist()
 function update()
 {
 	var list;
+	var updated;
 
-	poll("/time", function(updated) {
+	poll("/time", function(data) {
 		setTimeout(update, 500);
+		updated = parseInt(data);
+		console.log(updated, time);
 		if (updated > time) {
 			time = updated;
 			getlist();
