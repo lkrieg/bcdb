@@ -1,9 +1,9 @@
 var tbody;
 
-function update(list)
+function update(data)
 {
 	clear();
-	list.forEach(function(entry) {
+	data.forEach(function(entry) {
 		insert(entry);
 	});
 }
@@ -23,39 +23,51 @@ function poll(url, callback)
 
 function insert(entry)
 {
-	var tr, td;
-	var text;
+	var status;
+	var infotext;
+	var tbody, row;
 
-	tr = document.createElement("tr");
-	tr.classList.add((entry.status == 0) ? "status-ok"   :
-	                 (entry.status == 1) ? "status-warn" :
-	                                       "status-error");
-	for (var key in entry) {
-		if (!entry.hasOwnProperty(key))
-			continue;
+	status    = entry.status;
+	infotext  = (status == 0) ? "waiting" :
+	            (status == 1) ? "scanned" :
+	            (status == 2) ? "invalid" :
+	                            "unknown" ;
 
-		td    = document.createElement("td");
-		text  = document.createTextNode(entry[key]);
+	tbody = document.getElementById("view-data");
+	row = document.createElement("tr");
+	row.classList.add(infotext);
 
-		td.classList.add(key);
-		td.appendChild(text);
-		tr.appendChild(td);
-	}
+	row.appendChild(column(entry.recipient));
+	row.appendChild(column(entry.barcode));
+	row.appendChild(column(infotext));
 
-	tbody.appendChild(tr);
+	tbody.appendChild(row);
+}
+
+function column(val)
+{
+	var col, text;
+
+	col  = document.createElement("td");
+	text = document.createTextNode(val);
+
+	col.appendChild(text);
+	return col;
 }
 
 function clear()
 {
+	var tbody;
+
+	tbody = document.getElementById("view-data");
 	tbody.innerHTML = "";
 }
 
 function main()
 {
-	tbody = document.getElementById("view-data");
-
-	poll("/list", function(list) {
-		update(list);
+	// TODO: Get timestamp from server
+	poll("/list", function(data) {
+		update(data);
 	});
 }
 

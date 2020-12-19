@@ -1,3 +1,19 @@
+.waiting {
+	background: #F7F7F7;
+}
+
+.scanned {
+	background: #5CB85C;
+}
+
+.invalid {
+	background: #F0AD4E;
+}
+
+.unknown {
+	background: #D9534F;
+}
+
 body {
 	background: #111111;
 }
@@ -17,26 +33,18 @@ body {
 	width: 100%;
 }
 
-.status-ok {
-	background: #5CB85C;
-}
-
-.status-warn {
-	background: #F0AD4E;
-}
-
-.status-error {
-	background: #D9534F;
-}
-
-.customer  { font-weight: bold; }
-.category  { text-align: right; }
-.barcode   { text-align: right; }
-.status    { text-align: right; }
-
 #view th,
 #view td {
 	padding: 4px 15px;
+}
+
+#view td:nth-child(1) {
+	font-weight: bold;
+}
+
+#view td:nth-child(3) {
+	text-transform: uppercase;
+	text-align: center;
 }
 
 #view thead tr {
@@ -46,12 +54,4 @@ body {
 	color: #FFFFFF;
 	text-shadow: 1px 0 0 #000, 0 -1px 0 #000,
 	             0 1px 0 #000, -1px 0 0 #000;
-}
-
-#view tbody tr {
-	border-bottom: 0px;
-}
-
-#view tbody tr:last-of-type {
-	border-bottom: 0px;
 }
