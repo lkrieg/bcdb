@@ -46,46 +46,27 @@ int DAT_Import(const char *path)
 
 int DAT_Lookup(const char *cat, const char *bar)
 {
-	entry_t ent;
-	int status;
-	enum {
-		T_DAT_INVALID,
-		T_DAT_UNKNOWN,
-		T_DAT_SCANNED,
-		T_DAT_WAITING
-	};
+	bool found;
+	entry_t *ent;
 
 	Assert(active);
 	Assert(cat != NULL);
 	Assert(bar != NULL);
 
-	Verbose("Looking up '%s' in database...", bar);
-
-	// TODO: Reduce memory copy operations
-	if (Table_Lookup(&tab, bar, &ent) < 0) {
-		status = T_DAT_UNKNOWN;
-	} else {
-		if (strcmp(cat, ent.cat) == 0)
-			status = T_DAT_SCANNED;
-		else
-			status = T_DAT_INVALID;
+	found = false;
+	if (Table_Lookup(&tab, bar, &ent)) {
+		ent->status = T_DAT_SCANNED;
+		found = true;
+		CacheTable();
 	}
 
-	// TODO: Change status
-	// TODO: Store invalid scans
-	// TODO: Update cache for web
+	// TODO: Store invalid and unknown scans
+	// TODO: Improve caching efficiency
 
-	return status;
-}
+	Verbose("Looking up '%s' in database...%s", bar,
+	        (found) ? "OK" : "INVALID");
 
-int DAT_Query(const char *key, entry_t *out)
-{
-	Assert(active);
-	Assert(key != NULL);
-	Assert(out != NULL);
-
-	Verbose("Querying entry '%s'", key);
-	return Table_Lookup(&tab, key, out);
+	return 0;
 }
 
 int DAT_GetCache(const char **out)
@@ -147,7 +128,7 @@ static int CacheTable(void)
 	cache[total++] = '[';
 	cache[total++] = '\n';
 
-	Warning("Database caching is experimental");
+	Verbose("Rebuilding database cache...");
 	for (i = 0; i < tab.numentries; i++) {
 		ent = tab.data + i;
 		n = snprintf(cache + total, MAX_CACHE - total,

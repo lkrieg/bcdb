@@ -111,7 +111,7 @@ int FS_LoadCSV(const char *path)
 					nval = ncat = nbar = ndst = 0;
 
 					// Insert value into database
-					DAT_Insert(ent.cat, &ent);
+					DAT_Insert(ent.bar, &ent);
 				}
 
 				if (c == '#') // Comment

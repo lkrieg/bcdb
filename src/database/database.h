@@ -7,7 +7,6 @@ int   DAT_Init(void);
 int   DAT_Import(const char *path);
 int   DAT_GetCache(const char **out);
 int   DAT_Lookup(const char *cat, const char *bar);
-int   DAT_Query(const char *key, entry_t *out);
 int   DAT_Insert(const char *key, const entry_t *ent);
 int   DAT_Delete(const char *key);
 void  DAT_Shutdown(void);

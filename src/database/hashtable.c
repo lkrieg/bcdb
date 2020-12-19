@@ -84,6 +84,8 @@ long Table_Insert(table_t *tab, const char *key, const entry_t *ent)
 	node->key  = node->bar;
 	node->next = tab->entries[hash];
 
+	Info("%s, %d, %d", node->key, hash, strlen(node->key));
+
 	tab->entries[hash] = node;
 	tab->numentries++;
 
@@ -93,7 +95,7 @@ long Table_Insert(table_t *tab, const char *key, const entry_t *ent)
 	return 0;
 }
 
-int Table_Lookup(const table_t *tab, const char *key, entry_t *out)
+int Table_Lookup(const table_t *tab, const char *key, entry_t **out)
 {
 	int hash;
 	entry_t *head;
@@ -107,7 +109,7 @@ int Table_Lookup(const table_t *tab, const char *key, entry_t *out)
 
 	for (; head; head = head->next) {
 		if (!strcmp(key, head->key)) {
-			*out = *head;
+			*out = head;
 			return 1;
 		}
 	}
@@ -119,6 +121,8 @@ int Table_Delete(table_t *tab, const char *key)
 {
 	Assert(tab != NULL);
 	Assert(key != NULL);
+
+	Warning("Not implemented");
 
 	UNUSED(tab);
 	UNUSED(key);
