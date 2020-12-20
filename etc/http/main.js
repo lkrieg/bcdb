@@ -2,13 +2,18 @@ var time; // last database update
 
 function poll(url, callback)
 {
-	var xhr = new XMLHttpRequest();
+	var xhr, length;
+	var status, data;
 
+	var xhr = new XMLHttpRequest();
 	xhr.open("GET", url, true);
 	xhr.onload = function (e) {
-		if ((xhr.readyState === 4)
-		&& ((xhr.status === 200 && xhr.response.length > 0)))
-			callback(xhr.responseText);
+		if (xhr.readyState === 4) {
+			status = xhr.status;
+			data   = xhr.responseText;
+			length = xhr.response.length;
+			callback(status, data, length);
+		}
 	};
 
 	xhr.send(null);
@@ -18,12 +23,14 @@ function update()
 {
 	var newtime;
 
-	poll("/time", function(data) {
-		setTimeout(update, 1000);
-		newtime = parseInt(data);
-		if (newtime > time) {
-			time = newtime;
-			refreshTable();
+	poll("/time", function(status, data, length) {
+		setTimeout(update, 500);
+		if (status === 200 && length > 0) {
+			newtime = parseInt(data);
+			if (newtime > time) {
+				time = newtime;
+				refreshTable();
+			}
 		}
 	});
 }
@@ -62,7 +69,6 @@ function refreshTable()
 // Quick fix to prevent flash of unstyled content
 // Also replaces status codes with human readable strings
 $('#table').on('post-body.bs.table', function (data) {
-
 	var status;
 
 	$('tbody .status').each(function() {
