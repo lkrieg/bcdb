@@ -69,6 +69,16 @@ int WEB_Parse(net_cln_t *cln, const byte *data, int size)
 	}
 
 	size = tail - head;
+
+	// Check for most frequent http request
+	// first and return to avoid log spam
+
+	if ((size >= 9)
+	&& ((!memcmp(head, "GET /time", 9)))) {
+		SendTime(cln);
+		return 0;
+	}
+
 	Verbose("Parsing HTTP request '%.*s'...", size, data);
 
 	if ((size >= 16)
@@ -92,10 +102,6 @@ int WEB_Parse(net_cln_t *cln, const byte *data, int size)
 	} else if ((size >= 9)
 	&& ((!memcmp(head, "GET /list", 9)))) {
 		SendList(cln);
-
-	} else if ((size >= 9)
-	&& ((!memcmp(head, "GET /time", 9)))) {
-		SendTime(cln);
 
 	} else if ((size >= 6)
 	&& ((!memcmp(head, "GET / ", 6)))) {

@@ -49,28 +49,22 @@ int DAT_Import(const char *path)
 
 int DAT_Lookup(const char *cat, const char *bar)
 {
-	bool found;
 	entry_t *ent;
 
 	Assert(active);
 	Assert(cat != NULL);
 	Assert(bar != NULL);
 
-	found = false;
+	Verbose("Looking up '%s' in database...", bar);
 	if (Table_Lookup(&tab, bar, &ent)) {
 		if (ent->status != T_DAT_SCANNED) {
 			ent->status = T_DAT_SCANNED;
 			CacheTable();
 		}
-
-		found = true;
 	}
 
 	// TODO: Store invalid and unknown scans
 	// TODO: Improve caching efficiency
-
-	Verbose("Looking up '%s' in database...%s", bar,
-	        (found) ? "OK" : "INVALID");
 
 	UNUSED(cat);
 	return 0;
