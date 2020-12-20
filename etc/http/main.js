@@ -1,19 +1,5 @@
 var time; // last database update
 
-function rowStyle(row, index)
-{
-	var status = [
-		"waiting",
-		"scanned",
-		"unknown",
-		"invalid"
-	];
-
-	return {
-		classes: status[row.status]
-	};
-}
-
 function poll(url, callback)
 {
 	var xhr = new XMLHttpRequest();
@@ -46,7 +32,25 @@ function main()
 {
 	time = 1;
 	setTimeout(update, 500);
+}
 
+function setGroup(value, idx, data)
+{
+	return "";
+}
+
+function rowStyle(row, index)
+{
+	var status = [
+		"waiting",
+		"scanned",
+		"unknown",
+		"invalid"
+	];
+
+	return {
+		classes: status[row.status]
+	};
 }
 
 function refreshTable()

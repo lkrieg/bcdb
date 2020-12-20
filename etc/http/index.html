@@ -10,6 +10,7 @@
      integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.1/dist/bootstrap-table.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.18.1/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.18.1/extensions/group-by-v2/bootstrap-table-group-by.min.css">
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
@@ -36,13 +37,16 @@
      data-pagination="false"
      data-sticky-header="true"
      data-sticky-header-offset-y="56"
+     data-group-by="true"
+     data-group-by-field="loadnum"
+     data-group-by-formatter="setGroup"
      data-url="/list">
       <thead>
         <tr>
-          <th data-field="recipient" data-sortable="true">Recipient</th>
-          <th data-field="barcode" data-sortable="true">Barcode</th>
           <th data-field="loadnum" data-sortable="true">Loadnum</th>
-          <th data-field="status" data-sortable="true">Status</th>
+          <th data-field="recipient" data-sortable="false">Recipient</th>
+          <th data-field="barcode" data-sortable="false">Barcode</th>
+          <th data-field="status" data-sortable="false">Status</th>
         </tr>
       </thead>
     </table>
@@ -54,6 +58,7 @@
      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/bootstrap-table@1.18.1/dist/bootstrap-table.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.18.1/extensions/sticky-header/bootstrap-table-sticky-header.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.18.1/extensions/group-by-v2/bootstrap-table-group-by.min.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

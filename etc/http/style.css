@@ -14,6 +14,11 @@ body {
 	margin-right: 16px;
 }
 
+.groupBy,
+.groupBy:hover td {
+	background: #F6F6F6;
+}
+
 @media only screen and (max-width: 458px) {
 	.navbar-brand {
 		display: none;
