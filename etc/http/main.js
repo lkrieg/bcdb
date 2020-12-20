@@ -42,15 +42,21 @@ function update()
 	});
 }
 
+function main()
+{
+	time = 1;
+	setTimeout(update, 500);
+
+}
+
 function refreshTable()
 {
 	$('#table').bootstrapTable('refresh', {silent: true});
 }
 
-function main()
-{
-	time = 1;
-	setTimeout(update, 500);
-}
+// Quick fix to prevent flash of unstyled content
+$('#table').on('post-body.bs.table', function (data) {
+	$('body').show();
+})
 
 window.onload = main;
