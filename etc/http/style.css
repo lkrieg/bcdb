@@ -2,14 +2,6 @@ body {
 	display: none;
 }
 
-.scanned td {
-	background: #C0FFB4;
-}
-
-.scanned:hover td {
-	background: #A7E69B;
-}
-
 .navbar-brand i {
 	margin-right: 16px;
 }

@@ -32,6 +32,7 @@ function main()
 {
 	time = 1;
 	setTimeout(update, 500);
+
 }
 
 function setGroup(value, idx, data)
@@ -42,10 +43,10 @@ function setGroup(value, idx, data)
 function rowStyle(row, index)
 {
 	var status = [
-		"waiting",
-		"scanned",
-		"unknown",
-		"invalid"
+		"table-default",
+		"table-success",
+		"table-warning",
+		"table-danger"
 	];
 
 	return {
