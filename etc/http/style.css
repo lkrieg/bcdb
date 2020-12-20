@@ -42,7 +42,7 @@ body {
 	font-weight: bold;
 }
 
-#view td:nth-child(3) {
+#view tbody td:nth-child(3) {
 	text-transform: uppercase;
 	text-align: center;
 }
