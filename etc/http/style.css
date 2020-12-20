@@ -3,13 +3,19 @@ body {
 }
 
 .scanned td {
-	background-color: #C0FFB4;
+	background: #C0FFB4;
 }
 
 .scanned:hover td {
-	background-color: #A7E69B;
+	background: #A7E69B;
 }
 
 .navbar-brand i {
 	margin-right: 16px;
+}
+
+@media only screen and (max-width: 458px) {
+	.navbar-brand {
+		display: none;
+	}
 }
