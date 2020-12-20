@@ -84,8 +84,8 @@ function clear()
 
 function main()
 {
-	time = 0;
 	getlist();
+	time = 1; // First update
 	setTimeout(update, 500);
 }
 

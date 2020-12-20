@@ -4,7 +4,6 @@
 #include "hashtable.h"
 
 #include <stdio.h>
-#include <time.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -15,7 +14,7 @@ static table_t tab;
 static bool active;
 static char cache[MAX_CACHE];
 static int cachesize;
-static time_t t, updated;
+static long timestamp;
 
 static int CacheTable(void);
 
@@ -25,7 +24,6 @@ int DAT_Init(void)
 	if (Table_Init(&tab, MAX_HASH) < 0)
 		return -1;
 
-	t = time(NULL);
 	active = true;
 	return 0;
 }
@@ -80,10 +78,12 @@ long DAT_GetTime(void)
 {
 	Assert(active);
 
-	if (!updated)
-		return 0;
+	// Not really a timestamp but a update counter
+	// Timestamps could lead to problems with http
+	// clients missing database updates happening in
+	// the same second
 
-	return (long) updated - t;
+	return timestamp;
 }
 
 int DAT_Insert(const char *key, const entry_t *ent)
@@ -139,7 +139,7 @@ static int CacheTable(void)
 	cache[total++] = '[';
 	cache[total++] = '\n';
 
-	updated = time(NULL);
+	timestamp++;
 	Verbose("Rebuilding database cache...");
 	for (i = 0; i < tab.numentries; i++) {
 		ent = tab.data + i;
