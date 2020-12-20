@@ -60,8 +60,20 @@ function refreshTable()
 }
 
 // Quick fix to prevent flash of unstyled content
+// Also replaces status codes with human readable strings
 $('#table').on('post-body.bs.table', function (data) {
+
+	var status;
+
+	$('tbody .status').each(function() {
+		status = parseInt($(this).text());
+		$(this).text((status == 0) ? "Waiting" :
+		             (status == 1) ? "Scanned" :
+		             (status == 2) ? "Invalid" :
+		                             "Unknown");
+	});
+
 	$('body').show();
-})
+});
 
 window.onload = main;

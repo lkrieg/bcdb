@@ -11,6 +11,13 @@ body {
 	background: #F6F6F6;
 }
 
+tbody .recipient {
+	font-weight: bold;
+}
+
+tbody .status {
+}
+
 @media only screen and (max-width: 458px) {
 	.navbar-brand {
 		display: none;
