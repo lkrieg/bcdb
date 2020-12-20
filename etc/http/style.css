@@ -1,57 +1,11 @@
-.waiting {
-	background: #F7F7F7;
+.scanned td {
+  background-color: #61B15A;
 }
 
-.scanned {
-	background: #5CB85C;
+.scanned:hover td {
+  background-color: #54A34D;
 }
 
-.invalid {
-	background: #F0AD4E;
-}
-
-.unknown {
-	background: #D9534F;
-}
-
-body {
-	background: #111111;
-}
-
-#content {
-	width: 80%;
-	min-width: 500px;
-	max-width: 700px;
-	margin: 0 auto;
-	font-family: monospace;
-	font-weight: 500;
-	font-size: 1.1em;
-	color: #111111;
-}
-
-#view {
-	width: 100%;
-}
-
-#view th,
-#view td {
-	padding: 4px 15px;
-}
-
-#view td:nth-child(1) {
-	font-weight: bold;
-}
-
-#view tbody td:nth-child(3) {
-	text-transform: uppercase;
-	text-align: center;
-}
-
-#view thead tr {
-	text-align: left;
-	font-weight: 700;
-	font-size: 1.25em;
-	color: #FFFFFF;
-	text-shadow: 1px 0 0 #000, 0 -1px 0 #000,
-	             0 1px 0 #000, -1px 0 0 #000;
+.navbar-brand i {
+  margin-right: 16px;
 }
