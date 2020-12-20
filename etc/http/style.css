@@ -3,11 +3,11 @@ body {
 }
 
 .scanned td {
-	background-color: #61B15A;
+	background-color: #C0FFB4;
 }
 
 .scanned:hover td {
-	background-color: #54A34D;
+	background-color: #A7E69B;
 }
 
 .navbar-brand i {
